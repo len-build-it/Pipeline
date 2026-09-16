@@ -252,25 +252,25 @@ Continue automatically to P5.
 ## Phase 5 - Real task management
 
 Requirements: FEAT-003/REQ-001 through REQ-008.
-State: Awaiting approval.
+State: Complete.
 
 ### Tasks
 
-- [ ] Implement task creation, editing, assignment, permitted member status updates, date and label validation, search, filters, and pagination.
-- [ ] Implement comments, author editing, lead moderation, activity display, read-only archival, and update-conflict handling.
-- [ ] Connect all web task controls to the API and provide clear errors for inactive assignees, stale edits, and permissions lost during editing.
+- [x] Implement task creation, editing, assignment, permitted member status updates, date and label validation, search, filters, and pagination.
+- [x] Implement comments, author editing, lead moderation, activity display, read-only archival, and update-conflict handling.
+- [x] Connect all web task controls to the API and provide clear errors for inactive assignees, stale edits, and permissions lost during editing.
 
 ### Verification
 
-- [ ] Run `npm run check`, `npm test`, and `npm run test:ui`; all must pass with task tests included.
-- [ ] Verify a Member can update only status on their assigned task, cannot change assignee or organization, and can comment only while they have access.
-- [ ] Check due-date boundaries in Manila, completed-task exclusion from overdue counts, empty titles, oversized fields, and inactive or foreign assignees.
-- [ ] Use two clients to trigger an edit conflict and prove neither silent overwrites nor partial activity writes occur.
-- [ ] Verify cross-organization task/comment identifiers, escaped script-like text, archive read-only behavior, and search/filter combination results.
+- [x] Run `npm run check`, `npm test`, and `npm run test:ui`; all must pass with task tests included.
+- [x] Verify a Member can update only status on their assigned task, cannot change assignee or organization, and can comment only while they have access.
+- [x] Check due-date boundaries in Manila, completed-task exclusion from overdue counts, empty titles, oversized fields, and inactive or foreign assignees.
+- [x] Use two clients to trigger an edit conflict and prove neither silent overwrites nor partial activity writes occur.
+- [x] Verify cross-organization task/comment identifiers, escaped script-like text, archive read-only behavior, and search/filter combination results.
 
 ### Review and checkpoint
 
-- [ ] Perform the common checkpoint protocol.
+- [x] Perform the common checkpoint protocol.
 
 Checkpoint message: `feat(tasks): deliver assignments comments and activity tracking`
 Continue automatically to P6.
@@ -278,7 +278,7 @@ Continue automatically to P6.
 ## Phase 6 - Announcements and actionable overview
 
 Requirements: FEAT-004/REQ-001 through REQ-008 and FEAT-001/REQ-004 and REQ-008.
-State: Awaiting approval.
+State: Ready to execute.
 
 ### Tasks
 

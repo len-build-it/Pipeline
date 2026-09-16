@@ -46,16 +46,16 @@ Target branch codex/organization-manager-mvp created from master at 87f7ec8.
 
 HANDOFF.md, IMPLEMENTATION_PLAN.md, and docs are preserved and updated.
 
-Phase 1 through Phase 4 complete; Phase 5 ready to execute.
+Phase 1 through Phase 5 complete; Phase 6 ready to execute.
 
 | Phase | Outcome | State | Checkpoint |
 | --- | --- | --- | --- |
 | P1 | Responsive web experience | Complete | feat(ui): complete responsive organization dashboard experience (commit e24299d) |
 | P2 | Flutter Android experience | Complete | feat(mobile): complete Android management interface (commit 3039a89) |
 | P3 | Shared data and secure access | Complete | feat(auth): establish shared API and organization access boundaries (commit c62aff3) |
-| P4 | Real member management | Complete | feat(members): deliver invitations profiles and membership controls |
-| P5 | Real task management | Ready to execute | None. |
-| P6 | Announcements and actionable overview | Not started | None. |
+| P4 | Real member management | Complete | feat(members): deliver invitations profiles and membership controls (commit d184630) |
+| P5 | Real task management | Complete | feat(tasks): deliver assignments comments and activity tracking |
+| P6 | Announcements and actionable overview | Ready to execute | None. |
 | P7 | Connected Android and offline reads | Not started | None. |
 | P8 | Integrated verification and local release handoff | Not started | None. |
 
@@ -88,6 +88,6 @@ At three unsuccessful fixes for one issue, stop dependent work and report the sm
 
 ## Next action
 
-Execute Phase 5 (Real task management): implement scoped task listing, filtering, task creation, status updates, priority and due date modifications, task comments, optimistic concurrency (version checking), and archival.
+Execute Phase 6 (Announcements and actionable overview): implement announcement draft creation/editing, target audience selection, preview, publication (immutable once published), archive, search, and target-scoped activity history; implement scoped and combined dashboard summaries with deduplicated users and announcements, plus actionable task and announcement lists.
 
 The final handoff must distinguish locally verified software completion from pending physical-device and production-release checks.

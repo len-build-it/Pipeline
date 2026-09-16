@@ -11,7 +11,8 @@
     "db:migrate:test": "node db/migrate.js --test",
     "test:auth": "node --test --test-concurrency=1 tests/auth/auth.test.js",
     "test:members": "node --test --test-concurrency=1 tests/members/members.test.js",
-    "test": "npm run test:auth && npm run test:members",
+    "test:tasks": "node --test --test-concurrency=1 tests/tasks/tasks.test.js",
+    "test": "npm run test:auth && npm run test:members && npm run test:tasks",
     "test:ui": "playwright test"
   },
   "dependencies": {

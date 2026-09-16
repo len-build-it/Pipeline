@@ -1,9 +1,9 @@
 # Verification ledger for the organization management MVP
 
 Created: 2026-09-16T21:49:38+08:00
-Updated: 2026-09-17T00:03:00+08:00
-Revision: 4
-Status: Phase 1, Phase 2, Phase 3, and Phase 4 complete.
+Updated: 2026-09-17T00:27:00+08:00
+Revision: 5
+Status: Phase 1 through Phase 5 complete.
 
 ## Planning checks
 
@@ -41,7 +41,7 @@ Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T
 | P2, shared Android UI | Analyze, widget tests, debug build, emulator UI and TalkBack. | Passed: `flutter analyze` 0 issues; `flutter test` 5/5 passed; `flutter build apk --debug` succeeded; emulator execution and screenshots captured. | Flutter 3.44.7, Android 17 (API 37) emulator. Physical-device behavior remains separate. |
 | P3, FEAT-001 access | PostgreSQL-backed authentication, invitations, CSRF, roles, sessions, and isolation. | Passed: `npm run check` exited 0; `npm run db:migrate` and `:test` passed idempotently; `npm run test:auth` passed 22/22 tests; `npm run test:ui` passed 8/8 tests. | PostgreSQL 18.4 local cluster on port 5433, Node 24.14.0. Local inbox SMTP capture remains for P4. |
 | P4, FEAT-002 | Lifecycle, private-note isolation, mail failure, and invite journey. | Passed: `npm run check` exited 0; `npm run test:members` passed 22/22; `npm run test:auth` passed 22/22; `npm run test:ui` passed 8/8. | PostgreSQL 18.4 (port 5433), Node 24.14.0, local in-memory SMTP capture. |
-| P5, FEAT-003 | Permissions, dates, comments, conflicts, archival, and API/UI evidence. | Not run | Include negative paths and regressions. |
+| P5, FEAT-003 | Permissions, dates, comments, conflicts, archival, and API/UI evidence. | Passed: `npm run check` exited 0; `npm test` passed 77/77 tests (22 auth, 22 members, 33 tasks); `npm run test:ui` passed 8/8 tests. | PostgreSQL 18.4 (port 5433), Node 24.14.0. |
 | P6, FEAT-004 and dashboard | Audience isolation, immutable publication, distinct counts, full web journey. | Not run | Cover cross-organization records. |
 | P7, FEAT-005 and Android parity | Real-API emulator journeys, offline expiry, account isolation, and reconnect. | Not run | Record API 24 and API 36 separately. |
 | P8, all | Final suite, contrast/accessibility, timing distribution, restore, and build path. | Not run | Local performance is not hosted performance. |
@@ -152,6 +152,32 @@ Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T
   - Attempt 1: In `tests/members/members.test.js`, simulated failure test used `failEmail = 'delivery_fail_user@example.com'`, which prevented subsequent `resend` from succeeding because the email address itself matched the failure heuristic.
   - Fix: Updated test to toggle `setSimulateEmailFailure(true)` for the failure test and disable it for the resend test. All 22 tests passed immediately on first retry.
 - Limitations: Local nodemailer in-memory capture. Production SMTP server and third-party delivery remain separate.
+
+### Phase 5 detailed results (2026-09-17T00:27:00+08:00)
+
+- Command `npm run check`: Passed, 30 JavaScript files parsed with `node --check`, zero syntax errors or broken references.
+- Command `npm run test:tasks`: Passed 33/33 tests across 8 suites in 1.8s on Node v24.14.0 and PostgreSQL 18.4 (port 5433).
+- Command `npm test`: Passed 77/77 tests (22 auth, 22 members, 33 tasks) in 7.2s with zero regressions.
+- Command `npm run test:ui`: Passed 8/8 Playwright tests in 35.3s.
+- Scenarios verified:
+  - Task creation: Lead and Owner can create tasks with title, description, assignee, priority, status, due date, and labels.
+  - Role restrictions: Regular Member cannot create tasks (403 Forbidden).
+  - Title validation: Rejects empty title (400) and title exceeding 200 characters (400).
+  - Field validation: Rejects invalid status (400), invalid priority (400), and malformed date strings (400).
+  - Scope assignment: Assignee must be an active member within the specified organization (foreign/inactive assignees rejected with 400).
+  - Scoped listing: Organization tasks listed with pagination and counts, strictly excluding other organizations.
+  - Overdue calculation: `overdue=true` filters uncompleted tasks past their Manila due date and strictly excludes tasks with status `Done`.
+  - Rich filters: Search by title substring, filter by status, priority, assigneeId, and jsonb label array.
+  - Member status permissions: Assigned Member can update ONLY `status` on their assigned task; non-assigned Member rejected with 403; assigned Member attempting to edit title, priority, or assignee rejected with 403.
+  - Lead/Owner update: Lead can update all fields and increment task version.
+  - Optimistic concurrency: Concurrent update attempt with stale version is rejected with 409 Conflict (`This task was modified by another user. Please refresh and review before saving.`).
+  - Read-only archival: Lead can archive a task; archived task is excluded from default view, included under `archived=true`; updates to archived tasks rejected with 400 (`Archived tasks are read-only and cannot be modified.`).
+  - Task comments: Active member posts comment; empty body rejected with 400; author can edit own comment; Lead cannot rewrite author's words (403); Lead can delete comments for moderation; comment author can delete own comment.
+  - Activity audit trail: Structured activity events recorded for task creation, status changes, assignment changes, and comments.
+  - Cross-organization isolation: Non-member denied access to organization tasks (403); cross-org route tampering rejected with 404/403.
+- Fix attempt history:
+  - 0 unsuccessful attempts; all 33 task tests passed on first run.
+- Limitations: Local PostgreSQL cluster on port 5433. Production deployment, hosted databases, and physical device verification remain separate.
 
 During execution, add a row for each actual check with requirement IDs, literal command or scenario, exit result, ISO timestamp, versions and conditions, and screenshot path where relevant.
 

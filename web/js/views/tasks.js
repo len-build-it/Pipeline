@@ -470,17 +470,82 @@ export function openTaskDetailModal(taskId, state, actions) {
       return;
     }
 
-    task.title = title;
-    task.description = modal.querySelector('#task-edit-desc').value.trim();
-    task.status = modal.querySelector('#task-edit-status').value;
-    task.priority = modal.querySelector('#task-edit-priority').value;
+    const description = modal.querySelector('#task-edit-desc').value.trim();
+    const status = modal.querySelector('#task-edit-status').value;
+    const priority = modal.querySelector('#task-edit-priority').value;
     const assigneeId = modal.querySelector('#task-edit-assignee').value;
+    const dueDate = modal.querySelector('#task-edit-duedate').value || null;
+    const labelsRaw = modal.querySelector('#task-edit-labels').value;
+    const labels = labelsRaw.split(',').map(l => l.trim()).filter(Boolean);
+
+    if (state.isRealAuth && state.token) {
+      fetch(`/api/organizations/${task.orgId}/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.token}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          status,
+          priority,
+          assigneeId: assigneeId || null,
+          dueDate,
+          labels,
+          version: task.version,
+        }),
+      }).then(async res => {
+        if (res.status === 409) {
+          modal.querySelector('#task-modal-alert').innerHTML = `
+            <div class="alert-banner alert-danger" role="alert">
+              <div>
+                <strong>Edit conflict!</strong> Another user updated this task. Your unsaved changes have been kept.
+                Please <button class="btn btn-secondary btn-sm" id="btn-reload-task-conflict" style="margin-left:6px; min-height:30px;">Reload</button>
+              </div>
+            </div>
+          `;
+          modal.querySelector('#btn-reload-task-conflict')?.addEventListener('click', () => {
+            closeModal();
+            actions.refresh();
+          });
+          return;
+        }
+        if (!res.ok) {
+          const err = await res.json();
+          alert(`Error: ${err.message || 'Failed to update task.'}`);
+          return;
+        }
+        const updated = await res.json();
+        Object.assign(task, {
+          title: updated.title,
+          description: updated.description,
+          status: updated.status,
+          priority: updated.priority,
+          assignee: updated.assigneeId,
+          dueDate: updated.dueDate,
+          labels: updated.labels,
+          version: updated.version,
+          updatedAt: updated.updatedAt,
+        });
+        alert('Task updated successfully.');
+        closeModal();
+        actions.refresh();
+      }).catch(err => {
+        alert(`Network error: ${err.message}`);
+      });
+      return;
+    }
+
+    task.title = title;
+    task.description = description;
+    task.status = status;
+    task.priority = priority;
     task.assignee = assigneeId || null;
     const assigneeObj = state.members.find(m => m.userId === assigneeId);
     task.assigneeName = assigneeObj ? assigneeObj.displayName : 'Unassigned';
-    task.dueDate = modal.querySelector('#task-edit-duedate').value || null;
-    const labelsRaw = modal.querySelector('#task-edit-labels').value;
-    task.labels = labelsRaw.split(',').map(l => l.trim()).filter(Boolean);
+    task.dueDate = dueDate;
+    task.labels = labels;
     task.updatedAt = new Date().toISOString();
 
     alert('Task updated successfully.');
@@ -490,7 +555,36 @@ export function openTaskDetailModal(taskId, state, actions) {
 
   // Save status by assignee
   modal.querySelector('#btn-save-assignee-status')?.addEventListener('click', () => {
-    task.status = modal.querySelector('#task-member-status').value;
+    const status = modal.querySelector('#task-member-status').value;
+
+    if (state.isRealAuth && state.token) {
+      fetch(`/api/organizations/${task.orgId}/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.token}`,
+        },
+        body: JSON.stringify({ status, version: task.version }),
+      }).then(async res => {
+        if (!res.ok) {
+          const err = await res.json();
+          alert(`Error: ${err.message || 'Failed to update status.'}`);
+          return;
+        }
+        const updated = await res.json();
+        task.status = updated.status;
+        task.version = updated.version;
+        task.updatedAt = updated.updatedAt;
+        alert('Task status updated successfully.');
+        closeModal();
+        actions.refresh();
+      }).catch(err => {
+        alert(`Network error: ${err.message}`);
+      });
+      return;
+    }
+
+    task.status = status;
     task.updatedAt = new Date().toISOString();
     alert('Task status updated successfully.');
     closeModal();
@@ -502,13 +596,45 @@ export function openTaskDetailModal(taskId, state, actions) {
     const body = modal.querySelector('#task-new-comment').value.trim();
     if (!body) return;
 
+    if (state.isRealAuth && state.token) {
+      fetch(`/api/organizations/${task.orgId}/tasks/${task.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.token}`,
+        },
+        body: JSON.stringify({ body }),
+      }).then(async res => {
+        if (!res.ok) {
+          const err = await res.json();
+          alert(`Error: ${err.message || 'Failed to post comment.'}`);
+          return;
+        }
+        const newCmt = await res.json();
+        if (!task.comments) task.comments = [];
+        task.comments.push({
+          id: newCmt.id,
+          authorId: newCmt.authorId,
+          authorName: newCmt.authorName || currentUser.displayName,
+          body: newCmt.body,
+          createdAt: newCmt.createdAt,
+        });
+        closeModal();
+        openTaskDetailModal(taskId, state, actions);
+        actions.refresh();
+      }).catch(err => {
+        alert(`Network error: ${err.message}`);
+      });
+      return;
+    }
+
     if (!task.comments) task.comments = [];
     task.comments.push({
       id: 'cmt-' + Date.now(),
       authorId: currentUser.id,
       authorName: currentUser.displayName,
       body,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     });
 
     closeModal();
@@ -520,6 +646,27 @@ export function openTaskDetailModal(taskId, state, actions) {
   modal.querySelectorAll('.btn-delete-comment').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const cmtId = e.currentTarget.getAttribute('data-cmt-id');
+
+      if (state.isRealAuth && state.token) {
+        fetch(`/api/organizations/${task.orgId}/tasks/${task.id}/comments/${cmtId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${state.token}` },
+        }).then(async res => {
+          if (!res.ok) {
+            const err = await res.json();
+            alert(`Error: ${err.message || 'Failed to delete comment.'}`);
+            return;
+          }
+          task.comments = task.comments.filter(c => c.id !== cmtId);
+          closeModal();
+          openTaskDetailModal(taskId, state, actions);
+          actions.refresh();
+        }).catch(err => {
+          alert(`Network error: ${err.message}`);
+        });
+        return;
+      }
+
       task.comments = task.comments.filter(c => c.id !== cmtId);
       closeModal();
       openTaskDetailModal(taskId, state, actions);
@@ -534,6 +681,31 @@ export function openTaskDetailModal(taskId, state, actions) {
       if (!comment) return;
       const newBody = prompt('Edit comment:', comment.body);
       if (newBody !== null && newBody.trim()) {
+        if (state.isRealAuth && state.token) {
+          fetch(`/api/organizations/${task.orgId}/tasks/${task.id}/comments/${cmtId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${state.token}`,
+            },
+            body: JSON.stringify({ body: newBody.trim() }),
+          }).then(async res => {
+            if (!res.ok) {
+              const err = await res.json();
+              alert(`Error: ${err.message || 'Failed to update comment.'}`);
+              return;
+            }
+            const updated = await res.json();
+            comment.body = updated.body;
+            closeModal();
+            openTaskDetailModal(taskId, state, actions);
+            actions.refresh();
+          }).catch(err => {
+            alert(`Network error: ${err.message}`);
+          });
+          return;
+        }
+
         comment.body = newBody.trim();
         closeModal();
         openTaskDetailModal(taskId, state, actions);
@@ -545,6 +717,27 @@ export function openTaskDetailModal(taskId, state, actions) {
   // Archive task
   modal.querySelector('#btn-archive-task')?.addEventListener('click', () => {
     if (confirm('Are you sure you want to archive this task? Archived tasks are read-only.')) {
+      if (state.isRealAuth && state.token) {
+        fetch(`/api/organizations/${task.orgId}/tasks/${task.id}/archive`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${state.token}` },
+        }).then(async res => {
+          if (!res.ok) {
+            const err = await res.json();
+            alert(`Error: ${err.message || 'Failed to archive task.'}`);
+            return;
+          }
+          task.archived = true;
+          task.archivedAt = new Date().toISOString();
+          alert('Task archived.');
+          closeModal();
+          actions.refresh();
+        }).catch(err => {
+          alert(`Network error: ${err.message}`);
+        });
+        return;
+      }
+
       task.archived = true;
       task.archivedAt = new Date().toISOString();
       alert('Task archived.');

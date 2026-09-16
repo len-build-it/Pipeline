@@ -64,6 +64,33 @@ class App {
             const otherMembers = this.state.members.filter(m => m.orgId !== orgId);
             this.state.members = [...otherMembers, ...memData.members];
           }
+
+          const taskRes = await fetch(`/api/organizations/${encodeURIComponent(orgId)}/tasks?limit=100`, {
+            headers: { 'Authorization': `Bearer ${this.state.token}` },
+          });
+          if (taskRes.ok) {
+            const taskData = await taskRes.json();
+            const otherTasks = this.state.tasks.filter(t => t.orgId !== orgId);
+            this.state.tasks = [...otherTasks, ...taskData.tasks.map(t => ({
+              id: t.id,
+              orgId: t.orgId,
+              title: t.title,
+              description: t.description,
+              creator: t.creatorId,
+              creatorName: t.creatorName,
+              assignee: t.assigneeId,
+              assigneeName: t.assigneeName,
+              status: t.status,
+              priority: t.priority,
+              dueDate: t.dueDate,
+              labels: t.labels || [],
+              version: t.version,
+              archived: Boolean(t.archivedAt),
+              archivedAt: t.archivedAt,
+              comments: [],
+              updatedAt: t.updatedAt,
+            }))];
+          }
         }
       } catch {
         // Fallback to local
@@ -659,6 +686,56 @@ class App {
       }
 
       const assigneeObj = this.state.members.find(m => m.userId === assigneeId && m.orgId === orgId);
+
+      if (this.state.isRealAuth && this.state.token) {
+        fetch(`/api/organizations/${orgId}/tasks`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.state.token}`,
+          },
+          body: JSON.stringify({
+            title,
+            description: desc,
+            priority,
+            assigneeId: assigneeId || null,
+            dueDate: dueDate || null,
+            labels,
+          }),
+        }).then(async res => {
+          if (!res.ok) {
+            const err = await res.json();
+            alert(`Error: ${err.message || 'Failed to create task.'}`);
+            return;
+          }
+          const created = await res.json();
+          this.state.tasks.unshift({
+            id: created.id,
+            orgId: created.orgId,
+            title: created.title,
+            description: created.description,
+            creator: created.creatorId,
+            creatorName: currentUser.displayName,
+            assignee: created.assigneeId,
+            assigneeName: assigneeObj ? assigneeObj.displayName : 'Unassigned',
+            status: created.status,
+            priority: created.priority,
+            dueDate: created.dueDate,
+            labels: created.labels || [],
+            version: created.version,
+            archived: false,
+            updatedAt: created.updatedAt,
+            comments: [],
+          });
+          isDirty = false;
+          modal.remove();
+          alert('Task created successfully in Backlog.');
+          this.render();
+        }).catch(err => {
+          alert(`Network error: ${err.message}`);
+        });
+        return;
+      }
 
       const newTask = {
         id: 'tsk-' + Date.now(),
