@@ -66,7 +66,7 @@ export function renderSignIn(container, state, actions) {
 
   // Handle Form Submit
   const form = container.querySelector('#sign-in-form');
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = container.querySelector('#signin-email').value.trim();
     const password = container.querySelector('#signin-password').value;
@@ -92,16 +92,51 @@ export function renderSignIn(container, state, actions) {
 
     if (!valid) return;
 
-    // Match synthetic user
-    const matchedPersona = Object.values(FIXTURE_USERS).find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (matchedPersona) {
-      actions.signInUser(matchedPersona);
-    } else {
-      container.querySelector('#auth-alert-container').innerHTML = `
-        <div class="alert-banner alert-danger" role="alert">
-          <span>Invalid email or password. Use demo persona or correct credentials.</span>
-        </div>
-      `;
+    // Try real API authentication first
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (actions?.signInRealUser) {
+          actions.signInRealUser(data);
+        } else if (actions?.signInUser) {
+          actions.signInUser({
+            id: data.user.id,
+            name: data.user.displayName,
+            email: data.user.email,
+            role: data.user.isOwner ? 'Owner' : 'Member',
+            isGlobalOwner: data.user.isOwner,
+            avatarColor: data.user.avatarColor || '#0D9488',
+            memberships: (data.organizations || []).map(o => ({ orgId: o.id, role: o.role, status: o.membership_status })),
+          });
+        }
+        return;
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        container.querySelector('#auth-alert-container').innerHTML = `
+          <div class="alert-banner alert-danger" role="alert">
+            <span>${errData.message || 'Invalid email or password.'}</span>
+          </div>
+        `;
+        return;
+      }
+    } catch {
+      // API unreachable: fallback to matching synthetic demo persona
+      const matchedPersona = Object.values(FIXTURE_USERS).find(u => u.email.toLowerCase() === email.toLowerCase());
+      if (matchedPersona) {
+        actions.signInUser(matchedPersona);
+      } else {
+        container.querySelector('#auth-alert-container').innerHTML = `
+          <div class="alert-banner alert-danger" role="alert">
+            <span>Invalid email or password. Use demo persona or correct credentials.</span>
+          </div>
+        `;
+      }
     }
   });
 
@@ -178,7 +213,7 @@ export function renderInviteAccept(container, state, actions) {
 
   const form = container.querySelector('#invite-accept-form');
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const token = container.querySelector('#invite-token').value.trim();
     const email = container.querySelector('#invite-email').value.trim();
@@ -206,39 +241,62 @@ export function renderInviteAccept(container, state, actions) {
 
     if (!valid) return;
 
-    // Simulate successful acceptance
-    const newUser = {
-      id: 'usr-new-' + Date.now(),
-      email,
-      displayName: name,
-      avatarColor: '#059669',
-      status: 'active',
-      isGlobalOwner: false,
-      skills: [],
-      interests: [],
-      memberships: [
-        { orgId: 'org-1', role: 'Member', status: 'active', notes: '' }
-      ]
-    };
+    // Try real API accept
+    try {
+      const res = await fetch('/api/auth/invitation/accept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, email, password, displayName: name }),
+      });
 
-    // Add to members list
-    state.members.push({
-      id: 'mem-' + Date.now(),
-      userId: newUser.id,
-      orgId: 'org-1',
-      displayName: name,
-      email,
-      avatarColor: '#059669',
-      role: 'Member',
-      status: 'active',
-      joinedAt: new Date().toISOString(),
-      skills: [],
-      interests: [],
-      notes: ''
-    });
+      if (res.ok) {
+        const data = await res.json();
+        alert(`Welcome, ${name}! Invitation accepted.`);
+        actions.renderSignInView();
+        return;
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        container.querySelector('#invite-alert-container').innerHTML = `
+          <div class="alert-banner alert-danger" role="alert">
+            <span>${errData.message || 'Invitation expired or used.'}</span>
+          </div>
+        `;
+        return;
+      }
+    } catch {
+      // API unreachable: simulate successful acceptance in demo state
+      const newUser = {
+        id: 'usr-new-' + Date.now(),
+        email,
+        displayName: name,
+        avatarColor: '#059669',
+        status: 'active',
+        isGlobalOwner: false,
+        skills: [],
+        interests: [],
+        memberships: [
+          { orgId: 'org-1', role: 'Member', status: 'active', notes: '' }
+        ]
+      };
 
-    alert(`Welcome, ${name}! Invitation accepted for AqOne.`);
-    actions.signInUser(newUser);
+      state.members.push({
+        id: 'mem-' + Date.now(),
+        userId: newUser.id,
+        orgId: 'org-1',
+        displayName: name,
+        email,
+        avatarColor: '#059669',
+        role: 'Member',
+        status: 'active',
+        joinedAt: new Date().toISOString(),
+        skills: [],
+        interests: [],
+        notes: ''
+      });
+
+      alert(`Welcome, ${name}! Invitation accepted for AqOne.`);
+      actions.signInUser(newUser);
+    }
   });
 
   // Test expired

@@ -195,29 +195,29 @@ Continue automatically to P3.
 ## Phase 3 - Shared data and secure access
 
 Requirements: FEAT-001/REQ-001 through REQ-003 and REQ-005 through REQ-007; shared architecture and data boundaries.
-State: In progress.
+State: Complete.
 
 ### Tasks
 
-- [ ] Create schema migrations for the shared entities, including membership uniqueness, organization foreign keys, invitation digests, sessions, archival fields, and activity history.
-- [ ] Establish the dedicated development/test database configuration, migration commands, and synthetic setup without modifying unrelated databases.
-- [ ] Implement Fastify schemas, safe error responses, logging redaction, parameterized SQL, authenticated scope checks, and same-origin static asset serving.
-- [ ] Implement login, refresh rotation, sign out, invitation acceptance, local owner provisioning, and local password recovery using the approved policies.
-- [ ] Connect web sign-in, scope selection, and session expiry handling to real endpoints; retain the separate demo only for UI review.
-- [ ] Use secure cookies, CSRF and Origin checks for cookie endpoints, rate limits, and safe redirect targets.
+- [x] Create schema migrations for the shared entities, including membership uniqueness, organization foreign keys, invitation digests, sessions, archival fields, and activity history.
+- [x] Establish the dedicated development/test database configuration, migration commands, and synthetic setup without modifying unrelated databases.
+- [x] Implement Fastify schemas, safe error responses, logging redaction, parameterized SQL, authenticated scope checks, and same-origin static asset serving.
+- [x] Implement login, refresh rotation, sign out, invitation acceptance, local owner provisioning, and local password recovery using the approved policies.
+- [x] Connect web sign-in, scope selection, and session expiry handling to real endpoints; retain the separate demo only for UI review.
+- [x] Use secure cookies, CSRF and Origin checks for cookie endpoints, rate limits, and safe redirect targets.
 
 ### Verification
 
-- [ ] Run `npm run db:migrate` twice; the second run must perform no duplicate migration or data recreation.
-- [ ] Run `npm run db:migrate:test`, `npm run check`, `npm run test:auth`, and `npm run test:ui`; all must pass.
-- [ ] Check invalid credentials, expired access token, refresh success, replayed refresh token, revoked session, inactive account, and logout followed by token replay.
-- [ ] Check forged organization identifiers on both reads and writes, global Owner access, dual membership, and direct access without a valid membership.
-- [ ] Check invite email mismatch, expiry, duplicate/concurrent acceptance, and lost-response retry; assert one membership and no used-token access grant.
-- [ ] Verify CSRF rejection, no tokens or passwords in captured logs, and that production startup cannot use demo personas.
+- [x] Run `npm run db:migrate` twice; the second run must perform no duplicate migration or data recreation.
+- [x] Run `npm run db:migrate:test`, `npm run check`, `npm run test:auth`, and `npm run test:ui`; all must pass.
+- [x] Check invalid credentials, expired access token, refresh success, replayed refresh token, revoked session, inactive account, and logout followed by token replay.
+- [x] Check forged organization identifiers on both reads and writes, global Owner access, dual membership, and direct access without a valid membership.
+- [x] Check invite email mismatch, expiry, duplicate/concurrent acceptance, and lost-response retry; assert one membership and no used-token access grant.
+- [x] Verify CSRF rejection, no tokens or passwords in captured logs, and that production startup cannot use demo personas.
 
 ### Review and checkpoint
 
-- [ ] Perform the common checkpoint protocol.
+- [x] Perform the common checkpoint protocol.
 
 Checkpoint message: `feat(auth): establish shared API and organization access boundaries`
 Continue automatically to P4.

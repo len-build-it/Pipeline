@@ -27,8 +27,37 @@ class App {
     this.render();
   }
 
-  setScope(orgId) {
+  getActions() {
+    return {
+      signInUser: (user) => this.signInUser(user),
+      signInRealUser: (data) => this.signInRealUser(data),
+      signOut: () => this.signOut(),
+      renderSignInView: () => this.navigateTo('signin'),
+      renderInviteAcceptView: () => this.navigateTo('invite'),
+      setScope: (scope) => this.setScope(scope),
+      navigateTo: (view) => this.navigateTo(view),
+    };
+  }
+
+  async setScope(orgId) {
     this.state.currentScope = orgId;
+    if (this.state.isRealAuth && this.state.token) {
+      try {
+        const res = await fetch(`/api/overview?scope=${encodeURIComponent(orgId)}`, {
+          headers: { 'Authorization': `Bearer ${this.state.token}` },
+        });
+        if (res.status === 401) {
+          this.signOut();
+          return;
+        }
+        if (res.ok) {
+          const overviewData = await res.json();
+          this.state.realOverviewMetrics = overviewData.metrics;
+        }
+      } catch {
+        // Fallback to local
+      }
+    }
     this.render();
   }
 
@@ -45,7 +74,48 @@ class App {
     this.render();
   }
 
-  signOut() {
+  async signInRealUser(data) {
+    this.state.isRealAuth = true;
+    this.state.token = data.accessToken;
+    this.state.currentUser = {
+      id: data.user.id,
+      name: data.user.displayName,
+      email: data.user.email,
+      role: data.user.isOwner ? 'Owner' : 'Member',
+      isGlobalOwner: data.user.isOwner,
+      avatarColor: data.user.avatarColor || '#0D9488',
+      memberships: (data.organizations || []).map(o => ({
+        orgId: o.id,
+        role: o.role,
+        status: o.membership_status,
+      })),
+    };
+    if (data.organizations && data.organizations.length > 0) {
+      this.state.organizations = data.organizations.map(o => ({
+        id: o.id,
+        name: o.name,
+        status: o.status,
+      }));
+    }
+    if (this.state.currentUser.isGlobalOwner) {
+      this.state.currentScope = 'all';
+    } else if (this.state.currentUser.memberships.length > 0) {
+      this.state.currentScope = this.state.currentUser.memberships[0].orgId;
+    }
+    await this.setScope(this.state.currentScope);
+  }
+
+  async signOut() {
+    if (this.state.isRealAuth) {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+      } catch {
+        // ignore
+      }
+      this.state.isRealAuth = false;
+      this.state.token = null;
+      this.state.realOverviewMetrics = null;
+    }
     this.currentView = 'signin';
     this.render();
   }

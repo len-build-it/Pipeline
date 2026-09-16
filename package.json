@@ -4,8 +4,13 @@
   "description": "AqOne and Dev Guild Manager MVP",
   "type": "module",
   "scripts": {
+    "start": "node server/index.js",
     "check": "node scripts/check.js",
     "demo": "node server/demo.js",
+    "db:migrate": "node db/migrate.js",
+    "db:migrate:test": "node db/migrate.js --test",
+    "test:auth": "node --test --test-concurrency=1 tests/auth/auth.test.js",
+    "test": "npm run test:auth",
     "test:ui": "playwright test"
   },
   "dependencies": {

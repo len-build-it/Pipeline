@@ -1,8 +1,8 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-09-16T22:25:00+08:00
-State: Phase 1 and Phase 2 complete; Phase 3 in progress.
+Updated: 2026-09-16T23:39:00+08:00
+State: Phase 1, Phase 2, and Phase 3 complete; Phase 4 ready to execute.
 Feature: FEAT-001 through FEAT-005.
 Intended executor: Gemini 3.8, selected by Len.
 
@@ -46,14 +46,14 @@ Target branch codex/organization-manager-mvp created from master at 87f7ec8.
 
 HANDOFF.md, IMPLEMENTATION_PLAN.md, and docs are preserved and updated.
 
-Phase 1 and Phase 2 complete; Phase 3 in progress.
+Phase 1, Phase 2, and Phase 3 complete; Phase 4 ready to execute.
 
 | Phase | Outcome | State | Checkpoint |
 | --- | --- | --- | --- |
 | P1 | Responsive web experience | Complete | feat(ui): complete responsive organization dashboard experience (commit e24299d) |
-| P2 | Flutter Android experience | Complete | feat(mobile): complete Android management interface |
-| P3 | Shared data and secure access | In progress | None. |
-| P4 | Real member management | Not started | None. |
+| P2 | Flutter Android experience | Complete | feat(mobile): complete Android management interface (commit 3039a89) |
+| P3 | Shared data and secure access | Complete | feat(auth): establish shared API and organization access boundaries |
+| P4 | Real member management | Ready to execute | None. |
 | P5 | Real task management | Not started | None. |
 | P6 | Announcements and actionable overview | Not started | None. |
 | P7 | Connected Android and offline reads | Not started | None. |
@@ -75,10 +75,11 @@ The earlier DOCX renderer limitation remains confined to the optional review art
 
 | Problem | Unsuccessful fix-and-check attempts used | Observed result | Next action |
 | --- | --- | --- | --- |
-| Plan and revised specification package await approval | 0 | Planning requested; new package not yet approved. | Obtain one package approval and record it. |
+| Plan and revised specification package await approval | 0, resolved | Approved by Len on 2026-09-16T21:57:07+08:00. | Execution underway. |
 | Initial toolkit startup EACCES | 0, resolved | Required elevated retry succeeded. | No further action in this session. |
-| Flutter version check stalled in sandbox | 0, resolved | Elevated check returned installed versions; stalled probe interrupted. | Recheck runtime readiness at execution. |
-| Docker engine unavailable | 0, environment observation | PostgreSQL is independently running locally. | Use an authorized dedicated database or make project-local infrastructure available. |
+| Flutter version check stalled in sandbox | 0, resolved | Elevated check returned installed versions; stalled probe interrupted. | No further action in this session. |
+| Docker engine unavailable | 0, resolved | Local PostgreSQL cluster independently initialized on port 5433 (.db/data). | Running locally for dev and test databases. |
+| P3 test login rate limit | 0, resolved | IP rate limit triggered 429 during sequential test runs; relaxed rate limit when nodeEnv === 'test'. | All 22 auth tests passing. |
 
 For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
 
@@ -86,6 +87,6 @@ At three unsuccessful fixes for one issue, stop dependent work and report the sm
 
 ## Next action
 
-Execute Phase 3 (Shared data and secure access): establish dedicated PostgreSQL migrations for shared entities, Fastify authentication endpoints, secure cookies, CSRF protection, and organization isolation.
+Execute Phase 4 (Real member management): implement scoped member listing, pagination, roles, status filters, notes, and invitation creation in backend and frontend.
 
 The final handoff must distinguish locally verified software completion from pending physical-device and production-release checks.

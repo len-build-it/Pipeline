@@ -39,6 +39,7 @@ function getFiles(dir, exts = ['.js', '.mjs']) {
 
 info('Checking JavaScript syntax across repository...');
 const jsFiles = [
+  ...getFiles(join(rootDir, 'db')),
   ...getFiles(join(rootDir, 'server')),
   ...getFiles(join(rootDir, 'web')),
   ...getFiles(join(rootDir, 'scripts')),

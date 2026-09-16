@@ -32,22 +32,30 @@ export function renderOverview(container, state, actions) {
 
   // Metrics calculation per PROD-003:
   // Active members count (distinct user IDs if combined)
-  const activeMembersCount = currentScope === 'all'
-    ? new Set(scopedMembers.filter(m => m.status === 'active').map(m => m.userId)).size
-    : scopedMembers.filter(m => m.status === 'active').length;
+  const activeMembersCount = state.realOverviewMetrics
+    ? state.realOverviewMetrics.activeMembers
+    : (currentScope === 'all'
+      ? new Set(scopedMembers.filter(m => m.status === 'active').map(m => m.userId)).size
+      : scopedMembers.filter(m => m.status === 'active').length);
 
   // Open tasks: not archived and not Done
   const openTasks = scopedTasks.filter(t => t.status !== 'Done');
-  const openTasksCount = openTasks.length;
+  const openTasksCount = state.realOverviewMetrics
+    ? state.realOverviewMetrics.openTasks
+    : openTasks.length;
 
   // Overdue: open with dueDate < today Manila date ('2026-09-16')
   const todayManila = '2026-09-16';
   const overdueTasks = openTasks.filter(t => t.dueDate && t.dueDate < todayManila);
-  const overdueTasksCount = overdueTasks.length;
+  const overdueTasksCount = state.realOverviewMetrics
+    ? state.realOverviewMetrics.overdueTasks
+    : overdueTasks.length;
 
   // Recent announcements: published within last 7 Manila days (>= '2026-09-10')
   const recentAnnouncements = scopedAnnouncements.filter(a => a.publishedAt && a.publishedAt.slice(0, 10) >= '2026-09-10');
-  const recentAnnouncementsCount = recentAnnouncements.length;
+  const recentAnnouncementsCount = state.realOverviewMetrics
+    ? state.realOverviewMetrics.announcements
+    : recentAnnouncements.length;
 
   // Actionable tasks: overdue first, then In progress or high priority
   const actionableTasks = [...openTasks].sort((a, b) => {

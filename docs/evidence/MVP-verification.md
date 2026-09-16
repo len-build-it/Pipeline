@@ -1,9 +1,9 @@
 # Verification ledger for the organization management MVP
 
 Created: 2026-09-16T21:49:38+08:00
-Updated: 2026-09-16T22:25:00+08:00
-Revision: 2
-Status: Phase 1 and Phase 2 complete.
+Updated: 2026-09-16T23:37:00+08:00
+Revision: 3
+Status: Phase 1, Phase 2, and Phase 3 complete.
 
 ## Planning checks
 
@@ -33,13 +33,13 @@ These documentation checks do not establish that planned commands, application c
 
 ## Execution evidence
 
-Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T22:25:00+08:00. Remaining phases are Not run.
+Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T22:25:00+08:00. Phase 3 completed on 2026-09-16T23:37:00+08:00. Remaining phases are Not run.
 
 | Phase and requirements | Required evidence | Actual result | Environment and limitations |
 | --- | --- | --- | --- |
 | P1, PROD-005/UI-REQ-001 through 007, 009; FEAT-001 to FEAT-004 UI flows | Responsive web interaction checks and screenshots. | Passed: `npm run check` exited 0; `npm run test:ui` passed 8/8 tests in 35.6s. Screenshots saved. | Node 24.14.0, Microsoft Edge 138.0.3351.121 on Windows. Synthetic UI evidence cannot prove backend database or authentication behavior. |
 | P2, shared Android UI | Analyze, widget tests, debug build, emulator UI and TalkBack. | Passed: `flutter analyze` 0 issues; `flutter test` 5/5 passed; `flutter build apk --debug` succeeded; emulator execution and screenshots captured. | Flutter 3.44.7, Android 17 (API 37) emulator. Physical-device behavior remains separate. |
-| P3, FEAT-001 access | PostgreSQL-backed authentication, invitations, CSRF, roles, sessions, and isolation. | Not run | Requires dedicated database and safe test configuration. |
+| P3, FEAT-001 access | PostgreSQL-backed authentication, invitations, CSRF, roles, sessions, and isolation. | Passed: `npm run check` exited 0; `npm run db:migrate` and `:test` passed idempotently; `npm run test:auth` passed 22/22 tests; `npm run test:ui` passed 8/8 tests. | PostgreSQL 18.4 local cluster on port 5433, Node 24.14.0. Local inbox SMTP capture remains for P4. |
 | P4, FEAT-002 | Lifecycle, private-note isolation, mail failure, and invite journey. | Not run | Fake recipients and local SMTP capture only. |
 | P5, FEAT-003 | Permissions, dates, comments, conflicts, archival, and API/UI evidence. | Not run | Include negative paths and regressions. |
 | P6, FEAT-004 and dashboard | Audience isolation, immutable publication, distinct counts, full web journey. | Not run | Cover cross-organization records. |
@@ -93,6 +93,38 @@ Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T
   - Attempt 1: Initial 200 percent text scaling test overflowed on `tasks_screen.dart` line 198 and `overview_screen.dart` line 180 because fixed `Row` metadata widgets exceeded screen width.
   - Fix: Replaced `Row` with `Wrap(spacing: 6, runSpacing: 4)` for metadata tags, wrapped card header titles in `Expanded`, and added `FittedBox` scaling to stat metrics. All 5 tests passed immediately on first retry.
 - Limitations: All data is synthetic and lives in memory in the repository. Real API synchronization, token refresh in secure storage, and physical device performance remain for P7. Physical Android devices remain pending Len's verification.
+
+### Phase 3 detailed results (2026-09-16T23:37:00+08:00)
+
+- Command `npm run db:migrate`: First and second runs executed; second run skipped already-applied migration with 0 migrations applied (idempotence verified).
+- Command `npm run db:migrate:test`: Successfully applied `001_initial_schema.sql` to dedicated test database `pipeline_test` on port 5433.
+- Command `npm run check`: Passed, 23 JavaScript files parsed, zero syntax errors, broken imports, or missing static references.
+- Command `npm run test:auth`: Passed 22/22 tests across 8 suites in 3.1s on Node v24.14.0 and PostgreSQL 18.4 (port 5433).
+- Scenarios verified:
+  - Valid credentials return 200 with tokens, HttpOnly/SameSite cookies, and sanitized user record.
+  - Incorrect password and non-existent email return generic 401 error with identical timing profile.
+  - Inactive user account returns 403 Forbidden.
+  - Valid JWT allows access to `/api/auth/me`; tampered JWT rejected with 401.
+  - Revoked session in database invalidates even an unexpired JWT with 401.
+  - Refresh token rotation returns new access and refresh tokens and updates database digest.
+  - Replay of previously rotated refresh token triggers immediate session revocation and 401.
+  - Logout revokes server session in database, clears cookies, and rejects subsequent token refresh.
+  - Cookie-based refresh without `X-CSRF-Token` rejected with 403; matching token succeeds.
+  - Owner role accesses combined overview (`scope=all`) with deduplicated active member counts.
+  - Non-owner role rejected from combined overview (`scope=all`) with 403.
+  - Non-member rejected from unassigned organization (`scope=org-1` for Jordan) with 403.
+  - Member accesses assigned organization (`scope=org-2`) with 200.
+  - Forged organization ID returns 403.
+  - Valid single-use invitation creates user and membership atomically and marks invitation accepted.
+  - Email mismatch on invitation acceptance rejected.
+  - Expired invitation rejected.
+  - Existing user accepts invitation to second organization without duplicate user record.
+  - Concurrent duplicate accept calls result in exactly one membership record.
+- Command `npm run test:ui`: Passed 8/8 Playwright tests in 35.3s.
+- Fix attempt history:
+  - Attempt 1: Section 6 tests failed with 401 due to IP rate limit (10 requests/min) on `/api/auth/login` triggered by prior test sections.
+  - Fix: Adjusted rate limit configuration for test environment to allow up to 1000 req/min when `nodeEnv === 'test'`. All 22 tests passed immediately on first retry.
+- Limitations: Local PostgreSQL cluster running on 127.0.0.1:5433. Production deployment, hosted SMTP, and physical device verification remain separate.
 
 During execution, add a row for each actual check with requirement IDs, literal command or scenario, exit result, ISO timestamp, versions and conditions, and screenshot path where relevant.
 
