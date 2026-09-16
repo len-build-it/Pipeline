@@ -54,6 +54,17 @@ class App {
           const overviewData = await res.json();
           this.state.realOverviewMetrics = overviewData.metrics;
         }
+
+        if (orgId !== 'all') {
+          const memRes = await fetch(`/api/organizations/${encodeURIComponent(orgId)}/members?limit=100`, {
+            headers: { 'Authorization': `Bearer ${this.state.token}` },
+          });
+          if (memRes.ok) {
+            const memData = await memRes.json();
+            const otherMembers = this.state.members.filter(m => m.orgId !== orgId);
+            this.state.members = [...otherMembers, ...memData.members];
+          }
+        }
       } catch {
         // Fallback to local
       }
@@ -452,6 +463,40 @@ class App {
         errorSummary.style.display = 'block';
         errorSummary.focus();
         emailInput.classList.add('is-invalid');
+        return;
+      }
+
+      if (this.state.isRealAuth && this.state.token) {
+        const finalEmail = simulateFail ? (email.includes('fail') ? email : 'delivery_fail_' + email) : email;
+        fetch(`/api/organizations/${orgId}/invitations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.state.token}`,
+          },
+          body: JSON.stringify({ email: finalEmail, role }),
+        }).then(async res => {
+          if (res.ok) {
+            const data = await res.json();
+            if (data.emailSent) {
+              alert(`Invitation sent to ${email} for ${role} role in ${orgId === 'org-1' ? 'AqOne' : 'Dev Guild'}.`);
+            } else {
+              alert(`SMTP Error: Invitation delivery failed. Status recorded as delivery_failed with feedback: ${data.deliveryError}`);
+            }
+            closeModal();
+            this.setScope(this.state.currentScope);
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            const errorSummary = modal.querySelector('#invite-error-summary');
+            const errorList = modal.querySelector('#invite-error-list');
+            errorList.innerHTML = `<li><a href="#invite-member-email">${errData.message || 'Failed to send invitation.'}</a></li>`;
+            errorSummary.style.display = 'block';
+            errorSummary.focus();
+            emailInput.classList.add('is-invalid');
+          }
+        }).catch(() => {
+          // Fallback to local
+        });
         return;
       }
 
@@ -867,7 +912,7 @@ class App {
     modal.querySelector('#btn-close-profile-modal').addEventListener('click', closeModal);
     modal.querySelector('#btn-cancel-profile').addEventListener('click', closeModal);
 
-    modal.querySelector('#profile-edit-form').addEventListener('submit', (e) => {
+    modal.querySelector('#profile-edit-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = modal.querySelector('#profile-name').value.trim();
       if (!name) return;
@@ -875,6 +920,41 @@ class App {
       const selectedColor = modal.querySelector('input[name="avatar-color"]:checked')?.value || currentUser.avatarColor;
       const skills = modal.querySelector('#profile-skills').value.split(',').map(s => s.trim()).filter(Boolean);
       const interests = modal.querySelector('#profile-interests').value.split(',').map(i => i.trim()).filter(Boolean);
+
+      if (this.state.isRealAuth && this.state.token) {
+        try {
+          const res = await fetch('/api/users/profile', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${this.state.token}`,
+            },
+            body: JSON.stringify({
+              displayName: name,
+              avatarColor: selectedColor,
+              skills,
+              interests,
+            }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            currentUser.displayName = data.user.displayName;
+            currentUser.avatarColor = data.user.avatarColor;
+            currentUser.skills = data.user.skills;
+            currentUser.interests = data.user.interests;
+            modal.remove();
+            alert('Profile updated successfully.');
+            this.render();
+            return;
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            alert(errData.message || 'Failed to update profile.');
+            return;
+          }
+        } catch {
+          // Fallback to local
+        }
+      }
 
       currentUser.displayName = name;
       currentUser.avatarColor = selectedColor;

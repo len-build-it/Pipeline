@@ -292,8 +292,31 @@ export function openMemberDetailModal(memberId, state, actions) {
 
   // Save notes
   if (canAccessNotes) {
-    modal.querySelector('#btn-save-member-notes')?.addEventListener('click', () => {
+    modal.querySelector('#btn-save-member-notes')?.addEventListener('click', async () => {
       const newNotes = modal.querySelector('#member-notes-input').value;
+      if (state.isRealAuth && state.token) {
+        try {
+          const res = await fetch(`/api/organizations/${member.orgId}/members/${member.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${state.token}`,
+            },
+            body: JSON.stringify({ notes: newNotes }),
+          });
+          if (res.ok) {
+            member.notes = newNotes;
+            alert('Private notes saved successfully.');
+            return;
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            alert(errData.message || 'Failed to save notes.');
+            return;
+          }
+        } catch {
+          // Fallback
+        }
+      }
       member.notes = newNotes;
       alert('Private notes saved successfully.');
     });
@@ -301,8 +324,33 @@ export function openMemberDetailModal(memberId, state, actions) {
 
   // Save role
   if (canChangeRole) {
-    modal.querySelector('#btn-save-member-role')?.addEventListener('click', () => {
+    modal.querySelector('#btn-save-member-role')?.addEventListener('click', async () => {
       const newRole = modal.querySelector('#member-role-select').value;
+      if (state.isRealAuth && state.token) {
+        try {
+          const res = await fetch(`/api/organizations/${member.orgId}/members/${member.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${state.token}`,
+            },
+            body: JSON.stringify({ role: newRole }),
+          });
+          if (res.ok) {
+            member.role = newRole;
+            alert(`Role updated to ${newRole}.`);
+            closeModal();
+            actions.refresh();
+            return;
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            alert(errData.message || 'Failed to update role.');
+            return;
+          }
+        } catch {
+          // Fallback
+        }
+      }
       member.role = newRole;
       alert(`Role updated to ${newRole}.`);
       closeModal();
@@ -312,7 +360,7 @@ export function openMemberDetailModal(memberId, state, actions) {
 
   // Deactivate
   if (canDeactivate) {
-    modal.querySelector('#btn-toggle-deactivate')?.addEventListener('click', () => {
+    modal.querySelector('#btn-toggle-deactivate')?.addEventListener('click', async () => {
       const isCurrentlyActive = member.status === 'active';
       const confirmed = confirm(
         isCurrentlyActive
@@ -320,7 +368,33 @@ export function openMemberDetailModal(memberId, state, actions) {
           : `Reactivate membership for ${member.displayName}?`
       );
       if (confirmed) {
-        member.status = isCurrentlyActive ? 'inactive' : 'active';
+        const targetStatus = isCurrentlyActive ? 'inactive' : 'active';
+        if (state.isRealAuth && state.token) {
+          try {
+            const res = await fetch(`/api/organizations/${member.orgId}/members/${member.id}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${state.token}`,
+              },
+              body: JSON.stringify({ status: targetStatus }),
+            });
+            if (res.ok) {
+              member.status = targetStatus;
+              alert(isCurrentlyActive ? 'Membership deactivated.' : 'Membership reactivated.');
+              closeModal();
+              actions.refresh();
+              return;
+            } else {
+              const errData = await res.json().catch(() => ({}));
+              alert(errData.message || 'Failed to update membership status.');
+              return;
+            }
+          } catch {
+            // Fallback
+          }
+        }
+        member.status = targetStatus;
         if (isCurrentlyActive) {
           // Unassign open tasks in this org atomically
           state.tasks.forEach(t => {

@@ -1,9 +1,9 @@
 # Verification ledger for the organization management MVP
 
 Created: 2026-09-16T21:49:38+08:00
-Updated: 2026-09-16T23:37:00+08:00
-Revision: 3
-Status: Phase 1, Phase 2, and Phase 3 complete.
+Updated: 2026-09-17T00:03:00+08:00
+Revision: 4
+Status: Phase 1, Phase 2, Phase 3, and Phase 4 complete.
 
 ## Planning checks
 
@@ -33,14 +33,14 @@ These documentation checks do not establish that planned commands, application c
 
 ## Execution evidence
 
-Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T22:25:00+08:00. Phase 3 completed on 2026-09-16T23:37:00+08:00. Remaining phases are Not run.
+Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T22:25:00+08:00. Phase 3 completed on 2026-09-16T23:37:00+08:00. Phase 4 completed on 2026-09-17T00:03:00+08:00. Remaining phases are Not run.
 
 | Phase and requirements | Required evidence | Actual result | Environment and limitations |
 | --- | --- | --- | --- |
 | P1, PROD-005/UI-REQ-001 through 007, 009; FEAT-001 to FEAT-004 UI flows | Responsive web interaction checks and screenshots. | Passed: `npm run check` exited 0; `npm run test:ui` passed 8/8 tests in 35.6s. Screenshots saved. | Node 24.14.0, Microsoft Edge 138.0.3351.121 on Windows. Synthetic UI evidence cannot prove backend database or authentication behavior. |
 | P2, shared Android UI | Analyze, widget tests, debug build, emulator UI and TalkBack. | Passed: `flutter analyze` 0 issues; `flutter test` 5/5 passed; `flutter build apk --debug` succeeded; emulator execution and screenshots captured. | Flutter 3.44.7, Android 17 (API 37) emulator. Physical-device behavior remains separate. |
 | P3, FEAT-001 access | PostgreSQL-backed authentication, invitations, CSRF, roles, sessions, and isolation. | Passed: `npm run check` exited 0; `npm run db:migrate` and `:test` passed idempotently; `npm run test:auth` passed 22/22 tests; `npm run test:ui` passed 8/8 tests. | PostgreSQL 18.4 local cluster on port 5433, Node 24.14.0. Local inbox SMTP capture remains for P4. |
-| P4, FEAT-002 | Lifecycle, private-note isolation, mail failure, and invite journey. | Not run | Fake recipients and local SMTP capture only. |
+| P4, FEAT-002 | Lifecycle, private-note isolation, mail failure, and invite journey. | Passed: `npm run check` exited 0; `npm run test:members` passed 22/22; `npm run test:auth` passed 22/22; `npm run test:ui` passed 8/8. | PostgreSQL 18.4 (port 5433), Node 24.14.0, local in-memory SMTP capture. |
 | P5, FEAT-003 | Permissions, dates, comments, conflicts, archival, and API/UI evidence. | Not run | Include negative paths and regressions. |
 | P6, FEAT-004 and dashboard | Audience isolation, immutable publication, distinct counts, full web journey. | Not run | Cover cross-organization records. |
 | P7, FEAT-005 and Android parity | Real-API emulator journeys, offline expiry, account isolation, and reconnect. | Not run | Record API 24 and API 36 separately. |
@@ -125,6 +125,33 @@ Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T
   - Attempt 1: Section 6 tests failed with 401 due to IP rate limit (10 requests/min) on `/api/auth/login` triggered by prior test sections.
   - Fix: Adjusted rate limit configuration for test environment to allow up to 1000 req/min when `nodeEnv === 'test'`. All 22 tests passed immediately on first retry.
 - Limitations: Local PostgreSQL cluster running on 127.0.0.1:5433. Production deployment, hosted SMTP, and physical device verification remain separate.
+
+### Phase 4 detailed results (2026-09-17T00:03:00+08:00)
+
+- Command `npm run check`: Passed, 27 JavaScript files parsed, zero syntax errors, broken imports, or missing static references.
+- Command `npm run test:members`: Passed 22/22 tests across 8 suites in 2.0s on Node v24.14.0 and PostgreSQL 18.4 (port 5433).
+- Scenarios verified:
+  - Scoped member listing with pagination (default limit 25, max 100), deterministic ordering, and next-page calculation.
+  - Search by display name or email returns matching records within permitted organization only.
+  - Filter by role ('Lead', 'Member') and status ('active', 'inactive') returns only matching permitted records.
+  - Private notes redaction: Lead and Owner can view/edit notes; regular Members NEVER see notes (field omitted from raw API response).
+  - Cross-organization isolation: Org A Leads cannot view members in Org B (403), nor mutate Org B memberships (403).
+  - Privilege elevation protection: Member cannot mutate memberships (403); Lead cannot promote Member to Lead (403); Lead cannot alter another Lead in the same organization (403).
+  - Owner safety: Global Owner cannot be demoted or deactivated through membership screens (400). Owner can promote Members to Lead (200).
+  - Safe deactivation: Deactivating a membership immediately unassigns their open tasks within that organization atomically, preserves completed tasks and cross-org assignments, and records an activity event.
+  - Concurrent deactivation is safe and idempotent.
+  - Local SMTP capture: Invitations sent locally are captured in memory without external delivery.
+  - Duplicate invitations: Rejects duplicate active membership (400) and duplicate pending invitation (400).
+  - Simulated SMTP failure: Records `delivery_failed` status with feedback; leaves one pending record.
+  - Explicit resend: Replaces token digest with 72h expiry, clears failure feedback, does not create duplicate record.
+  - Complete invite-to-member journey: Lead invites user, token read from local inbox, user accepts invitation via API, membership listed in organization, and token reuse rejected (no duplicate membership).
+  - Own-profile editing: User edits display name, avatar color, skills, and interests; invalid lengths/colors rejected with 400.
+- Command `npm run test:auth`: Passed 22/22 tests in 3.3s with zero regressions.
+- Command `npm run test:ui`: Passed 8/8 Playwright tests in 35.1s.
+- Fix attempt history:
+  - Attempt 1: In `tests/members/members.test.js`, simulated failure test used `failEmail = 'delivery_fail_user@example.com'`, which prevented subsequent `resend` from succeeding because the email address itself matched the failure heuristic.
+  - Fix: Updated test to toggle `setSimulateEmailFailure(true)` for the failure test and disable it for the resend test. All 22 tests passed immediately on first retry.
+- Limitations: Local nodemailer in-memory capture. Production SMTP server and third-party delivery remain separate.
 
 During execution, add a row for each actual check with requirement IDs, literal command or scenario, exit result, ISO timestamp, versions and conditions, and screenshot path where relevant.
 

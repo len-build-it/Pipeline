@@ -1,8 +1,8 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-09-16T23:39:00+08:00
-State: Phase 1, Phase 2, and Phase 3 complete; Phase 4 ready to execute.
+Updated: 2026-09-17T00:05:00+08:00
+State: Phase 1 through Phase 4 complete; Phase 5 ready to execute.
 Feature: FEAT-001 through FEAT-005.
 Intended executor: Gemini 3.8, selected by Len.
 
@@ -46,15 +46,15 @@ Target branch codex/organization-manager-mvp created from master at 87f7ec8.
 
 HANDOFF.md, IMPLEMENTATION_PLAN.md, and docs are preserved and updated.
 
-Phase 1, Phase 2, and Phase 3 complete; Phase 4 ready to execute.
+Phase 1 through Phase 4 complete; Phase 5 ready to execute.
 
 | Phase | Outcome | State | Checkpoint |
 | --- | --- | --- | --- |
 | P1 | Responsive web experience | Complete | feat(ui): complete responsive organization dashboard experience (commit e24299d) |
 | P2 | Flutter Android experience | Complete | feat(mobile): complete Android management interface (commit 3039a89) |
-| P3 | Shared data and secure access | Complete | feat(auth): establish shared API and organization access boundaries |
-| P4 | Real member management | Ready to execute | None. |
-| P5 | Real task management | Not started | None. |
+| P3 | Shared data and secure access | Complete | feat(auth): establish shared API and organization access boundaries (commit c62aff3) |
+| P4 | Real member management | Complete | feat(members): deliver invitations profiles and membership controls |
+| P5 | Real task management | Ready to execute | None. |
 | P6 | Announcements and actionable overview | Not started | None. |
 | P7 | Connected Android and offline reads | Not started | None. |
 | P8 | Integrated verification and local release handoff | Not started | None. |
@@ -80,6 +80,7 @@ The earlier DOCX renderer limitation remains confined to the optional review art
 | Flutter version check stalled in sandbox | 0, resolved | Elevated check returned installed versions; stalled probe interrupted. | No further action in this session. |
 | Docker engine unavailable | 0, resolved | Local PostgreSQL cluster independently initialized on port 5433 (.db/data). | Running locally for dev and test databases. |
 | P3 test login rate limit | 0, resolved | IP rate limit triggered 429 during sequential test runs; relaxed rate limit when nodeEnv === 'test'. | All 22 auth tests passing. |
+| P4 test email simulation failure | 0, resolved | Email containing 'fail' triggered delivery heuristic on resend; updated test to toggle mockFailure directly. | All 22 member tests passing. |
 
 For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
 
@@ -87,6 +88,6 @@ At three unsuccessful fixes for one issue, stop dependent work and report the sm
 
 ## Next action
 
-Execute Phase 4 (Real member management): implement scoped member listing, pagination, roles, status filters, notes, and invitation creation in backend and frontend.
+Execute Phase 5 (Real task management): implement scoped task listing, filtering, task creation, status updates, priority and due date modifications, task comments, optimistic concurrency (version checking), and archival.
 
 The final handoff must distinguish locally verified software completion from pending physical-device and production-release checks.

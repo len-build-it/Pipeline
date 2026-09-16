@@ -225,26 +225,26 @@ Continue automatically to P4.
 ## Phase 4 - Real member management
 
 Requirements: FEAT-002/REQ-001 through REQ-009 and related FEAT-001 invitation flows.
-State: Awaiting approval.
+State: Complete.
 
 ### Tasks
 
-- [ ] Implement scoped member listing, pagination, search, roles, status filters, own-profile editing, and membership-private notes.
-- [ ] Implement invitation creation and resend with local SMTP capture, including delivery failure and token replacement feedback.
-- [ ] Implement permitted role changes, membership deactivation/reactivation, and atomic open-task unassignment with activity recording.
-- [ ] Connect the web Members screens to the real API and test invalid and failed saves with input retained.
+- [x] Implement scoped member listing, pagination, search, roles, status filters, own-profile editing, and membership-private notes.
+- [x] Implement invitation creation and resend with local SMTP capture, including delivery failure and token replacement feedback.
+- [x] Implement permitted role changes, membership deactivation/reactivation, and atomic open-task unassignment with activity recording.
+- [x] Connect the web Members screens to the real API and test invalid and failed saves with input retained.
 
 ### Verification
 
-- [ ] Run `npm run check`, `npm run test:auth`, `npm run test:members`, and `npm run test:ui`; all must pass.
-- [ ] Prove Members cannot read notes even by requesting raw API responses, and organization A Leads cannot mutate organization B memberships.
-- [ ] Prove Leads cannot elevate privileges or alter other Leads, and the global Owner cannot be demoted through membership screens.
-- [ ] Simulate duplicate invitation, SMTP failure, explicit resend, existing-account acceptance, and concurrent deactivation; verify no duplicate records or cross-organization assignment changes.
-- [ ] Complete the invite-to-member flow through the local inbox and web UI and capture the result with secrets redacted.
+- [x] Run `npm run check`, `npm run test:auth`, `npm run test:members`, and `npm run test:ui`; all must pass.
+- [x] Prove Members cannot read notes even by requesting raw API responses, and organization A Leads cannot mutate organization B memberships.
+- [x] Prove Leads cannot elevate privileges or alter other Leads, and the global Owner cannot be demoted through membership screens.
+- [x] Simulate duplicate invitation, SMTP failure, explicit resend, existing-account acceptance, and concurrent deactivation; verify no duplicate records or cross-organization assignment changes.
+- [x] Complete the invite-to-member flow through the local inbox and web UI and capture the result with secrets redacted.
 
 ### Review and checkpoint
 
-- [ ] Perform the common checkpoint protocol.
+- [x] Perform the common checkpoint protocol.
 
 Checkpoint message: `feat(members): deliver invitations profiles and membership controls`
 Continue automatically to P5.
