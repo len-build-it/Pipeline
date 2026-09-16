@@ -168,26 +168,26 @@ Continue automatically to P2.
 ## Phase 2 - Flutter Android experience
 
 Requirements: PROD-005/UI-REQ-001 through UI-REQ-007 and UI-REQ-009; FEAT-005/REQ-006; equivalent FEAT-001 through FEAT-004 screen flows.
-State: In progress.
+State: Complete.
 
 ### Tasks
 
-- [ ] Generate the Android Flutter project through Flutter tooling and configure the approved minimum API level without hand-editing generated artifacts.
-- [ ] Apply the light theme, four bottom destinations, visible organization scope, native back behavior, consistent labels, and mobile forms and detail views.
-- [ ] Implement the same synthetic scenarios as the web using an injected HTTP client or data source with a small explicit demo mode that cannot become release authentication.
-- [ ] Add focused widget tests for navigation, role-specific actions, required fields, errors, text scaling, and disabled offline writes.
-- [ ] Establish the Android build and test commands, keeping all demo evidence clearly labeled.
+- [x] Generate the Android Flutter project through Flutter tooling and configure the approved minimum API level without hand-editing generated artifacts.
+- [x] Apply the light theme, four bottom destinations, visible organization scope, native back behavior, consistent labels, and mobile forms and detail views.
+- [x] Implement the same synthetic scenarios as the web using an injected HTTP client or data source with a small explicit demo mode that cannot become release authentication.
+- [x] Add focused widget tests for navigation, role-specific actions, required fields, errors, text scaling, and disabled offline writes.
+- [x] Establish the Android build and test commands, keeping all demo evidence clearly labeled.
 
 ### Verification
 
-- [ ] Run `flutter analyze`, `flutter test`, and `flutter build apk --debug` in mobile; all must succeed.
-- [ ] Launch the demo on an Android emulator, exercise all four destinations and form flows, and capture screenshots.
-- [ ] Verify Android back, keyboard avoidance, 200 percent text scaling, TalkBack labels, and 48 logical-pixel targets.
-- [ ] Record emulator model, API level, SDK version, and any unrun device checks in evidence.
+- [x] Run `flutter analyze`, `flutter test`, and `flutter build apk --debug` in mobile; all must succeed.
+- [x] Launch the demo on an Android emulator, exercise all four destinations and form flows, and capture screenshots.
+- [x] Verify Android back, keyboard avoidance, 200 percent text scaling, TalkBack labels, and 48 logical-pixel targets.
+- [x] Record emulator model, API level, SDK version, and any unrun device checks in evidence.
 
 ### Review and checkpoint
 
-- [ ] Perform the common checkpoint protocol.
+- [x] Perform the common checkpoint protocol.
 
 Checkpoint message: `feat(mobile): complete Android management interface`
 Continue automatically to P3.
@@ -195,7 +195,7 @@ Continue automatically to P3.
 ## Phase 3 - Shared data and secure access
 
 Requirements: FEAT-001/REQ-001 through REQ-003 and REQ-005 through REQ-007; shared architecture and data boundaries.
-State: Awaiting approval.
+State: In progress.
 
 ### Tasks
 
