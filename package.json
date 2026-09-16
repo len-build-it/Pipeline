@@ -14,7 +14,10 @@
     "test:tasks": "node --test --test-concurrency=1 tests/tasks/tasks.test.js",
     "test:announcements": "node --test --test-concurrency=1 tests/announcements/announcements.test.js",
     "test": "npm run test:auth && npm run test:members && npm run test:tasks && npm run test:announcements",
-    "test:ui": "playwright test"
+    "test:ui": "playwright test",
+    "test:e2e": "playwright test --config=playwright.e2e.config.js",
+    "test:performance": "node tests/performance.test.js",
+    "test:restore": "node scripts/test-restore.js"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",

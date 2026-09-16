@@ -1,9 +1,9 @@
 # Verification ledger for the organization management MVP
 
 Created: 2026-09-16T21:49:38+08:00
-Updated: 2026-09-17T06:36:00+08:00
-Revision: 7
-Status: Phase 1 through Phase 7 complete; Phase 8 ready to execute.
+Updated: 2026-09-17T06:45:00+08:00
+Revision: 8
+Status: Phase 1 through Phase 8 complete; local software MVP verified.
 
 ## Planning checks
 
@@ -33,7 +33,7 @@ These documentation checks do not establish that planned commands, application c
 
 ## Execution evidence
 
-Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T22:25:00+08:00. Phase 3 completed on 2026-09-16T23:37:00+08:00. Phase 4 completed on 2026-09-17T00:03:00+08:00. Phase 5 completed on 2026-09-17T00:27:00+08:00. Phase 6 completed on 2026-09-17T01:03:00+08:00. Phase 7 completed on 2026-09-17T06:36:00+08:00. Remaining phases are Not run.
+Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T22:25:00+08:00. Phase 3 completed on 2026-09-16T23:37:00+08:00. Phase 4 completed on 2026-09-17T00:03:00+08:00. Phase 5 completed on 2026-09-17T00:27:00+08:00. Phase 6 completed on 2026-09-17T01:03:00+08:00. Phase 7 completed on 2026-09-17T06:36:00+08:00. Phase 8 completed on 2026-09-17T06:45:00+08:00. All eight approved phases verified.
 
 | Phase and requirements | Required evidence | Actual result | Environment and limitations |
 | --- | --- | --- | --- |
@@ -44,7 +44,7 @@ Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T
 | P5, FEAT-003 | Permissions, dates, comments, conflicts, archival, and API/UI evidence. | Passed: `npm run check` exited 0; `npm test` passed 77/77 tests (22 auth, 22 members, 33 tasks); `npm run test:ui` passed 8/8 tests. | PostgreSQL 18.4 (port 5433), Node 24.14.0. |
 | P6, FEAT-004 and dashboard | Audience isolation, immutable publication, distinct counts, full web journey. | Passed: `npm run check` exited 0; `npm test` passed 102/102 tests (22 auth, 22 members, 33 tasks, 25 announcements); `npm run test:ui` passed 8/8 tests. | PostgreSQL 18.4 (port 5433), Node 24.14.0. |
 | P7, FEAT-005 and Android parity | Real-API emulator journeys, offline expiry, account isolation, and reconnect. | Passed: `flutter analyze` 0 issues; `flutter test` 25/25 passed; `flutter build apk --debug` succeeded; emulator execution and screenshots captured. | Flutter 3.44.7, Android 17 (API 37) headless emulator, Node 24.14.0 API server on port 3000. Physical Android devices remain pending Len's verification. |
-| P8, all | Final suite, contrast/accessibility, timing distribution, restore, and build path. | Not run | Local performance is not hosted performance. |
+| P8, all | Final suite, contrast/accessibility, timing distribution, restore, and build path. | Passed: `npm run check` (37 files); `npm test` (102/102); `npm run test:ui` (8/8); `npm run test:e2e` (1/1); `flutter analyze` 0 issues; `flutter test` (25/25); `npm run test:performance` (p95 137.26ms); `npm run test:restore` passed. Screenshots saved. | Node 24.14.0, PostgreSQL 18.4, Flutter 3.44.7 (API 37 emulator), Microsoft Edge 138.0.3351.121. Physical devices and hosted production checks remain pending. |
 
 ### Phase 1 detailed results (2026-09-16T22:05:00+08:00)
 
@@ -231,6 +231,49 @@ Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T
   - Attempt 2: In `mobile/test/api_client_test.dart`, async error test `expect(() => client.get(...), throwsA(...))` did not await the returned future before subsequent assertions executed.
   - Fix: Replaced with `await expectLater(() => client.get(...), throwsA(...))`. All API client tests passed immediately on first retry.
 - Limitations: Headless emulator verified on API 37. API 24 emulator and physical Android devices remain pending Len's verification.
+
+### Phase 8 detailed results (2026-09-17T06:45:00+08:00)
+
+- Command `npm ci --dry-run`: Passed, verified locked dependencies are up to date in 1s.
+- Command `npm run check`: Passed, 37 JavaScript files verified with `node --check`, zero syntax errors or broken module/static references.
+- Command `npm test`: Passed 102/102 tests (22 auth, 22 members, 33 tasks, 25 announcements) across 32 suites in 8.7s on Node v24.14.0 and PostgreSQL 18.4 (port 5433).
+- Command `npm run test:ui`: Passed 8/8 Playwright tests in 36.3s on Microsoft Edge (v138.0.3351.121) covering responsive viewports (375, 768, 1024, 1440), navigation, scope switching, forms, tasks, announcements, role permissions, and accessibility.
+- Command `npm run test:e2e`: Passed integrated workflow in 5.3s against real Fastify backend and PostgreSQL database:
+  - Lead Alex Rivera signs in with real credentials.
+  - Generates invitation for new member Morgan Vance in AqOne.
+  - New member accepts invitation with secure password, creating active membership record in database.
+  - Work is assigned to Morgan Vance; Morgan logs in and completes the task (updating status to Done).
+  - Lead publishes announcement 'MVP Integrated Release Verification Complete' to AqOne.
+  - Overview totals verified with live database query, confirming deduplicated members, completed tasks, and published announcements.
+- Command `flutter pub get` in `mobile/`: Passed, all mobile dependencies resolved and locked.
+- Command `flutter analyze` in `mobile/`: Passed with 0 diagnostics found in 2.4s.
+- Command `flutter test` in `mobile/`: Passed 25/25 tests across 4 suites in 4.0s (widgets, secure cache bounding/eviction, API client refresh/error discrimination, repository offline fallback and mutation denial).
+- Command `flutter build apk --debug` in `mobile/`: Passed, built `mobile/build/app/outputs/flutter-apk/app-debug.apk` (173.8 MB).
+- Command `npm run test:performance`: Passed, measured 20 authenticated warm dashboard loads with 100ms simulated latency:
+  - Target: p95 <= 2000.00 ms (2.0s).
+  - Actual results: min 122.73 ms, average 125.99 ms, p95 137.26 ms, max 138.65 ms.
+- Command `npm run test:restore`: Passed, dumped test database `pipeline_test` via `pg_dump` and restored into disposable database `pipeline_restore_test` via `psql`:
+  - Verified 2 organizations, 5 users, 7 active memberships, 5 tasks (4 open), 3 announcements, publication targets, and 0 orphan foreign keys.
+  - Verified disposable database `pipeline_restore_test` and temporary dump file dropped cleanly.
+- Browser engines verified:
+  - Microsoft Edge (v138.0.3351.121) verified for UI and E2E automation.
+  - Chrome, Firefox, and WebKit binaries are not installed in the local environment without modifying global AppData; real Safari requires Apple hardware.
+- Requirement-to-evidence map:
+  - FEAT-001 (Access and dashboard): Authentication, token rotation, rate limits, CSRF, scope isolation, overview deduplication. Verified via `npm run test:auth`, `npm run test:ui`, `npm run test:e2e`, and `npm run test:performance`.
+  - FEAT-002 (Member management): Scoped listing, pagination, roles, status, private notes redaction, SMTP failure simulation, invitation acceptance journey. Verified via `npm run test:members`, `npm run test:e2e`, and `npm run test:restore`.
+  - FEAT-003 (Task management): Task CRUD, role restrictions, Manila due dates, uncompleted overdue filtering, optimistic concurrency (409 conflict), read-only archival, comments and moderation, activity events. Verified via `npm run test:tasks`, `npm run test:ui`, and `npm run test:e2e`.
+  - FEAT-004 (Announcements): Draft confidential privacy, multi-org targeting, immutable published announcements, target-scoped activity events, overview summaries. Verified via `npm run test:announcements`, `npm run test:ui`, and `npm run test:e2e`.
+  - FEAT-005 (Mobile companion): 4 bottom destinations, responsive wrap at 200% text scaling, 48px touch targets, encrypted storage, 512 KiB eviction, 25-item snapshot caps, disabled offline writes, scope cache invalidation on 403. Verified via `flutter test`, emulator execution, and debug APK build.
+  - PROD-005 / UI-REQ-001 through 009: Responsive layouts at 375, 768, 1024, 1440, forms with accessible error summaries, high contrast WCAG AA, skip-to-content links, escape key dismissal, no horizontal scroll. Verified via `npm run test:ui` and TalkBack/large text emulator runs.
+- Screenshots saved:
+  - `docs/evidence/screenshots/p8-e2e-overview.png`
+  - `docs/evidence/screenshots/p8-e2e-members.png`
+  - `docs/evidence/screenshots/p8-e2e-tasks.png`
+  - `docs/evidence/screenshots/p8-e2e-announcements.png`
+- Fix attempt history:
+  - Attempt 1: In `tests/e2e/e2e-workflow.spec.js`, user display name check failed looking for `#current-user-name` which was rendered as `.user-name` in the navigation header. Fix: Changed selector to `.user-name`.
+  - Attempt 2: In `tests/e2e/e2e-workflow.spec.js`, announcement creation returned HTTP 200 instead of 201. Fix: Updated assertion to `expect([200, 201]).toContain(annPublish.status())`. Test passed immediately on first retry.
+- Limitations: Local PostgreSQL on port 5433, Edge browser on Windows, and API 37 Android emulator. Physical Android devices, real Safari, production SMTP, and hosted production backups remain pending Len's authorization.
 
 During execution, add a row for each actual check with requirement IDs, literal command or scenario, exit result, ISO timestamp, versions and conditions, and screenshot path where relevant.
 

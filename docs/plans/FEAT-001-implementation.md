@@ -335,29 +335,29 @@ Continue automatically to P8.
 ## Phase 8 - Integrated verification and local release handoff
 
 Requirements: All feature requirements and PROD-005/UI-REQ-001 through UI-REQ-009; shared reliability and evidence constraints.
-State: Ready to execute.
+State: Complete.
 
 ### Tasks
 
-- [ ] Resolve regressions from integrated browser/emulator checks within the approved scope and attempt limit.
-- [ ] Complete the requirement-to-evidence map, including role denials, input validation, empty/loading/error states, and conflict recovery.
-- [ ] Add concise local setup, owner bootstrap/recovery, run, backup/restore, dependency lock, and future deployment documentation.
-- [ ] Supply a deployable service configuration and Android debug APK; keep store signing, real email, hosted backups, and external deployment explicitly pending.
-- [ ] Establish performance and safe local restore commands and record real outcomes.
+- [x] Resolve regressions from integrated browser/emulator checks within the approved scope and attempt limit.
+- [x] Complete the requirement-to-evidence map, including role denials, input validation, empty/loading/error states, and conflict recovery.
+- [x] Add concise local setup, owner bootstrap/recovery, run, backup/restore, dependency lock, and future deployment documentation.
+- [x] Supply a deployable service configuration and Android debug APK; keep store signing, real email, hosted backups, and external deployment explicitly pending.
+- [x] Establish performance and safe local restore commands and record real outcomes.
 
 ### Verification
 
-- [ ] From the locked dependencies, run `npm ci`, `npm run check`, `npm test`, `npm run test:ui`, and `npm run test:e2e`; all must pass.
-- [ ] In mobile, run `flutter pub get`, `flutter analyze`, `flutter test`, `flutter build apk --debug`, and the required emulator integration commands.
-- [ ] Run `npm run test:performance` against the stated dataset and network conditions and meet the documented p95 target.
-- [ ] Run `npm run test:restore`; verify relationships, active memberships, tasks, publication targets, and activity counts in the separate restored database.
-- [ ] Check Chrome, Edge, Firefox, and Playwright WebKit with recorded versions and screenshots; mark real Safari separately if unavailable.
-- [ ] Verify keyboard and TalkBack flows, 200 percent scaling, target sizes, palette contrast, offline behavior, and no unintended horizontal overflow.
-- [ ] Check the final tracked/staged content for secrets, synthetic-only account data, unintended generated output, and unrelated files.
+- [x] From the locked dependencies, run `npm ci`, `npm run check`, `npm test`, `npm run test:ui`, and `npm run test:e2e`; all must pass.
+- [x] In mobile, run `flutter pub get`, `flutter analyze`, `flutter test`, `flutter build apk --debug`, and the required emulator integration commands.
+- [x] Run `npm run test:performance` against the stated dataset and network conditions and meet the documented p95 target.
+- [x] Run `npm run test:restore`; verify relationships, active memberships, tasks, publication targets, and activity counts in the separate restored database.
+- [x] Check Chrome, Edge, Firefox, and Playwright WebKit with recorded versions and screenshots; mark real Safari separately if unavailable.
+- [x] Verify keyboard and TalkBack flows, 200 percent scaling, target sizes, palette contrast, offline behavior, and no unintended horizontal overflow.
+- [x] Check the final tracked/staged content for secrets, synthetic-only account data, unintended generated output, and unrelated files.
 
 ### Review and checkpoint
 
-- [ ] Perform the common checkpoint protocol and mark local software completion only when every required local gate and all eight commits are verified.
+- [x] Perform the common checkpoint protocol and mark local software completion only when every required local gate and all eight commits are verified.
 
 Checkpoint message: `test(release): verify integrated MVP and document local release`
 
