@@ -10,6 +10,7 @@ import { authRoutes } from './auth/routes.js';
 import { organizationRoutes } from './routes/organizations.js';
 import { memberRoutes } from './routes/members.js';
 import { taskRoutes } from './routes/tasks.js';
+import { announcementRoutes } from './routes/announcements.js';
 import { query } from '../db/client.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -139,6 +140,7 @@ export async function buildApp({ customPool = null, customConfig = {}, logger = 
   await fastify.register(organizationRoutes, { prefix: '/api', pool: customPool });
   await fastify.register(memberRoutes, { prefix: '/api', pool: customPool });
   await fastify.register(taskRoutes, { prefix: '/api', pool: customPool });
+  await fastify.register(announcementRoutes, { prefix: '/api', pool: customPool });
 
   // 5. Client SPA Fallback for HTML requests
   fastify.setNotFoundHandler((request, reply) => {

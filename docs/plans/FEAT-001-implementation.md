@@ -278,26 +278,26 @@ Continue automatically to P6.
 ## Phase 6 - Announcements and actionable overview
 
 Requirements: FEAT-004/REQ-001 through REQ-008 and FEAT-001/REQ-004 and REQ-008.
-State: Ready to execute.
+State: Complete.
 
 ### Tasks
 
-- [ ] Implement draft creation/editing, audience selection, preview, publication, archive, search, and target-scoped activity history.
-- [ ] Enforce authorization for every target organization and published-content immutability.
-- [ ] Implement scoped and combined dashboard summaries with deduplicated users and announcements, plus actionable task and announcement lists.
-- [ ] Connect the remaining web screens to the real API and establish real-backend Playwright flows.
+- [x] Implement draft creation/editing, audience selection, preview, publication, archive, search, and target-scoped activity history.
+- [x] Enforce authorization for every target organization and published-content immutability.
+- [x] Implement scoped and combined dashboard summaries with deduplicated users and announcements, plus actionable task and announcement lists.
+- [x] Connect the remaining web screens to the real API and establish real-backend Playwright flows.
 
 ### Verification
 
-- [ ] Run `npm run check`, `npm test`, `npm run test:ui`, and `npm run test:e2e`; all must pass.
-- [ ] Publish to AqOne only, dev guild only, and both; verify Member visibility, draft privacy, denied partial-audience editing, and archive results.
-- [ ] Verify cross-organization activity and response metadata do not expose private notes, other target names, or inaccessible drafts.
-- [ ] Check dashboard totals against known synthetic counts with overlapping memberships, shared announcements, archived tasks, and date-boundary cases.
-- [ ] In a browser, invite a Member through the local inbox, assign work, complete it as that Member, and publish an announcement as Lead; confirm overview totals and evidence screenshots.
+- [x] Run `npm run check`, `npm test`, `npm run test:ui`, and `npm run test:e2e`; all must pass.
+- [x] Publish to AqOne only, dev guild only, and both; verify Member visibility, draft privacy, denied partial-audience editing, and archive results.
+- [x] Verify cross-organization activity and response metadata do not expose private notes, other target names, or inaccessible drafts.
+- [x] Check dashboard totals against known synthetic counts with overlapping memberships, shared announcements, archived tasks, and date-boundary cases.
+- [x] In a browser, invite a Member through the local inbox, assign work, complete it as that Member, and publish an announcement as Lead; confirm overview totals and evidence screenshots.
 
 ### Review and checkpoint
 
-- [ ] Perform the common checkpoint protocol.
+- [x] Perform the common checkpoint protocol.
 
 Checkpoint message: `feat(announcements): deliver audience publishing and live overview`
 Continue automatically to P7.
@@ -305,7 +305,7 @@ Continue automatically to P7.
 ## Phase 7 - Connected Android and offline reads
 
 Requirements: FEAT-005/REQ-001 through REQ-008; Android parity for all FEAT-001 through FEAT-004 requirements; PROD-005/UI-REQ-008.
-State: Awaiting approval.
+State: Ready to execute.
 
 ### Tasks
 

@@ -1,8 +1,8 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-09-17T00:05:00+08:00
-State: Phase 1 through Phase 4 complete; Phase 5 ready to execute.
+Updated: 2026-09-17T01:12:00+08:00
+State: Phase 1 through Phase 6 complete; Phase 7 ready to execute.
 Feature: FEAT-001 through FEAT-005.
 Intended executor: Gemini 3.8, selected by Len.
 
@@ -46,7 +46,7 @@ Target branch codex/organization-manager-mvp created from master at 87f7ec8.
 
 HANDOFF.md, IMPLEMENTATION_PLAN.md, and docs are preserved and updated.
 
-Phase 1 through Phase 5 complete; Phase 6 ready to execute.
+Phase 1 through Phase 6 complete; Phase 7 ready to execute.
 
 | Phase | Outcome | State | Checkpoint |
 | --- | --- | --- | --- |
@@ -54,9 +54,9 @@ Phase 1 through Phase 5 complete; Phase 6 ready to execute.
 | P2 | Flutter Android experience | Complete | feat(mobile): complete Android management interface (commit 3039a89) |
 | P3 | Shared data and secure access | Complete | feat(auth): establish shared API and organization access boundaries (commit c62aff3) |
 | P4 | Real member management | Complete | feat(members): deliver invitations profiles and membership controls (commit d184630) |
-| P5 | Real task management | Complete | feat(tasks): deliver assignments comments and activity tracking |
-| P6 | Announcements and actionable overview | Ready to execute | None. |
-| P7 | Connected Android and offline reads | Not started | None. |
+| P5 | Real task management | Complete | feat(tasks): deliver assignments comments and activity tracking (commit 7be4328) |
+| P6 | Announcements and actionable overview | Complete | feat(announcements): deliver audience publishing and live overview |
+| P7 | Connected Android and offline reads | Ready to execute | None. |
 | P8 | Integrated verification and local release handoff | Not started | None. |
 
 ## Checks and evidence
@@ -81,6 +81,7 @@ The earlier DOCX renderer limitation remains confined to the optional review art
 | Docker engine unavailable | 0, resolved | Local PostgreSQL cluster independently initialized on port 5433 (.db/data). | Running locally for dev and test databases. |
 | P3 test login rate limit | 0, resolved | IP rate limit triggered 429 during sequential test runs; relaxed rate limit when nodeEnv === 'test'. | All 22 auth tests passing. |
 | P4 test email simulation failure | 0, resolved | Email containing 'fail' triggered delivery heuristic on resend; updated test to toggle mockFailure directly. | All 22 member tests passing. |
+| P6 activity event parameter | 0, resolved | Missing action argument in parameters array of activity_events insert query; added parameter. | All 25 announcement tests passing. |
 
 For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
 
@@ -88,6 +89,6 @@ At three unsuccessful fixes for one issue, stop dependent work and report the sm
 
 ## Next action
 
-Execute Phase 6 (Announcements and actionable overview): implement announcement draft creation/editing, target audience selection, preview, publication (immutable once published), archive, search, and target-scoped activity history; implement scoped and combined dashboard summaries with deduplicated users and announcements, plus actionable task and announcement lists.
+Execute Phase 7 (Connected Android and offline reads): connect Flutter Android authentication, scope, member, task, comment, announcement, and dashboard screens to the shared real API (http://10.0.2.2:3000/api for Android emulator); implement encrypted token storage, serialized token refresh, bounded encrypted read snapshots, honest stale-data display, disabled offline writes, and cache eviction on account switch/sign out.
 
 The final handoff must distinguish locally verified software completion from pending physical-device and production-release checks.

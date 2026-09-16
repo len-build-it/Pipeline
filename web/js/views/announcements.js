@@ -240,6 +240,28 @@ export function openAnnouncementDetailModal(annId, state, actions) {
 
   // Publish draft
   modal.querySelector('#btn-publish-draft')?.addEventListener('click', () => {
+    if (state.isRealAuth && state.token) {
+      fetch(`/api/announcements/${ann.id}/publish`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${state.token}` },
+      }).then(async res => {
+        if (!res.ok) {
+          const err = await res.json();
+          alert(`Error: ${err.message || 'Failed to publish draft.'}`);
+          return;
+        }
+        const updated = await res.json();
+        ann.status = updated.publicationStatus.toLowerCase();
+        ann.publishedAt = updated.publishedAt;
+        alert('Announcement published successfully.');
+        closeModal();
+        actions.refresh();
+      }).catch(err => {
+        alert(`Network error: ${err.message}`);
+      });
+      return;
+    }
+
     ann.status = 'published';
     ann.publishedAt = new Date().toISOString();
     alert('Announcement published successfully.');
@@ -250,6 +272,26 @@ export function openAnnouncementDetailModal(annId, state, actions) {
   // Archive announcement
   modal.querySelector('#btn-archive-announcement')?.addEventListener('click', () => {
     if (confirm('Archive this announcement? It will be removed from default feeds.')) {
+      if (state.isRealAuth && state.token) {
+        fetch(`/api/announcements/${ann.id}/archive`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${state.token}` },
+        }).then(async res => {
+          if (!res.ok) {
+            const err = await res.json();
+            alert(`Error: ${err.message || 'Failed to archive announcement.'}`);
+            return;
+          }
+          ann.archived = true;
+          alert('Announcement archived.');
+          closeModal();
+          actions.refresh();
+        }).catch(err => {
+          alert(`Network error: ${err.message}`);
+        });
+        return;
+      }
+
       ann.archived = true;
       alert('Announcement archived.');
       closeModal();

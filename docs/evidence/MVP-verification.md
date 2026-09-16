@@ -1,9 +1,9 @@
 # Verification ledger for the organization management MVP
 
 Created: 2026-09-16T21:49:38+08:00
-Updated: 2026-09-17T00:27:00+08:00
-Revision: 5
-Status: Phase 1 through Phase 5 complete.
+Updated: 2026-09-17T01:03:00+08:00
+Revision: 6
+Status: Phase 1 through Phase 6 complete.
 
 ## Planning checks
 
@@ -33,7 +33,7 @@ These documentation checks do not establish that planned commands, application c
 
 ## Execution evidence
 
-Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T22:25:00+08:00. Phase 3 completed on 2026-09-16T23:37:00+08:00. Phase 4 completed on 2026-09-17T00:03:00+08:00. Remaining phases are Not run.
+Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T22:25:00+08:00. Phase 3 completed on 2026-09-16T23:37:00+08:00. Phase 4 completed on 2026-09-17T00:03:00+08:00. Phase 5 completed on 2026-09-17T00:27:00+08:00. Phase 6 completed on 2026-09-17T01:03:00+08:00. Remaining phases are Not run.
 
 | Phase and requirements | Required evidence | Actual result | Environment and limitations |
 | --- | --- | --- | --- |
@@ -42,7 +42,7 @@ Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T
 | P3, FEAT-001 access | PostgreSQL-backed authentication, invitations, CSRF, roles, sessions, and isolation. | Passed: `npm run check` exited 0; `npm run db:migrate` and `:test` passed idempotently; `npm run test:auth` passed 22/22 tests; `npm run test:ui` passed 8/8 tests. | PostgreSQL 18.4 local cluster on port 5433, Node 24.14.0. Local inbox SMTP capture remains for P4. |
 | P4, FEAT-002 | Lifecycle, private-note isolation, mail failure, and invite journey. | Passed: `npm run check` exited 0; `npm run test:members` passed 22/22; `npm run test:auth` passed 22/22; `npm run test:ui` passed 8/8. | PostgreSQL 18.4 (port 5433), Node 24.14.0, local in-memory SMTP capture. |
 | P5, FEAT-003 | Permissions, dates, comments, conflicts, archival, and API/UI evidence. | Passed: `npm run check` exited 0; `npm test` passed 77/77 tests (22 auth, 22 members, 33 tasks); `npm run test:ui` passed 8/8 tests. | PostgreSQL 18.4 (port 5433), Node 24.14.0. |
-| P6, FEAT-004 and dashboard | Audience isolation, immutable publication, distinct counts, full web journey. | Not run | Cover cross-organization records. |
+| P6, FEAT-004 and dashboard | Audience isolation, immutable publication, distinct counts, full web journey. | Passed: `npm run check` exited 0; `npm test` passed 102/102 tests (22 auth, 22 members, 33 tasks, 25 announcements); `npm run test:ui` passed 8/8 tests. | PostgreSQL 18.4 (port 5433), Node 24.14.0. |
 | P7, FEAT-005 and Android parity | Real-API emulator journeys, offline expiry, account isolation, and reconnect. | Not run | Record API 24 and API 36 separately. |
 | P8, all | Final suite, contrast/accessibility, timing distribution, restore, and build path. | Not run | Local performance is not hosted performance. |
 
@@ -177,6 +177,28 @@ Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T
   - Cross-organization isolation: Non-member denied access to organization tasks (403); cross-org route tampering rejected with 404/403.
 - Fix attempt history:
   - 0 unsuccessful attempts; all 33 task tests passed on first run.
+- Limitations: Local PostgreSQL cluster on port 5433. Production deployment, hosted databases, and physical device verification remain separate.
+
+### Phase 6 detailed results (2026-09-17T01:03:00+08:00)
+
+- Command `npm run check`: Passed, 33 JavaScript files verified with `node --check`, zero syntax errors, broken imports, or missing references.
+- Command `npm run test:announcements`: Passed 25/25 tests across 8 suites in 1.8s on Node v24.14.0 and PostgreSQL 18.4 (port 5433).
+- Command `npm test`: Passed 102/102 tests (22 auth, 22 members, 33 tasks, 25 announcements) in 9.1s with zero regressions.
+- Command `npm run test:ui`: Passed 8/8 Playwright tests in 35.1s.
+- Scenarios verified:
+  - Draft creation: Lead can create draft targeted to permitted organization; Owner can create draft across multiple organizations.
+  - Role restrictions: Regular Member cannot create announcements (403 Forbidden).
+  - Target boundaries: Lead cannot target organization where they lack Lead authority (403 Forbidden).
+  - Input validation: Rejects empty or oversized title and body with 400 Bad Request; rejects empty or non-existent target organizations with 400 Bad Request.
+  - Draft privacy protection: Drafts are strictly confidential; only Leads/Owner with authority in all target organizations can see drafts; Members and unrelated Leads cannot see drafts (403 Forbidden).
+  - Draft editing and concurrency: Lead can edit draft title and body; stale version edit rejected with 409 Conflict.
+  - Publication and immutability: Published announcement is visible to members of target organizations and excluded from non-member organizations; once published, title, body, and targets are strictly immutable (edits rejected with 400 Bad Request); duplicate publication rejected with 400 Bad Request.
+  - Archival: Authorized Lead can archive announcement; archived announcements excluded from default list, included with `archived=true`; archived announcements are read-only (edits rejected with 400 Bad Request).
+  - Target-scoped activity history: Activity events are recorded per target organization; user only sees events for organizations where they hold active membership.
+  - Scoped and combined overview: Scoped overview calculates member, task, overdue, and announcement metrics per organization; combined overview (`scope=all`, Owner only) correctly deduplicates unique users, tasks, and multi-org announcements; non-owner access rejected with 403 Forbidden.
+- Fix attempt history:
+  - Attempt 1: In `server/announcements/service.js`, `createAnnouncement` omitted the `action` parameter from the parameter array in `INSERT INTO activity_events`, causing a parameter count mismatch error.
+  - Fix: Passed `action` into the query parameter list. All 25 tests passed immediately on first retry.
 - Limitations: Local PostgreSQL cluster on port 5433. Production deployment, hosted databases, and physical device verification remain separate.
 
 During execution, add a row for each actual check with requirement IDs, literal command or scenario, exit result, ISO timestamp, versions and conditions, and screenshot path where relevant.

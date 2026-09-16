@@ -12,7 +12,8 @@
     "test:auth": "node --test --test-concurrency=1 tests/auth/auth.test.js",
     "test:members": "node --test --test-concurrency=1 tests/members/members.test.js",
     "test:tasks": "node --test --test-concurrency=1 tests/tasks/tasks.test.js",
-    "test": "npm run test:auth && npm run test:members && npm run test:tasks",
+    "test:announcements": "node --test --test-concurrency=1 tests/announcements/announcements.test.js",
+    "test": "npm run test:auth && npm run test:members && npm run test:tasks && npm run test:announcements",
     "test:ui": "playwright test"
   },
   "dependencies": {

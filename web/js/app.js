@@ -91,6 +91,25 @@ class App {
               updatedAt: t.updatedAt,
             }))];
           }
+
+          const annRes = await fetch(`/api/announcements?scope=${encodeURIComponent(orgId)}&limit=100`, {
+            headers: { 'Authorization': `Bearer ${this.state.token}` },
+          });
+          if (annRes.ok) {
+            const annData = await annRes.json();
+            const otherAnns = this.state.announcements.filter(a => !a.targetOrgs.includes(orgId));
+            this.state.announcements = [...otherAnns, ...annData.announcements.map(a => ({
+              id: a.id,
+              title: a.title,
+              body: a.body,
+              authorId: a.authorId,
+              authorName: a.authorName,
+              status: a.publicationStatus.toLowerCase(),
+              targetOrgs: a.targetOrganizations || [],
+              publishedAt: a.publishedAt,
+              archived: Boolean(a.archivedAt),
+            }))];
+          }
         }
       } catch {
         // Fallback to local
@@ -899,6 +918,47 @@ class App {
         return;
       }
 
+      if (this.state.isRealAuth && this.state.token) {
+        fetch('/api/announcements', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.state.token}`,
+          },
+          body: JSON.stringify({
+            title,
+            body,
+            targetOrganizations: targetOrgs,
+            publish: status === 'published',
+          }),
+        }).then(async res => {
+          if (!res.ok) {
+            const err = await res.json();
+            alert(`Error: ${err.message || 'Failed to save announcement.'}`);
+            return;
+          }
+          const created = await res.json();
+          this.state.announcements.unshift({
+            id: created.id,
+            title: created.title,
+            body: created.body,
+            authorId: created.authorId,
+            authorName: created.authorName || currentUser.displayName,
+            targetOrgs: created.targetOrganizations || [],
+            status: created.publicationStatus.toLowerCase(),
+            publishedAt: created.publishedAt,
+            archived: Boolean(created.archivedAt),
+          });
+          isDirty = false;
+          modal.remove();
+          alert(status === 'published' ? 'Announcement published successfully!' : 'Draft saved.');
+          this.render();
+        }).catch(err => {
+          alert(`Network error: ${err.message}`);
+        });
+        return;
+      }
+
       const newAnn = {
         id: 'ann-' + Date.now(),
         title,
@@ -908,7 +968,7 @@ class App {
         targetOrgs,
         status,
         publishedAt: status === 'published' ? new Date().toISOString() : null,
-        archived: false
+        archived: false,
       };
 
       this.state.announcements.unshift(newAnn);
