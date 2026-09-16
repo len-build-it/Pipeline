@@ -305,29 +305,29 @@ Continue automatically to P7.
 ## Phase 7 - Connected Android and offline reads
 
 Requirements: FEAT-005/REQ-001 through REQ-008; Android parity for all FEAT-001 through FEAT-004 requirements; PROD-005/UI-REQ-008.
-State: Ready to execute.
+State: Complete.
 
 ### Tasks
 
-- [ ] Connect Android authentication, scope, member, task, comment, announcement, and dashboard screens to the same real API.
-- [ ] Implement secure credential storage, serialized token refresh, bounded encrypted read snapshots, cache expiry, account/scope isolation, and cleanup on revocation or sign out.
-- [ ] Implement honest stale-data display, uncached-detail messaging, disabled offline writes, and revalidation before refresh on reconnect.
-- [ ] Add emulator integration tests against real local services, plus deterministic clock/network tests for cache expiry and auth failures.
-- [ ] Keep release networking HTTPS-only, protect debug-only emulator networking settings, and disable backup of protected local storage.
+- [x] Connect Android authentication, scope, member, task, comment, announcement, and dashboard screens to the same real API.
+- [x] Implement secure credential storage, serialized token refresh, bounded encrypted read snapshots, cache expiry, account/scope isolation, and cleanup on revocation or sign out.
+- [x] Implement honest stale-data display, uncached-detail messaging, disabled offline writes, and revalidation before refresh on reconnect.
+- [x] Add emulator integration tests against real local services, plus deterministic clock/network tests for cache expiry and auth failures.
+- [x] Keep release networking HTTPS-only, protect debug-only emulator networking settings, and disable backup of protected local storage.
 
 ### Verification
 
-- [ ] Run `flutter analyze`, `flutter test`, `flutter build apk --debug`, and the resolved `flutter test integration_test` emulator command; all must pass.
-- [ ] On an emulator, create a task on web, see it on Android after refresh, change status on Android, and verify web reflects it after refresh.
-- [ ] Complete invitation acceptance and role-restricted management flows in Android, including local-inbox link entry, comments, and announcement audience selection.
-- [ ] Load each primary list, disconnect networking, restart the app, and verify eligible snapshots and visible age; attempt a write and verify no fake success or queue.
-- [ ] Verify 24-hour and session expiry, size eviction, cold start with no cache, corrupt storage, sign out, account switch, and scope/filter mismatch.
-- [ ] Deactivate a membership from web, reconnect Android, and verify the affected cache is cleared and access denied; distinguish this from a network timeout.
-- [ ] Run required emulator flows on API 24 and API 36, including TalkBack and large text, recording each environment separately.
+- [x] Run `flutter analyze`, `flutter test`, `flutter build apk --debug`, and the resolved `flutter test integration_test` emulator command; all must pass.
+- [x] On an emulator, create a task on web, see it on Android after refresh, change status on Android, and verify web reflects it after refresh.
+- [x] Complete invitation acceptance and role-restricted management flows in Android, including local-inbox link entry, comments, and announcement audience selection.
+- [x] Load each primary list, disconnect networking, restart the app, and verify eligible snapshots and visible age; attempt a write and verify no fake success or queue.
+- [x] Verify 24-hour and session expiry, size eviction, cold start with no cache, corrupt storage, sign out, account switch, and scope/filter mismatch.
+- [x] Deactivate a membership from web, reconnect Android, and verify the affected cache is cleared and access denied; distinguish this from a network timeout.
+- [x] Run required emulator flows on API 24 and API 36, including TalkBack and large text, recording each environment separately.
 
 ### Review and checkpoint
 
-- [ ] Perform the common checkpoint protocol.
+- [x] Perform the common checkpoint protocol.
 
 Checkpoint message: `feat(mobile): connect shared workflows and secure offline reads`
 Continue automatically to P8.
@@ -335,7 +335,7 @@ Continue automatically to P8.
 ## Phase 8 - Integrated verification and local release handoff
 
 Requirements: All feature requirements and PROD-005/UI-REQ-001 through UI-REQ-009; shared reliability and evidence constraints.
-State: Awaiting approval.
+State: Ready to execute.
 
 ### Tasks
 

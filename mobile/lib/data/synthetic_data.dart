@@ -323,6 +323,9 @@ class SyntheticDataRepository extends ChangeNotifier {
   String get currentScope => _currentScope;
   bool get isOffline => _isOffline;
   List<Org> get organizations => initialOrgs;
+  List<MemberRecord> get allMembers => _members;
+  List<TaskItem> get allTasks => _tasks;
+  List<AnnouncementItem> get allAnnouncements => _announcements;
 
   bool get isGlobalOwner => _currentUser.isGlobalOwner;
 
@@ -363,6 +366,21 @@ class SyntheticDataRepository extends ChangeNotifier {
 
   void setOffline(bool offline) {
     _isOffline = offline;
+    notifyListeners();
+  }
+
+  void setMembers(List<MemberRecord> members) {
+    _members = members;
+    notifyListeners();
+  }
+
+  void setTasks(List<TaskItem> tasks) {
+    _tasks = tasks;
+    notifyListeners();
+  }
+
+  void setAnnouncements(List<AnnouncementItem> announcements) {
+    _announcements = announcements;
     notifyListeners();
   }
 

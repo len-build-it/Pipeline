@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../data/app_repository.dart';
 import '../data/synthetic_data.dart';
 import '../theme.dart';
 import 'overview_screen.dart';
@@ -27,33 +28,53 @@ class _HomeShellState extends State<HomeShell> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Row(
-              children: [
-                const Text(
-                  'AqOne & Dev Guild',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary),
-                ),
-                const SizedBox(width: 8),
-                DropdownButton<String>(
-                  key: const Key('dropdown-scope'),
-                  value: widget.repo.currentScope,
-                  underline: const SizedBox(),
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.text),
-                  items: availableScopes.map((s) {
-                    return DropdownMenuItem(
-                      value: s.id,
-                      child: Text(s.name),
-                    );
-                  }).toList(),
-                  onChanged: (newScope) {
-                    if (newScope != null) {
-                      widget.repo.setScope(newScope);
-                    }
-                  },
-                ),
-              ],
+            title: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'AqOne & Dev Guild',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 8),
+                  DropdownButton<String>(
+                    key: const Key('dropdown-scope'),
+                    value: widget.repo.currentScope,
+                    underline: const SizedBox(),
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.text),
+                    items: availableScopes.map((s) {
+                      return DropdownMenuItem(
+                        value: s.id,
+                        child: Text(s.name),
+                      );
+                    }).toList(),
+                    onChanged: (newScope) {
+                      if (newScope != null) {
+                        widget.repo.setScope(newScope);
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
             actions: [
+              IconButton(
+                key: const Key('btn-refresh'),
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Refresh / Sync',
+                onPressed: () async {
+                  if (widget.repo is AppRepository) {
+                    await (widget.repo as AppRepository).refreshCurrentScope();
+                    if (context.mounted && (widget.repo as AppRepository).errorMessage != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text((widget.repo as AppRepository).errorMessage!)),
+                      );
+                    }
+                  }
+                },
+              ),
               // Persona Switcher Popup
               PopupMenuButton<String>(
                 key: const Key('popup-persona'),
@@ -65,9 +86,22 @@ class _HomeShellState extends State<HomeShell> {
                     style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
-                tooltip: 'Switch Demo Persona',
+                tooltip: 'Account & Demo Personas',
                 onSelected: (persona) {
                   switch (persona) {
+                    case 'sign_in':
+                      _showSignInDialog(context);
+                      break;
+                    case 'accept_invite':
+                      _showAcceptInviteDialog(context);
+                      break;
+                    case 'sign_out':
+                      if (widget.repo is AppRepository) {
+                        (widget.repo as AppRepository).logout();
+                      } else {
+                        widget.repo.resetToInitial();
+                      }
+                      break;
                     case 'len':
                       widget.repo.switchPersona(SyntheticDataRepository.userLen);
                       break;
@@ -89,6 +123,19 @@ class _HomeShellState extends State<HomeShell> {
                   }
                 },
                 itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'sign_in',
+                    child: Text('Sign In (API)'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'accept_invite',
+                    child: Text('Accept Invitation (API)'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'sign_out',
+                    child: Text('Sign Out'),
+                  ),
+                  const PopupMenuDivider(),
                   const PopupMenuItem(
                     enabled: false,
                     child: Text('DEMO PERSONAS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
@@ -129,13 +176,18 @@ class _HomeShellState extends State<HomeShell> {
                       color: AppColors.warning,
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.wifi_off, size: 16, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(
-                            'Offline: Showing cached reads. Mutations disabled.',
-                            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+                          const Icon(Icons.wifi_off, size: 16, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              widget.repo is AppRepository && (widget.repo as AppRepository).cacheAge != null
+                                  ? 'Offline: Showing cached reads (${(widget.repo as AppRepository).cacheAge}). Mutations disabled.'
+                                  : 'Offline: Showing cached reads. Mutations disabled.',
+                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
@@ -184,6 +236,132 @@ class _HomeShellState extends State<HomeShell> {
           ),
         );
       },
+    );
+  }
+
+  void _showSignInDialog(BuildContext context) {
+    final emailCtrl = TextEditingController(text: 'len@example.com');
+    final passCtrl = TextEditingController(text: 'LocalDevPass123!');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sign In to Account'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: emailCtrl,
+              decoration: const InputDecoration(labelText: 'Email Address'),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: passCtrl,
+              decoration: const InputDecoration(labelText: 'Password'),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              if (widget.repo is AppRepository) {
+                final success = await (widget.repo as AppRepository).login(
+                  emailCtrl.text.trim(),
+                  passCtrl.text,
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        success ? 'Signed in successfully.' : ((widget.repo as AppRepository).errorMessage ?? 'Sign in failed.'),
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Sign In'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAcceptInviteDialog(BuildContext context) {
+    final tokenCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final nameCtrl = TextEditingController();
+    final passCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Accept Invitation'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: tokenCtrl,
+                decoration: const InputDecoration(labelText: 'Invitation Token / Code'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: emailCtrl,
+                decoration: const InputDecoration(labelText: 'Email Address'),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Display Name'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: passCtrl,
+                decoration: const InputDecoration(labelText: 'New Password'),
+                obscureText: true,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              if (widget.repo is AppRepository) {
+                final success = await (widget.repo as AppRepository).acceptInvitation(
+                  token: tokenCtrl.text.trim(),
+                  email: emailCtrl.text.trim(),
+                  password: passCtrl.text,
+                  displayName: nameCtrl.text.trim(),
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        success ? 'Invitation accepted! Welcome.' : ((widget.repo as AppRepository).errorMessage ?? 'Failed to accept invitation.'),
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Accept & Join'),
+          ),
+        ],
+      ),
     );
   }
 }

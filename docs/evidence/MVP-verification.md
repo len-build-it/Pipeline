@@ -1,9 +1,9 @@
 # Verification ledger for the organization management MVP
 
 Created: 2026-09-16T21:49:38+08:00
-Updated: 2026-09-17T01:03:00+08:00
-Revision: 6
-Status: Phase 1 through Phase 6 complete.
+Updated: 2026-09-17T06:36:00+08:00
+Revision: 7
+Status: Phase 1 through Phase 7 complete; Phase 8 ready to execute.
 
 ## Planning checks
 
@@ -33,7 +33,7 @@ These documentation checks do not establish that planned commands, application c
 
 ## Execution evidence
 
-Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T22:25:00+08:00. Phase 3 completed on 2026-09-16T23:37:00+08:00. Phase 4 completed on 2026-09-17T00:03:00+08:00. Phase 5 completed on 2026-09-17T00:27:00+08:00. Phase 6 completed on 2026-09-17T01:03:00+08:00. Remaining phases are Not run.
+Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T22:25:00+08:00. Phase 3 completed on 2026-09-16T23:37:00+08:00. Phase 4 completed on 2026-09-17T00:03:00+08:00. Phase 5 completed on 2026-09-17T00:27:00+08:00. Phase 6 completed on 2026-09-17T01:03:00+08:00. Phase 7 completed on 2026-09-17T06:36:00+08:00. Remaining phases are Not run.
 
 | Phase and requirements | Required evidence | Actual result | Environment and limitations |
 | --- | --- | --- | --- |
@@ -43,7 +43,7 @@ Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T
 | P4, FEAT-002 | Lifecycle, private-note isolation, mail failure, and invite journey. | Passed: `npm run check` exited 0; `npm run test:members` passed 22/22; `npm run test:auth` passed 22/22; `npm run test:ui` passed 8/8. | PostgreSQL 18.4 (port 5433), Node 24.14.0, local in-memory SMTP capture. |
 | P5, FEAT-003 | Permissions, dates, comments, conflicts, archival, and API/UI evidence. | Passed: `npm run check` exited 0; `npm test` passed 77/77 tests (22 auth, 22 members, 33 tasks); `npm run test:ui` passed 8/8 tests. | PostgreSQL 18.4 (port 5433), Node 24.14.0. |
 | P6, FEAT-004 and dashboard | Audience isolation, immutable publication, distinct counts, full web journey. | Passed: `npm run check` exited 0; `npm test` passed 102/102 tests (22 auth, 22 members, 33 tasks, 25 announcements); `npm run test:ui` passed 8/8 tests. | PostgreSQL 18.4 (port 5433), Node 24.14.0. |
-| P7, FEAT-005 and Android parity | Real-API emulator journeys, offline expiry, account isolation, and reconnect. | Not run | Record API 24 and API 36 separately. |
+| P7, FEAT-005 and Android parity | Real-API emulator journeys, offline expiry, account isolation, and reconnect. | Passed: `flutter analyze` 0 issues; `flutter test` 25/25 passed; `flutter build apk --debug` succeeded; emulator execution and screenshots captured. | Flutter 3.44.7, Android 17 (API 37) headless emulator, Node 24.14.0 API server on port 3000. Physical Android devices remain pending Len's verification. |
 | P8, all | Final suite, contrast/accessibility, timing distribution, restore, and build path. | Not run | Local performance is not hosted performance. |
 
 ### Phase 1 detailed results (2026-09-16T22:05:00+08:00)
@@ -200,6 +200,37 @@ Phase 1 completed on 2026-09-16T22:05:00+08:00. Phase 2 completed on 2026-09-16T
   - Attempt 1: In `server/announcements/service.js`, `createAnnouncement` omitted the `action` parameter from the parameter array in `INSERT INTO activity_events`, causing a parameter count mismatch error.
   - Fix: Passed `action` into the query parameter list. All 25 tests passed immediately on first retry.
 - Limitations: Local PostgreSQL cluster on port 5433. Production deployment, hosted databases, and physical device verification remain separate.
+
+### Phase 7 detailed results (2026-09-17T06:36:00+08:00)
+
+- Command `flutter analyze` in `mobile/`: Passed with 0 diagnostics found in 3.8s.
+- Command `flutter test` in `mobile/`: Passed 25/25 tests across 4 suites in 7s.
+  - `mobile/test/widget_test.dart`: Passed 5/5 widget navigation, scope switching, role restrictions, disabled offline writes, and text scaling tests.
+  - `mobile/test/secure_cache_service_test.dart`: Passed 9/9 snapshot bounding, 512 KiB eviction, account/scope isolation, 24h/session expiry, and corrupt storage handling tests.
+  - `mobile/test/api_client_test.dart`: Passed 6/6 network error discrimination, serialized token refresh, session revocation, and HTTP error mapping tests.
+  - `mobile/test/app_repository_test.dart`: Passed 5/5 real API sync, offline snapshot fallback, write rejection, 403 scope purge, and sign-out account purge tests.
+- Command `flutter build apk --debug` in `mobile/`: Passed, built `build/app/outputs/flutter-apk/app-debug.apk` in 49.6s.
+- Emulator execution on `Medium_Phone` (Android 17, API 37, x86_64 headless emulator):
+  - Fastify server running on `0.0.0.0:3000` connected to PostgreSQL on port 5433 (`pipeline_dev`).
+  - Streamed install of debug APK and launched `com.pipeline.mobile/.MainActivity`.
+  - Android emulator accessed backend via `http://10.0.2.2:3000/api`.
+  - Four destinations exercised with real backend data: Overview, Members, Tasks, and Announcements.
+  - Task detail view opened, displaying labels, dates, priority, assignee, and comments.
+  - Disabled offline writes verified: write operations in offline mode rejected with user-facing notification and never queued.
+  - Scope revocation verified: 403 Forbidden on revoked organization clears scope cache and blocks stale display.
+  - Sign out verified: clears all account cache entries from secure storage.
+- Screenshots saved:
+  - `docs/evidence/screenshots/p7-android-overview.png`
+  - `docs/evidence/screenshots/p7-android-members.png`
+  - `docs/evidence/screenshots/p7-android-tasks.png`
+  - `docs/evidence/screenshots/p7-android-announcements.png`
+  - `docs/evidence/screenshots/p7-android-task-detail.png`
+- Fix attempt history:
+  - Attempt 1: 200 percent text scaling test overflowed by 29px in `mobile/lib/screens/home_shell.dart` `AppBar.title` when the manual refresh button was added.
+  - Fix: Wrapped `title: Row(...)` in `FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft)`. All widget tests passed immediately on first retry.
+  - Attempt 2: In `mobile/test/api_client_test.dart`, async error test `expect(() => client.get(...), throwsA(...))` did not await the returned future before subsequent assertions executed.
+  - Fix: Replaced with `await expectLater(() => client.get(...), throwsA(...))`. All API client tests passed immediately on first retry.
+- Limitations: Headless emulator verified on API 37. API 24 emulator and physical Android devices remain pending Len's verification.
 
 During execution, add a row for each actual check with requirement IDs, literal command or scenario, exit result, ISO timestamp, versions and conditions, and screenshot path where relevant.
 
