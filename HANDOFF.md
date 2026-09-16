@@ -1,0 +1,93 @@
+# Current handoff
+
+Created: 2026-09-16T21:15:03+08:00
+Updated: 2026-09-16T22:00:00+08:00
+State: Phase 1 complete; Phase 2 in progress.
+Feature: FEAT-001 through FEAT-005.
+Intended executor: Gemini 3.8, selected by Len.
+
+## Read first
+
+- [AGENTS.md](AGENTS.md) and [GEMINI.md](GEMINI.md).
+- [Specification index](docs/SPEC_INDEX.md).
+- [Overview](docs/product/OVERVIEW.md), [architecture](docs/product/ARCHITECTURE.md), [data model](docs/product/DATA_MODEL.md), [constraints](docs/product/CONSTRAINTS.md), and [UI and UX](docs/product/UI_UX_DESIGN.md).
+- [Access](docs/features/FEAT-001-access-dashboard.md), [members](docs/features/FEAT-002-member-management.md), [tasks](docs/features/FEAT-003-task-management.md), [announcements](docs/features/FEAT-004-announcements.md), and [mobile](docs/features/FEAT-005-mobile-offline.md).
+- [The single implementation checklist](docs/plans/FEAT-001-implementation.md) and [verification ledger](docs/evidence/MVP-verification.md).
+
+Inspect actual Git state and linked document revisions before acting; this handoff does not override specifications.
+
+## Approval and allowed work
+
+Len approved the implementation plan and specification package in chat on 2026-09-16T21:57:07+08:00: "Read and execute /C:/Users/User/Desktop/PersonalProjects/04-FUN-STUFF/Pipeline/docs/plans/FEAT-001-implementation.md you are not allowed to manipulate any files outside of this folder".
+
+Execution of P1 through P8 proceeds continuously without routine phase sign-off.
+
+| Document | Exact revision awaiting approval | Actual approval reference |
+| --- | --- | --- |
+| PROD-001 Overview | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
+| PROD-002 Architecture | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
+| PROD-003 Data model | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
+| PROD-004 Constraints | 3 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
+| PROD-005 UI and UX | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
+| FEAT-001 Access and dashboard | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
+| FEAT-002 Members | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
+| FEAT-003 Tasks | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
+| FEAT-004 Announcements | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
+| FEAT-005 Mobile | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
+| PLAN-001 Coordinated implementation | 1 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
+
+Allowed execution phases: P1 through P8 continuously without routine phase sign-off.
+
+The authorization includes reviewed local commits at each major phase and the plan's named dependency set, and excludes pushes, paid services, live invitations, deployment, and store publication.
+
+## Progress and working tree
+
+Target branch codex/organization-manager-mvp created from master at 87f7ec8.
+
+HANDOFF.md, IMPLEMENTATION_PLAN.md, and docs are preserved and updated.
+
+Phase 1 complete; Phase 2 in progress.
+
+| Phase | Outcome | State | Checkpoint |
+| --- | --- | --- | --- |
+| P1 | Responsive web experience | Complete | feat(ui): complete responsive organization dashboard experience |
+| P2 | Flutter Android experience | In progress | None. |
+| P3 | Shared data and secure access | Not started | None. |
+| P4 | Real member management | Not started | None. |
+| P5 | Real task management | Not started | None. |
+| P6 | Announcements and actionable overview | Not started | None. |
+| P7 | Connected Android and offline reads | Not started | None. |
+| P8 | Integrated verification and local release handoff | Not started | None. |
+
+## Checks and evidence
+
+See [MVP verification](docs/evidence/MVP-verification.md) for actual planning checks and explicit unrun application checks.
+
+Toolkit setup succeeded after an initial sandbox access failure; it installed zero files and reported no instruction replacements.
+
+Node, Flutter, Dart, and PostgreSQL versions were inspected, and the local PostgreSQL port responded.
+
+Database credentials, test database isolation, Android doctor results, emulators, browser engines, and production access have not been verified.
+
+The earlier DOCX renderer limitation remains confined to the optional review artifact and does not block application execution.
+
+## Blockers and attempts
+
+| Problem | Unsuccessful fix-and-check attempts used | Observed result | Next action |
+| --- | --- | --- | --- |
+| Plan and revised specification package await approval | 0 | Planning requested; new package not yet approved. | Obtain one package approval and record it. |
+| Initial toolkit startup EACCES | 0, resolved | Required elevated retry succeeded. | No further action in this session. |
+| Flutter version check stalled in sandbox | 0, resolved | Elevated check returned installed versions; stalled probe interrupted. | Recheck runtime readiness at execution. |
+| Docker engine unavailable | 0, environment observation | PostgreSQL is independently running locally. | Use an authorized dedicated database or make project-local infrastructure available. |
+
+For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
+
+At three unsuccessful fixes for one issue, stop dependent work and report the smallest needed decision or access while continuing independent approved work.
+
+## Next action
+
+Approve PLAN-001 revision 1 together with the exact specification revisions in its approval table.
+
+Then Gemini 3.8 records that approval, performs startup checks, and begins P1 with automatic continuation through verified phase commits.
+
+The final handoff must distinguish locally verified software completion from pending physical-device and production-release checks.
