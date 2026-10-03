@@ -10,6 +10,7 @@ import { renderMembers } from './views/members.js';
 import { renderTasks } from './views/tasks.js';
 import { renderAnnouncements } from './views/announcements.js';
 import { renderSignIn, renderInviteAccept } from './views/auth.js';
+import { renderFinance } from './views/finance.js';
 
 class App {
   constructor() {
@@ -28,18 +29,6 @@ class App {
     this.render();
   }
 
-  getActions() {
-    return {
-      signInUser: (user) => this.signInUser(user),
-      signInRealUser: (data) => this.signInRealUser(data),
-      signOut: () => this.signOut(),
-      renderSignInView: () => this.navigateTo('signin'),
-      renderInviteAcceptView: () => this.navigateTo('invite'),
-      setScope: (scope) => this.setScope(scope),
-      navigateTo: (view) => this.navigateTo(view),
-    };
-  }
-
   async setScope(orgId) {
     this.state.currentScope = orgId;
     if (this.state.isRealAuth && this.state.token) {
@@ -56,67 +45,69 @@ class App {
           this.state.realOverviewMetrics = overviewData.metrics;
         }
 
-        if (orgId !== 'all') {
-          const memRes = await fetch(`/api/organizations/${encodeURIComponent(orgId)}/members?limit=100`, {
-            headers: { 'Authorization': `Bearer ${this.state.token}` },
-          });
-          if (memRes.ok) {
-            const memData = await memRes.json();
-            const otherMembers = this.state.members.filter(m => m.orgId !== orgId);
-            this.state.members = [...otherMembers, ...memData.members];
-          }
-
-          const taskRes = await fetch(`/api/organizations/${encodeURIComponent(orgId)}/tasks?limit=100`, {
-            headers: { 'Authorization': `Bearer ${this.state.token}` },
-          });
-          if (taskRes.ok) {
-            const taskData = await taskRes.json();
-            const otherTasks = this.state.tasks.filter(t => t.orgId !== orgId);
-            this.state.tasks = [...otherTasks, ...taskData.tasks.map(t => ({
-              id: t.id,
-              orgId: t.orgId,
-              title: t.title,
-              description: t.description,
-              creator: t.creatorId,
-              creatorName: t.creatorName,
-              assignee: t.assigneeId,
-              assigneeName: t.assigneeName,
-              status: t.status,
-              priority: t.priority,
-              dueDate: t.dueDate,
-              labels: t.labels || [],
-              version: t.version,
-              archived: Boolean(t.archivedAt),
-              archivedAt: t.archivedAt,
-              comments: [],
-              updatedAt: t.updatedAt,
-            }))];
-          }
-
-          const annRes = await fetch(`/api/announcements?scope=${encodeURIComponent(orgId)}&limit=100`, {
-            headers: { 'Authorization': `Bearer ${this.state.token}` },
-          });
-          if (annRes.ok) {
-            const annData = await annRes.json();
-            const otherAnns = this.state.announcements.filter(a => !a.targetOrgs.includes(orgId));
-            this.state.announcements = [...otherAnns, ...annData.announcements.map(a => ({
-              id: a.id,
-              title: a.title,
-              body: a.body,
-              authorId: a.authorId,
-              authorName: a.authorName,
-              status: a.publicationStatus.toLowerCase(),
-              targetOrgs: a.targetOrganizations || [],
-              publishedAt: a.publishedAt,
-              archived: Boolean(a.archivedAt),
-            }))];
-          }
-        }
+        const orgIds = orgId === 'all' ? this.state.organizations.map(o => o.id) : [orgId];
+        await Promise.all(orgIds.map(id => this.loadOrganizationRecords(id)));
       } catch {
-        // Fallback to local
+        // Keep the records already shown when the network request fails.
       }
     }
     this.render();
+  }
+
+  /** Replaces the members, tasks, and announcements held for one organization with the server's. */
+  async loadOrganizationRecords(orgId) {
+    const headers = { 'Authorization': `Bearer ${this.state.token}` };
+    const org = encodeURIComponent(orgId);
+
+    const memRes = await fetch(`/api/organizations/${org}/members?limit=100`, { headers });
+    if (memRes.ok) {
+      const memData = await memRes.json();
+      const otherMembers = this.state.members.filter(m => m.orgId !== orgId);
+      this.state.members = [...otherMembers, ...memData.members];
+    }
+
+    const taskRes = await fetch(`/api/organizations/${org}/tasks?limit=100`, { headers });
+    if (taskRes.ok) {
+      const taskData = await taskRes.json();
+      const otherTasks = this.state.tasks.filter(t => t.orgId !== orgId);
+      this.state.tasks = [...otherTasks, ...taskData.tasks.map(t => ({
+        id: t.id,
+        orgId: t.orgId,
+        title: t.title,
+        description: t.description,
+        creator: t.creatorId,
+        creatorName: t.creatorName,
+        assignee: t.assigneeId,
+        assigneeName: t.assigneeName,
+        status: t.status,
+        priority: t.priority,
+        dueDate: t.dueDate,
+        labels: t.labels || [],
+        version: t.version,
+        archived: Boolean(t.archivedAt),
+        archivedAt: t.archivedAt,
+        comments: [],
+        updatedAt: t.updatedAt,
+      }))];
+    }
+
+    const annRes = await fetch(`/api/announcements?scope=${org}&limit=100`, { headers });
+    if (annRes.ok) {
+      const annData = await annRes.json();
+      const loadedIds = new Set(annData.announcements.map(a => a.id));
+      const otherAnns = this.state.announcements.filter(a => !a.targetOrgs.includes(orgId) && !loadedIds.has(a.id));
+      this.state.announcements = [...otherAnns, ...annData.announcements.map(a => ({
+        id: a.id,
+        title: a.title,
+        body: a.body,
+        authorId: a.authorId,
+        authorName: a.authorName,
+        status: a.publicationStatus.toLowerCase(),
+        targetOrgs: a.targetOrganizations || [],
+        publishedAt: a.publishedAt,
+        archived: Boolean(a.archivedAt),
+      }))];
+    }
   }
 
   signInUser(user) {
@@ -135,9 +126,15 @@ class App {
   async signInRealUser(data) {
     this.state.isRealAuth = true;
     this.state.token = data.accessToken;
+    this.state.members = [];
+    this.state.invitations = [];
+    this.state.tasks = [];
+    this.state.announcements = [];
+    this.state.activities = [];
+    this.currentView = 'overview';
     this.state.currentUser = {
       id: data.user.id,
-      name: data.user.displayName,
+      displayName: data.user.displayName,
       email: data.user.email,
       role: data.user.isOwner ? 'Owner' : 'Member',
       isGlobalOwner: data.user.isOwner,
@@ -148,13 +145,11 @@ class App {
         status: o.membership_status,
       })),
     };
-    if (data.organizations && data.organizations.length > 0) {
-      this.state.organizations = data.organizations.map(o => ({
-        id: o.id,
-        name: o.name,
-        status: o.status,
-      }));
-    }
+    this.state.organizations = (data.organizations || []).map(o => ({
+      id: o.id,
+      name: o.name,
+      status: o.status,
+    }));
     if (this.state.currentUser.isGlobalOwner) {
       this.state.currentScope = 'all';
     } else if (this.state.currentUser.memberships.length > 0) {
@@ -170,9 +165,8 @@ class App {
       } catch {
         // ignore
       }
-      this.state.isRealAuth = false;
-      this.state.token = null;
-      this.state.realOverviewMetrics = null;
+      // Drop every record of the signed-out account before showing the sign-in view.
+      this.state = createInitialState();
     }
     this.currentView = 'signin';
     this.render();
@@ -201,7 +195,7 @@ class App {
       <a href="#main-content" class="skip-link">Skip to main content</a>
 
       <!-- Demo Mode Banner -->
-      <aside class="demo-banner" role="region" aria-label="Demo mode status">
+      <aside class="demo-banner" role="region" aria-label="Demo mode status"${this.state.isRealAuth ? ' hidden' : ''}>
         <div>
           <span>DEMO MODE — Synthetic Data Only</span>
         </div>
@@ -263,6 +257,11 @@ class App {
                 Announcements
               </button>
             </li>
+            <li class="nav-item">
+              <button class="${this.currentView === 'finance' ? 'active' : ''}" id="nav-btn-finance">
+                Finance
+              </button>
+            </li>
           </ul>
 
           <div class="nav-footer">
@@ -306,7 +305,12 @@ class App {
           </li>
           <li>
             <button class="${this.currentView === 'announcements' ? 'active' : ''}" id="mob-nav-announcements">
-              Announcements
+              Announce&shy;ments
+            </button>
+          </li>
+          <li>
+            <button class="${this.currentView === 'finance' ? 'active' : ''}" id="mob-nav-finance">
+              Finance
             </button>
           </li>
         </ul>
@@ -333,6 +337,9 @@ class App {
       case 'announcements':
         renderAnnouncements(viewContainer, this.state, actions);
         break;
+      case 'finance':
+        renderFinance(viewContainer, this.state, actions);
+        break;
       default:
         renderOverview(viewContainer, this.state, actions);
     }
@@ -344,11 +351,13 @@ class App {
     document.getElementById('nav-btn-members')?.addEventListener('click', () => this.navigateTo('members'));
     document.getElementById('nav-btn-tasks')?.addEventListener('click', () => this.navigateTo('tasks'));
     document.getElementById('nav-btn-announcements')?.addEventListener('click', () => this.navigateTo('announcements'));
+    document.getElementById('nav-btn-finance')?.addEventListener('click', () => this.navigateTo('finance'));
 
     document.getElementById('mob-nav-overview')?.addEventListener('click', () => this.navigateTo('overview'));
     document.getElementById('mob-nav-members')?.addEventListener('click', () => this.navigateTo('members'));
     document.getElementById('mob-nav-tasks')?.addEventListener('click', () => this.navigateTo('tasks'));
     document.getElementById('mob-nav-announcements')?.addEventListener('click', () => this.navigateTo('announcements'));
+    document.getElementById('mob-nav-finance')?.addEventListener('click', () => this.navigateTo('finance'));
 
     // Scope selection
     document.getElementById('desktop-scope-select')?.addEventListener('change', (e) => this.setScope(e.target.value));
@@ -387,6 +396,9 @@ class App {
         this.render();
       },
       signInUser: (user) => this.signInUser(user),
+      signInRealUser: (data) => this.signInRealUser(data),
+      signOut: () => this.signOut(),
+      setScope: (scope) => this.setScope(scope),
       openInviteModal: () => this.openInviteModal(),
       openTaskCreateModal: () => this.openTaskCreateModal(),
       openTaskDetailModal: (id) => this.openTaskDetailModal(id),

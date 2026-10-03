@@ -73,6 +73,34 @@ test.describe('Responsive Dashboard & UI Navigation (P1)', () => {
     await page.screenshot({ path: `${screenshotsDir}/p1-desktop-announcements-1280.png` });
   });
 
+  test('Finance destination: demo mode explains that live sign-in is required, at every width', async ({ page }) => {
+    for (const width of [375, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+      await page.click(width <= 768 ? '#mob-nav-finance' : '#nav-btn-finance');
+
+      await expect(page.locator('h1')).toHaveText('Finance');
+      await expect(page.locator('.state-box-title')).toHaveText('Sign in to use Finance');
+      // No finance figures are invented for the demo.
+      await expect(page.locator('#view-container table')).toHaveCount(0);
+
+      const hasHorizontalScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+      expect(hasHorizontalScroll, `Horizontal scroll detected at ${width}px`).toBe(false);
+    }
+
+    // All five destinations fit the phone navigation bar.
+    await page.setViewportSize({ width: 375, height: 667 });
+    const buttons = page.locator('.mobile-bottom-nav-list button');
+    await expect(buttons).toHaveCount(5);
+    for (const box of await buttons.evaluateAll(list => list.map(b => b.getBoundingClientRect().toJSON()))) {
+      expect(box.left).toBeGreaterThanOrEqual(0);
+      expect(box.right).toBeLessThanOrEqual(375);
+    }
+
+    await page.click('#btn-finance-sign-in');
+    await expect(page.locator('#sign-in-form')).toBeVisible();
+  });
+
   test('Organization scope switching updates dashboard metrics and records', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/');

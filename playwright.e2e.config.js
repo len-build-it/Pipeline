@@ -7,6 +7,7 @@ export default defineConfig({
     timeout: 10000
   },
   fullyParallel: false,
+  workers: 1,
   reporter: 'list',
   use: {
     baseURL: 'http://127.0.0.1:3000',
@@ -24,6 +25,8 @@ export default defineConfig({
       PORT: '3000',
       DATABASE_URL: 'postgres://postgres@127.0.0.1:5433/pipeline_test',
       NODE_ENV: 'test',
+      // One browser drives every journey from a single address, far faster than a person would.
+      RATE_LIMIT_MAX: '10000',
     }
   }
 });

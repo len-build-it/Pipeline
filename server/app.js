@@ -50,7 +50,7 @@ export async function buildApp({ customPool = null, customConfig = {}, logger = 
   });
 
   await fastify.register(fastifyRateLimit, {
-    max: 200,
+    max: appConfig.rateLimitMax,
     timeWindow: '1 minute',
   });
 

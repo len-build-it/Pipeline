@@ -1,7 +1,7 @@
 # Implementation plan: Configurable team finance and spending transparency
 
 Created: 2026-10-03T21:54:00+08:00
-Updated: 2026-10-03T22:53:00+08:00
+Updated: 2026-10-03T23:19:00+08:00
 Revision: 3
 Status: Approved, in progress
 Feature spec and revision: [FEAT-006 revision 2](../features/FEAT-006-configurable-finance.md), Approved
@@ -79,33 +79,33 @@ State: Complete
 ## Phase 3: Deliver web finance and spreadsheet workflows
 
 Requirements: FEAT-006/REQ-003 through REQ-009, REQ-012
-State: Approved, not started
+State: Complete
 
 ### Tasks
 
-- [ ] Add a Finance workspace to the responsive web app with budget periods, expense list, category/date filters, create/edit/void actions, and visible change history.
-- [ ] Add CSV and XLSX import with strict field validation, a row-level preview, and explicit confirmation before a single atomic commit; block the entire commit if any row is invalid.
-- [ ] Send the file as the raw request body with its CSV or XLSX content type; register a buffer content-type parser for those types and set a 5 MiB route body limit so larger uploads return HTTP 413; add no multipart parser.
-- [ ] Enforce the 5,000 data-row limit while parsing: read only the first worksheet and abort with a validation error at the first row beyond the limit.
-- [ ] Keep preview stateless: the preview route stores nothing, and the confirm route receives the same file again with the duplicate choice, then parses, validates, and detects duplicates again inside the committing transaction.
-- [ ] Detect duplicate candidates exactly as FEAT-006 defines them (same organization or same file, date, centavo amount, normalized category, and normalized reference) and require one skip-all or include-all choice for the batch.
-- [ ] Add the explicitly approved `exceljs@4.4.0` dependency and lockfile update only after the approval gate is recorded; add no other direct dependency.
-- [ ] Reject malformed or unsupported workbooks and formula cells in imported financial fields; preserve the user's file and form state when validation fails.
-- [ ] Add XLSX export with a summary and detail sheet, exact numeric values, organization and period, active filters, and generated-at timestamp; write all user-provided text as literal cells and include no macros.
-- [ ] Add tests that inspect generated workbook structure and values and verify formula-like input remains literal on export.
-- [ ] Keep CSV/XLSX controls on web; do not introduce mobile file-picker or sharing dependencies.
+- [x] Add a Finance workspace to the responsive web app with budget periods, expense list, category/date filters, create/edit/void actions, and visible change history.
+- [x] Add CSV and XLSX import with strict field validation, a row-level preview, and explicit confirmation before a single atomic commit; block the entire commit if any row is invalid.
+- [x] Send the file as the raw request body with its CSV or XLSX content type; register a buffer content-type parser for those types and set a 5 MiB route body limit so larger uploads return HTTP 413; add no multipart parser.
+- [x] Enforce the 5,000 data-row limit while parsing: read only the first worksheet and abort with a validation error at the first row beyond the limit.
+- [x] Keep preview stateless: the preview route stores nothing, and the confirm route receives the same file again with the duplicate choice, then parses, validates, and detects duplicates again inside the committing transaction.
+- [x] Detect duplicate candidates exactly as FEAT-006 defines them (same organization or same file, date, centavo amount, normalized category, and normalized reference) and require one skip-all or include-all choice for the batch.
+- [x] Add the explicitly approved `exceljs@4.4.0` dependency and lockfile update only after the approval gate is recorded; add no other direct dependency.
+- [x] Reject malformed or unsupported workbooks and formula cells in imported financial fields; preserve the user's file and form state when validation fails.
+- [x] Add XLSX export with a summary and detail sheet, exact numeric values, organization and period, active filters, and generated-at timestamp; write all user-provided text as literal cells and include no macros.
+- [x] Add tests that inspect generated workbook structure and values and verify formula-like input remains literal on export.
+- [x] Keep CSV/XLSX controls on web; do not introduce mobile file-picker or sharing dependencies.
 
 ### Verification
 
-- [ ] Run `npm run check`, `npm run test:finance`, `npm test`, and `npm run test:ui`; expect all checks to pass.
-- [ ] Verify valid and invalid CSV/XLSX imports, mixed valid/invalid rows, duplicate warnings, the HTTP 413 size limit, the parse-time row limit, a confirm whose data changed after preview, each duplicate-definition field, formula-cell rejection, organization isolation, export filters, and round-trip centavo values.
-- [ ] Verify keyboard-only use, accessible labels/errors, and responsive layouts at 375, 768, 1024, and 1440 CSS pixels.
+- [x] Run `npm run check`, `npm run test:finance`, `npm test`, and `npm run test:ui`; expect all checks to pass.
+- [x] Verify valid and invalid CSV/XLSX imports, mixed valid/invalid rows, duplicate warnings, the HTTP 413 size limit, the parse-time row limit, a confirm whose data changed after preview, each duplicate-definition field, formula-cell rejection, organization isolation, export filters, and round-trip centavo values.
+- [x] Verify keyboard-only use, accessible labels/errors, and responsive layouts at 375, 768, 1024, and 1440 CSS pixels.
 
 ### Review and checkpoint
 
-- [ ] Review upload validation, workbook parsing, formula safety, output scoping, accessible preview states, and no new dependency beyond the approved ExcelJS version.
-- [ ] Update evidence, plan state, and `HANDOFF.md`; stage only reviewed phase paths and inspect the staged diff.
-- [ ] Commit as `feat(finance): add web budgets imports and exports` and verify the commit hash.
+- [x] Review upload validation, workbook parsing, formula safety, output scoping, accessible preview states, and no new dependency beyond the approved ExcelJS version.
+- [x] Update evidence, plan state, and `HANDOFF.md`; stage only reviewed phase paths and inspect the staged diff.
+- [x] Commit as `feat(finance): add web budgets imports and exports` and verify the commit hash.
 
 ## Phase 4: Add explainable budget and cost analytics
 

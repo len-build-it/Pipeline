@@ -31,9 +31,11 @@ function rejectInvalid(errors) {
  */
 export async function requireFinanceAccess(db, caller, orgId, customPool) {
   const permission = await getCallerOrgPermission(caller, orgId, customPool);
-  if (!permission.hasAccess || !(await repository.isActiveOrganization(db, orgId))) {
+  const organization = permission.hasAccess ? await repository.findActiveOrganization(db, orgId) : null;
+  if (!organization) {
     throw httpError(403, 'Inaccessible organization.');
   }
+  return organization;
 }
 
 function requireVersion(version) {
@@ -159,7 +161,7 @@ export async function updateBudget(orgId, budgetId, input, caller, customPool = 
 
 // --- Expenses ---
 
-function expenseFilters(query) {
+export function expenseFilters(query) {
   for (const field of ['from', 'to']) {
     if (query[field] !== undefined && !isCalendarDate(query[field])) {
       throw httpError(400, `Filter "${field}" must be a date in YYYY-MM-DD format.`);
@@ -192,6 +194,15 @@ export async function listExpenses(orgId, query, caller, customPool = null) {
     page,
     limit,
   };
+}
+
+export async function getExpense(orgId, expenseId, caller, customPool = null) {
+  const db = customPool ?? getPool();
+  await requireFinanceAccess(db, caller, orgId, customPool);
+
+  const expense = await repository.findExpense(db, orgId, expenseId);
+  if (!expense) throw httpError(404, 'Expense not found.');
+  return toExpense(expense);
 }
 
 export async function createExpense(orgId, input, caller, customPool = null) {

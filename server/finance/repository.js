@@ -45,9 +45,9 @@ const EXPENSE_JOINS = `
   JOIN users cu ON e.created_by = cu.id
   JOIN users uu ON e.updated_by = uu.id`;
 
-export async function isActiveOrganization(db, orgId) {
-  const res = await db.query(`SELECT 1 FROM organizations WHERE id = $1 AND status = 'active'`, [orgId]);
-  return res.rows.length > 0;
+export async function findActiveOrganization(db, orgId) {
+  const res = await db.query(`SELECT id, name FROM organizations WHERE id = $1 AND status = 'active'`, [orgId]);
+  return res.rows[0] ?? null;
 }
 
 /**
@@ -151,6 +151,46 @@ export async function listExpenses(db, orgId, filters, { limit, offset }) {
   return res.rows;
 }
 
+/** Every matching expense, oldest first, for export. */
+export async function listAllExpenses(db, orgId, filters) {
+  const { where, params } = expenseFilter(orgId, filters);
+  const res = await db.query(
+    `SELECT ${EXPENSE_COLUMNS} ${EXPENSE_JOINS}
+     WHERE ${where}
+     ORDER BY e.occurred_on ASC, e.created_at ASC, e.id ASC`,
+    params
+  );
+  return res.rows;
+}
+
+/** Count and exact centavo sum of matching expenses per category, one label per case-insensitive spelling. */
+export async function totalsByCategory(db, orgId, filters) {
+  const { where, params } = expenseFilter(orgId, filters);
+  const res = await db.query(
+    `SELECT MIN(e.category) AS label, COUNT(*)::int AS count, SUM(e.amount_centavos)::text AS "totalCentavos"
+     FROM expenses e
+     WHERE ${where}
+     GROUP BY LOWER(e.category)
+     ORDER BY LOWER(MIN(e.category)) ASC`,
+    params
+  );
+  return res.rows;
+}
+
+/** Count and exact centavo sum of matching expenses per calendar month (YYYY-MM). */
+export async function totalsByMonth(db, orgId, filters) {
+  const { where, params } = expenseFilter(orgId, filters);
+  const res = await db.query(
+    `SELECT TO_CHAR(e.occurred_on, 'YYYY-MM') AS label, COUNT(*)::int AS count, SUM(e.amount_centavos)::text AS "totalCentavos"
+     FROM expenses e
+     WHERE ${where}
+     GROUP BY TO_CHAR(e.occurred_on, 'YYYY-MM')
+     ORDER BY label ASC`,
+    params
+  );
+  return res.rows;
+}
+
 /** Row count and exact centavo sum of non-void expenses matching the filters. */
 export async function summarizeExpenses(db, orgId, filters) {
   const { where, params } = expenseFilter(orgId, filters);
@@ -226,6 +266,39 @@ export async function markExpenseVoid(db, orgId, expenseId, actorId) {
      WHERE id = $1 AND organization_id = $2`,
     [expenseId, orgId, actorId]
   );
+}
+
+// --- Imports ---
+
+/** Serializes imports per organization so duplicate detection and the commit see the same rows. */
+export async function lockImports(db, orgId) {
+  await db.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [`finance-import:${orgId}`]);
+}
+
+/** Non-void expenses on the given dates: the only rows an import row can duplicate. */
+export async function listExpensesOnDates(db, orgId, dates) {
+  const res = await db.query(
+    `SELECT id,
+            TO_CHAR(occurred_on, 'YYYY-MM-DD') AS "occurredOn",
+            amount_centavos AS "amountCentavos",
+            category,
+            reference
+     FROM expenses
+     WHERE organization_id = $1 AND voided_at IS NULL AND occurred_on = ANY($2::date[])`,
+    [orgId, dates]
+  );
+  return res.rows;
+}
+
+export async function insertImportBatch(db, orgId, actorId, batch) {
+  const id = 'imp-' + generateRandomToken(12);
+  await db.query(
+    `INSERT INTO import_batches
+       (id, organization_id, actor_id, source_filename, content_digest, row_count, imported_count, skipped_duplicate_count)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [id, orgId, actorId, batch.filename, batch.contentDigest, batch.rowCount, batch.importedCount, batch.skippedDuplicateCount]
+  );
+  return id;
 }
 
 /** Distinct categories already used by the organization, one spelling per case-insensitive match. */

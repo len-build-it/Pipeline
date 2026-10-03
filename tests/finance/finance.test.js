@@ -81,6 +81,7 @@ describe('PLAN-002 Phase 2: budgets and expenses (FEAT-006/REQ-002 through REQ-0
         ['POST', `${ORG_1}/budgets`, { month: THIS_MONTH, category: 'Forged', amount: '1' }],
         ['PATCH', `${ORG_1}/budgets/${org1Budget.id}`, { amount: '2', version: org1Budget.version }],
         ['GET', `${ORG_1}/expenses`],
+        ['GET', `${ORG_1}/expenses/${org1Expense.id}`],
         ['POST', `${ORG_1}/expenses`, expenseInput()],
         ['PATCH', `${ORG_1}/expenses/${org1Expense.id}`, { amount: '2', version: org1Expense.version }],
         ['POST', `${ORG_1}/expenses/${org1Expense.id}/void`, { version: org1Expense.version }],
@@ -100,6 +101,9 @@ describe('PLAN-002 Phase 2: budgets and expenses (FEAT-006/REQ-002 through REQ-0
 
     test('a record cannot be reached through another organization the caller belongs to', async () => {
       // alex belongs to org-1 and org-2; the expense and budget belong to org-1.
+      const read = await api('alex', 'GET', `${ORG_2}/expenses/${org1Expense.id}`);
+      assert.equal(read.status, 404);
+      assert.equal((await api('alex', 'GET', `${ORG_1}/expenses/${org1Expense.id}`)).body.id, org1Expense.id);
       const edit = await api('alex', 'PATCH', `${ORG_2}/expenses/${org1Expense.id}`, { amount: '2', version: org1Expense.version });
       assert.equal(edit.status, 404);
       const voided = await api('alex', 'POST', `${ORG_2}/expenses/${org1Expense.id}/void`, { version: org1Expense.version });

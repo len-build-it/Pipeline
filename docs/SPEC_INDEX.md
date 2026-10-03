@@ -1,7 +1,7 @@
 # Specification index
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-03T22:53:00+08:00
+Updated: 2026-10-03T23:19:00+08:00
 
 | Category | ID | Current path | Revision | Status | Replaces |
 | --- | --- | --- | --- | --- | --- |
@@ -18,7 +18,7 @@ Updated: 2026-10-03T22:53:00+08:00
 | Feature | FEAT-006 | [features/FEAT-006-configurable-finance.md](features/FEAT-006-configurable-finance.md) | 2 | Approved | - |
 | Plan | PLAN-001 | [plans/FEAT-001-implementation.md](plans/FEAT-001-implementation.md) | 1 | Approved; all eight phases complete | - |
 | Plan | PLAN-002 | [plans/FEAT-006-implementation.md](plans/FEAT-006-implementation.md) | 3 | Approved, in progress | - |
-| Evidence | EVID-001 | [evidence/MVP-verification.md](evidence/MVP-verification.md) | 10 | PLAN-001 complete; PLAN-002 in progress | - |
+| Evidence | EVID-001 | [evidence/MVP-verification.md](evidence/MVP-verification.md) | 11 | PLAN-001 complete; PLAN-002 in progress | - |
 
 Current handoff: [../HANDOFF.md](../HANDOFF.md)
 

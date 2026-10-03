@@ -3,12 +3,37 @@ import {
   createBudget,
   updateBudget,
   listExpenses,
+  getExpense,
   createExpense,
   updateExpense,
   voidExpense,
   listCategories,
   listActivity,
+  httpError,
 } from '../finance/service.js';
+import { previewImport, confirmImport } from '../finance/import.js';
+import { exportExpenses, importTemplate } from '../finance/export.js';
+import { CSV_MIME, XLSX_MIME, MAX_UPLOAD_BYTES } from '../finance/spreadsheet.js';
+
+const UPLOAD_TYPES = [CSV_MIME, XLSX_MIME];
+
+/** The uploaded spreadsheet: the raw request body plus its declared type and display name. */
+function uploadedFile(request) {
+  const contentType = String(request.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase();
+  if (!UPLOAD_TYPES.includes(contentType)) {
+    throw httpError(415, 'Upload a .csv or .xlsx file.');
+  }
+  const filename = String(request.query.filename ?? '').replace(/[\\/\u0000-\u001f]/g, '').trim().slice(0, 200);
+  return { buffer: request.body, contentType, filename: filename || 'upload' };
+}
+
+function sendWorkbook(reply, { filename, buffer }) {
+  reply
+    .header('Content-Type', XLSX_MIME)
+    .header('Content-Disposition', `attachment; filename="${filename}"`)
+    .header('Cache-Control', 'no-store');
+  return buffer;
+}
 
 // Amounts cross the API as decimal strings, never as JSON numbers.
 const amount = { type: 'string', maxLength: 20 };
@@ -92,6 +117,11 @@ export async function financeRoutes(fastify, options) {
     },
   }, async (request) => listExpenses(request.params.orgId, request.query, request.user, pool));
 
+  fastify.get(`${base}/expenses/:expenseId`, {
+    preHandler,
+    schema: { params: recordParams('expenseId') },
+  }, async (request) => getExpense(request.params.orgId, request.params.expenseId, request.user, pool));
+
   fastify.post(`${base}/expenses`, {
     preHandler,
     schema: {
@@ -122,6 +152,49 @@ export async function financeRoutes(fastify, options) {
       body: { type: 'object', required: ['version'], properties: { version } },
     },
   }, async (request) => voidExpense(request.params.orgId, request.params.expenseId, request.body, request.user, pool));
+
+  // Spreadsheet files arrive as the raw request body; no multipart parser is involved.
+  fastify.addContentTypeParser(UPLOAD_TYPES, { parseAs: 'buffer' }, (request, body, done) => done(null, body));
+
+  const uploadOptions = {
+    preHandler,
+    bodyLimit: MAX_UPLOAD_BYTES,
+    schema: {
+      params: orgParams,
+      querystring: {
+        type: 'object',
+        properties: {
+          filename: { type: 'string', maxLength: 400 },
+          duplicates: { type: 'string', enum: ['skip', 'include'] },
+        },
+      },
+    },
+  };
+
+  fastify.post(`${base}/imports/preview`, uploadOptions, async (request) =>
+    previewImport(request.params.orgId, uploadedFile(request), request.user, pool));
+
+  fastify.post(`${base}/imports/confirm`, uploadOptions, async (request, reply) => {
+    const result = await confirmImport(request.params.orgId, uploadedFile(request), request.query.duplicates, request.user, pool);
+    reply.code(201);
+    return result;
+  });
+
+  fastify.get(`${base}/import-template.xlsx`, {
+    preHandler,
+    schema: { params: orgParams },
+  }, async (request, reply) => sendWorkbook(reply, await importTemplate(request.params.orgId, request.user, pool)));
+
+  fastify.get(`${base}/export.xlsx`, {
+    preHandler,
+    schema: {
+      params: orgParams,
+      querystring: {
+        type: 'object',
+        properties: { from: { type: 'string' }, to: { type: 'string' }, category: { type: 'string' } },
+      },
+    },
+  }, async (request, reply) => sendWorkbook(reply, await exportExpenses(request.params.orgId, request.query, request.user, pool)));
 
   fastify.get(`${base}/categories`, {
     preHandler,

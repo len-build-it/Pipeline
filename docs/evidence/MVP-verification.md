@@ -1,9 +1,9 @@
 # Verification ledger for the organization management MVP
 
 Created: 2026-09-16T21:49:38+08:00
-Updated: 2026-10-03T22:53:00+08:00
-Revision: 10
-Status: PLAN-001 Phase 1 through Phase 8 complete; PLAN-002 Phase 1 through Phase 2 complete, Phase 3 through Phase 6 pending.
+Updated: 2026-10-03T23:19:00+08:00
+Revision: 11
+Status: PLAN-001 Phase 1 through Phase 8 complete; PLAN-002 Phase 1 through Phase 3 complete, Phase 4 through Phase 6 pending.
 
 ## Planning checks
 
@@ -377,3 +377,73 @@ Failure observed and fixed (issue ISS-003):
 Review notes: every repository function takes the organization ID and filters by it; role is not consulted for finance; amounts never pass through floating point; no dependency was added.
 
 Limitations: no web or Android finance screens yet; no spreadsheet import yet; JSON numbers sent as amounts are coerced to strings by the existing Fastify validator before the strict decimal check, so `0.1 + 0.2` is rejected but `12.5` is accepted as `12.50`.
+
+### PLAN-002 Phase 3 results (2026-10-03T23:19:00+08:00)
+
+Requirements: FEAT-006/REQ-003 through REQ-009, REQ-012.
+
+| Check or scenario | Actual result | Limits |
+| --- | --- | --- |
+| `npm run check` | Passed, 57 JavaScript files. | Syntax and reference check only. |
+| `npm run test:finance` | Passed 106/106: money and rules 12, budgets and expenses 47, import 37, export 10. | Local test database with three organizations. |
+| `npm test` | Passed: auth 26/26, members 22/22, tasks 33/33, announcements 25/25, finance 106/106. | Local test database. |
+| `npm run test:ui` | Passed 10/10 in Microsoft Edge. | Demo server; Finance shows a sign-in-required state there. |
+| `npm run test:e2e` | Passed 11/11 in Microsoft Edge: the existing MVP journey plus ten finance journeys against the real server and PostgreSQL. | Local server on port 3000 started with `RATE_LIMIT_MAX=10000`. |
+| `npm run test:restore` | Passed, including finance records. | Disposable local database. |
+
+Dependency: `exceljs@4.4.0` added as an exact-version direct dependency; no other direct dependency was added.
+`npm audit` after the install reports 2 moderate advisories for `uuid` reached through `exceljs`, and 2 high advisories for `@fastify/static` and `nodemailer` that were already present before PLAN-002.
+No audit fix was applied because the proposed fixes are breaking upgrades outside the approved scope.
+
+Import scenarios actually run through the API (`tests/finance/import.test.js`):
+
+- Valid CSV: preview returns every row and stores nothing; confirm imports all rows in one batch with file digest, source row numbers, and one history event.
+- Mixed valid and invalid rows: preview lists row-level errors by spreadsheet row number; confirm returns 400 and writes nothing, including the valid rows.
+- Duplicate definition: a row is a duplicate only when date, centavo amount, category, and reference all match; each field was varied separately; a blank reference matches only a blank reference; void expenses and other organizations are never matched; a repeat inside the file is flagged against the earlier row.
+- Duplicate choice: confirm without a choice returns 409 and writes nothing; `skip` imports only non-duplicates; `include` imports every row; an unknown choice returns 400.
+- Data changed after preview: a duplicate created by another member between preview and confirm blocks a confirm that carries no choice; a file edited after preview is judged on its confirmed contents.
+- Limits: a body over 5 MiB returns HTTP 413 on both routes; exactly 5,000 rows are accepted and committed atomically (total `50.00`); 5,001 rows are refused for CSV and XLSX.
+- Workbook safety: a 21 MiB sheet compressed into a small upload is refused before parsing, also when the zip size fields are forged.
+- XLSX content: date cells, numeric cells, text cells, and rich text import with exact amounts; a second worksheet is ignored; formula cells in the amount, description, or date make the row invalid; a numeric cell holding `0.1 + 0.2` is rejected instead of rounded.
+- Malformed input: non-zip bytes, an empty file, missing or repeated columns, an unterminated quote, invalid UTF-8, a workbook sent as CSV, a PDF (415), and a JSON body (415) are all rejected with no write.
+- CSV reading: quotes, embedded commas and newlines, a byte order mark, CRLF, blank lines, header aliases, and extra columns; formula-like text stays literal text.
+
+Export scenarios actually run (`tests/finance/export.test.js`):
+
+- The download is a macro-free `.xlsx` attachment named for the organization.
+- The detail sheet holds non-void expenses with numeric amounts and real date cells; `999999999.99` and `0.10` read back unchanged.
+- Five formula-like strings are stored as text cells; the workbook contains zero formula cells.
+- The summary states organization, currency, period, category filter, void exclusion, a Manila generation timestamp, the count, and totals by category and month that reconcile to the detail rows.
+- Filters limit the rows; another organization's records never appear; non-members receive 403.
+- Round trip: the exported workbook imports into another organization with identical centavo values and an equal total of `1000001250.79`.
+
+Web journeys actually run in the browser against the real server (`tests/e2e/finance.spec.js`):
+
+- Record, validation errors with preserved input, edit, per-record history, budget set and duplicate refusal, void, and the show-void filter.
+- Import: invalid rows block confirmation and the file stays selected; a duplicate requires a skip-or-include choice; confirmation imports and reports the result; a formula workbook, an oversized file, and an unsupported type are refused.
+- Export download parsed and checked for organization, filters, and values.
+- Stale edit: the conflict message shows the other member's values, keeps the input, and a second save succeeds.
+- Offline: the save is refused with nothing written and succeeds after reconnecting.
+- Lost membership replaces the workspace with a no-access state.
+- The owner chooses one of three organizations before Finance loads.
+- Keyboard-only: open, tab through fields in order, focus kept inside the dialog, Escape returns focus to the opener, and a full save without a pointer.
+- Accessible names on every control in the workspace and its three dialogs; error summaries use `role="alert"`.
+- No horizontal page overflow at 375, 768, 1024, and 1440 CSS pixels, with dialogs inside the viewport.
+
+Screenshots: `docs/evidence/screenshots/plan2-p3-finance-desktop-1440.png`, `plan2-p3-finance-import-1440.png`, and `plan2-p3-finance-phone-375.png`.
+The `p1-*.png` and `p8-e2e-*.png` screenshots were regenerated by the suites.
+
+Failures observed and fixed:
+
+- ISS-004, real web sign-in never stored its session: `web/js/app.js` defined `getActions` twice, the second definition hid `signInRealUser`, and a real sign-in fell back to demo data without a token. Attempt 1 merged the two definitions, cleared fixture records on real sign-in, loaded records for every organization in the combined scope, and hid the demo banner for real sessions. Result: the existing MVP journey and all finance journeys pass.
+- ISS-005, existing MVP journey failed with 0 recent announcements: the test sent `publishImmediately`, which the API does not accept, so its announcement was saved as a draft; it had passed only while seed announcements were recent. Attempt 1 sent the real field `publish`. Result: passed; no assertion was changed.
+- ISS-006, the streaming workbook reader failed on a two-sheet workbook and leaves spooled sheet files in the temp directory when reading stops early. Attempt 1 switched to the in-memory reader behind a hard cap on actually inflated bytes. Result: 37/37 import tests pass.
+- ISS-007, five browser journeys failed with "Rate limit exceeded": one browser exceeded the 200 requests per minute limit, which also counts static files. Attempt 1 made the limit a server setting (`RATE_LIMIT_MAX`, default unchanged at 200) and started the e2e server with a higher value. Result: 8 of 10 finance journeys passed.
+- ISS-008, two journeys still failed: the keyboard journey assumed one tab stop for the native date input, and three journeys depended on data created by earlier tests, which Playwright discards when it restarts the worker after a failure. Attempt 1 tabbed until the target field had focus and gave each journey its own data. Result: 11/11 passed, then passed again in the full run.
+
+Deviation recorded for Len: FEAT-006 says XLSX parsing aborts at the first row beyond 5,000.
+CSV does exactly that.
+For XLSX the workbook is first loaded under a hard 20 MiB cap on inflated bytes, and row reading then stops at row 5,001 with the same error.
+The observable result and the bounded work are the same; the mechanism differs because of ISS-006.
+
+Limitations: demo mode has no finance data by design; the import preview lists every problem and duplicate row but at most 200 ready rows; export has no row limit; only Microsoft Edge was exercised.

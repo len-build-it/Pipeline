@@ -39,7 +39,28 @@ export async function setupFinanceTest() {
     return { status: res.statusCode, body: res.body ? JSON.parse(res.body) : null };
   }
 
-  return { app, pool, api };
+  /** Uploads a spreadsheet as the raw request body and returns { status, body }. */
+  async function upload(user, path, buffer, contentType) {
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api${path}`,
+      headers: { authorization: `Bearer ${tokens[user]}`, 'content-type': contentType },
+      payload: buffer,
+    });
+    return { status: res.statusCode, body: res.body ? JSON.parse(res.body) : null };
+  }
+
+  /** Downloads a binary response and returns { status, headers, buffer }. */
+  async function download(user, path) {
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api${path}`,
+      headers: user ? { authorization: `Bearer ${tokens[user]}` } : {},
+    });
+    return { status: res.statusCode, headers: res.headers, buffer: res.rawPayload };
+  }
+
+  return { app, pool, api, upload, download };
 }
 
 /** Manila calendar date offset by whole days from today, as YYYY-MM-DD. */
