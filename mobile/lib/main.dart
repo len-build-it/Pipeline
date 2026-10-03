@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'data/app_repository.dart';
 import 'data/synthetic_data.dart';
 import 'screens/home_shell.dart';
 import 'theme.dart';
@@ -22,7 +23,8 @@ class _TeamManagerAppState extends State<TeamManagerApp> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.initialRepo ?? SyntheticDataRepository();
+    // Starts on demo data; signing in from the account menu switches to live API records.
+    _repo = widget.initialRepo ?? AppRepository();
   }
 
   @override

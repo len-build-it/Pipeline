@@ -338,8 +338,9 @@ class ApiClient {
   }
 
   // Members endpoints
+  /// Members of one organization.
   Future<Map<String, dynamic>> getMembers(
-    String scope, {
+    String organizationId, {
     int page = 1,
     int limit = 25,
     String? search,
@@ -347,7 +348,6 @@ class ApiClient {
     String? status,
   }) async {
     final params = {
-      'scope': scope,
       'page': page.toString(),
       'limit': limit.toString(),
     };
@@ -357,7 +357,7 @@ class ApiClient {
 
     final res = await request(
       method: 'GET',
-      path: '/members',
+      path: '/organizations/$organizationId/members',
       queryParams: params,
     );
     return res as Map<String, dynamic>;
@@ -408,8 +408,9 @@ class ApiClient {
   }
 
   // Tasks endpoints
+  /// Tasks of one organization.
   Future<Map<String, dynamic>> getTasks(
-    String scope, {
+    String organizationId, {
     int page = 1,
     int limit = 25,
     String? status,
@@ -421,7 +422,6 @@ class ApiClient {
     bool? archived,
   }) async {
     final params = {
-      'scope': scope,
       'page': page.toString(),
       'limit': limit.toString(),
     };
@@ -435,7 +435,7 @@ class ApiClient {
 
     final res = await request(
       method: 'GET',
-      path: '/tasks',
+      path: '/organizations/$organizationId/tasks',
       queryParams: params,
     );
     return res as Map<String, dynamic>;

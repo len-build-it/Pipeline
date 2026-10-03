@@ -1,7 +1,7 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-03T23:28:00+08:00
+Updated: 2026-10-04T00:06:00+08:00
 State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 and PLAN-002 revision 3 are approved and in execution.
 Feature: FEAT-006 approved; implementation authorized under PLAN-002 revision 3; see the PLAN-002 phase table.
 Intended executor: Claude Code (Opus 5.5), selected by Len in chat on 2026-10-03 with "Execute".
@@ -70,7 +70,7 @@ PLAN-002 progress:
 | 2 | Exact-money budgets and expenses | Complete | feat(finance): add budgets and expense records |
 | 3 | Web finance and spreadsheet workflows | Complete | feat(finance): add web budgets imports and exports |
 | 4 | Budget and cost analytics | Complete | feat(finance): add transparent budget analytics |
-| 5 | Android finance workflows | Not started | - |
+| 5 | Android finance workflows | Complete | feat(mobile): add team finance workflows |
 | 6 | Integrated verification and local handoff | Not started | - |
 
 | Phase | Outcome | State | Checkpoint |
@@ -110,7 +110,7 @@ Local PostgreSQL on port 5433, the API 37 Android emulator, and Microsoft Edge w
 | P7 async throw test expectation | 0, resolved | In api_client_test.dart expect(() => ..., throwsA(...)) did not await future; changed to await expectLater. | All API client tests passing. |
 | P8 E2E user name selector | 0, resolved | In tests/e2e/e2e-workflow.spec.js locator looked for #current-user-name instead of .user-name; updated selector. | E2E user name verification passing. |
 | ISS-001 clock-dependent overview test (PLAN-002 baseline) | 1, resolved on attempt 2 | `npm run test:auth` failed 21/22 because fixed seed dates had passed; the test setup now pins seed due dates and publication dates relative to today, with expected values unchanged. | Auth suite passing 26/26. |
-| ISS-002 Android API contract mismatch (reported, not in PLAN-002 scope) | 0, open | `mobile/lib/services/api_client.dart` calls `/api/members` and `/api/tasks`, which the server does not serve, and `mobile/lib/main.dart` starts the synthetic repository. | Len decides whether to authorize a fix; PLAN-002 Phase 5 adds finance calls that match the real finance routes. |
+| ISS-002 Android API contract mismatch (partly fixed in PLAN-002 Phase 5) | 0, partly open | Sign-in, organizations, and member and task reads now match the server, and the app starts the API-backed repository. Android write calls for members, tasks, and announcements still use routes the server does not serve. | Len decides whether to authorize fixing the remaining Android write routes. |
 | ISS-003 concurrent finance edit returned 404 (PLAN-002 Phase 2) | 0, resolved on attempt 1 | Locking read joined `users` on `updated_by` and lost the row after a concurrent update; the lock is now a single-table `FOR UPDATE`. | Finance suite passing 59/59 on seven consecutive runs. |
 | ISS-004 web real sign-in stored no session (PLAN-002 Phase 3) | 0, resolved on attempt 1 | Duplicate `getActions` in `web/js/app.js` hid `signInRealUser`; real sign-in showed demo data without a token. Merged the definitions and cleared fixture data for real sessions. | MVP and finance browser journeys passing. |
 | ISS-005 MVP e2e journey depended on the clock (PLAN-002 Phase 3) | 0, resolved on attempt 1 | Test sent `publishImmediately` instead of the API field `publish`; corrected the field, assertion unchanged. | `npm run test:e2e` passing 11/11. |
@@ -119,6 +119,9 @@ Local PostgreSQL on port 5433, the API 37 Android emulator, and Microsoft Edge w
 | ISS-008 browser journeys shared data and assumed one date tab stop (PLAN-002 Phase 3) | 0, resolved on attempt 1 | Each journey now creates its own records and tabs until the target field has focus. | 11/11 passing twice. |
 | ISS-009 finance timing step failed twice (PLAN-002 Phase 4) | 1, resolved on attempt 2 | Broken string literal, then HTTP 429 from creating 200 fixtures through the API; fixtures are now inserted directly. | `npm run test:performance` passing. |
 | ISS-010 owner journey counted organizations (PLAN-002 Phase 4) | 0, resolved on attempt 1 | A fourth fixture organization was added by another journey; it now lives in suite setup. | `npm run test:e2e` passing 12/12. |
+| ISS-011 Android debug build blocked by stuck generated folders (PLAN-002 Phase 5) | 3, resolved on attempt 4 | Gradle could not delete or write folders under `mobile/build/app/intermediates`; removing that generated folder fixed it. | `flutter build apk --debug` passing. |
+| ISS-012 Android finance widget tests (PLAN-002 Phase 5) | 0, resolved on attempt 1 | Fake server counted offline requests; three floating buttons shared one hero tag and asserted on route push. | `flutter test` passing 53/53. |
+| ISS-013 emulator left in airplane mode (PLAN-002 Phase 5) | 0, resolved | Sign-in sent no request until airplane mode was turned off. | Emulator scenarios passed; airplane mode is off. |
 | P8 E2E announcement status code | 0, resolved | POST /api/announcements returned 200 instead of 201; updated assertion to expect([200, 201]). | E2E workflow passing. |
 
 For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
@@ -129,6 +132,6 @@ PLAN-002, since revision 2, replaces this three-attempt stop at Len's direction 
 
 ## Next action
 
-Continue PLAN-002 at Phase 5: Android Finance as a labeled secondary destination, online-only, showing server-computed totals and the estimate. ISS-002 (Android API contract mismatch) and the ISS-006 deviation still need Len's attention.
+Continue PLAN-002 at Phase 6: full local gate set, integrated end-to-end finance flow, README, and final handoff. Open items for Len: the remaining ISS-002 Android write routes, the ISS-006 XLSX parse-time deviation, and the dependency audit advisories.
 
 The final handoff must distinguish locally verified software completion from pending physical-device and production-release checks.

@@ -39,7 +39,7 @@ void main() {
             }),
             200,
           );
-        } else if (request.url.path == '/api/members') {
+        } else if (request.url.path == '/api/organizations/org-1/members') {
           return http.Response(
             jsonEncode({
               'members': [
@@ -61,7 +61,7 @@ void main() {
             }),
             200,
           );
-        } else if (request.url.path == '/api/tasks') {
+        } else if (request.url.path == '/api/organizations/org-1/tasks') {
           return http.Response(
             jsonEncode({
               'tasks': [

@@ -1,7 +1,7 @@
 # Implementation plan: Configurable team finance and spending transparency
 
 Created: 2026-10-03T21:54:00+08:00
-Updated: 2026-10-03T23:28:00+08:00
+Updated: 2026-10-04T00:06:00+08:00
 Revision: 3
 Status: Approved, in progress
 Feature spec and revision: [FEAT-006 revision 2](../features/FEAT-006-configurable-finance.md), Approved
@@ -136,28 +136,28 @@ State: Complete
 ## Phase 5: Add Android finance workflows
 
 Requirements: FEAT-006/REQ-002, REQ-003, REQ-009 through REQ-013
-State: Approved, not started
+State: Complete
 
 ### Tasks
 
-- [ ] Add Finance views for budgets, expenses, analytics summaries, and the approved create/edit/void workflows using the shared API and current repository patterns; display the server-computed totals and forecast without client-side money arithmetic.
-- [ ] Keep the existing four-item bottom navigation limit; expose Finance through an explicitly labeled secondary destination.
-- [ ] Show online-only finance behavior clearly, including retry and reconnect states; do not cache finance records or queue offline writes.
-- [ ] Make spreadsheet import/export discoverable as a web workflow for all organization members.
-- [ ] Add widget and repository coverage for permission-equivalent member access, money formatting, scope switching, loading/empty/error/denied/offline states, and form recovery.
+- [x] Add Finance views for budgets, expenses, analytics summaries, and the approved create/edit/void workflows using the shared API and current repository patterns; display the server-computed totals and forecast without client-side money arithmetic.
+- [x] Keep the existing four-item bottom navigation limit; expose Finance through an explicitly labeled secondary destination.
+- [x] Show online-only finance behavior clearly, including retry and reconnect states; do not cache finance records or queue offline writes.
+- [x] Make spreadsheet import/export discoverable as a web workflow for all organization members.
+- [x] Add widget and repository coverage for permission-equivalent member access, money formatting, scope switching, loading/empty/error/denied/offline states, and form recovery.
 
 ### Verification
 
-- [ ] Run `flutter analyze`, `flutter test`, and `flutter build apk --debug`; expect zero analyzer issues and successful tests/build.
-- [ ] Verify on the available Android emulator that all finance controls are TalkBack-labeled, support 200 percent text scaling, have at least 48 logical-pixel touch targets, and show current organization and currency.
-- [ ] Verify Android totals and forecast equal the web values for the same organization and filters.
-- [ ] Record emulator type/API and screenshots separately; physical-device results remain pending until Len tests a physical device.
+- [x] Run `flutter analyze`, `flutter test`, and `flutter build apk --debug`; expect zero analyzer issues and successful tests/build.
+- [x] Verify on the available Android emulator that all finance controls are TalkBack-labeled, support 200 percent text scaling, have at least 48 logical-pixel touch targets, and show current organization and currency.
+- [x] Verify Android totals and forecast equal the web values for the same organization and filters.
+- [x] Record emulator type/API and screenshots separately; physical-device results remain pending until Len tests a physical device.
 
 ### Review and checkpoint
 
-- [ ] Review navigation, offline messaging, exact money display, and role parity against the web client.
-- [ ] Update evidence, plan state, and `HANDOFF.md`; stage only reviewed phase paths and inspect the staged diff.
-- [ ] Commit as `feat(mobile): add team finance workflows` and verify the commit hash.
+- [x] Review navigation, offline messaging, exact money display, and role parity against the web client.
+- [x] Update evidence, plan state, and `HANDOFF.md`; stage only reviewed phase paths and inspect the staged diff.
+- [x] Commit as `feat(mobile): add team finance workflows` and verify the commit hash.
 
 ## Phase 6: Integrated verification and local handoff
 

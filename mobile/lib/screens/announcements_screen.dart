@@ -31,6 +31,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
       backgroundColor: AppColors.background,
       floatingActionButton: isLead && !_showArchived
           ? FloatingActionButton.extended(
+              heroTag: 'fab-announcements',
               key: const Key('btn-fab-announcement'),
               onPressed: () => _showComposeDialog(context),
               backgroundColor: AppColors.primary,

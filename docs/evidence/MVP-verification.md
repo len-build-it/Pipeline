@@ -1,9 +1,9 @@
 # Verification ledger for the organization management MVP
 
 Created: 2026-09-16T21:49:38+08:00
-Updated: 2026-10-03T23:28:00+08:00
-Revision: 12
-Status: PLAN-001 Phase 1 through Phase 8 complete; PLAN-002 Phase 1 through Phase 4 complete, Phase 5 through Phase 6 pending.
+Updated: 2026-10-04T00:06:00+08:00
+Revision: 13
+Status: PLAN-001 Phase 1 through Phase 8 complete; PLAN-002 Phase 1 through Phase 5 complete, Phase 6 through Phase 6 pending.
 
 ## Planning checks
 
@@ -485,3 +485,47 @@ Failures observed and fixed:
 - ISS-010: the owner journey expected three organizations after the report journey added a fourth inside its own body. Attempt 1 moved the extra organization into the suite setup and listed all four. Result: 12/12 passed.
 
 Limitations: Android does not show the report yet (Phase 5); the trend label for a zero month can touch the line next to a large month; only Microsoft Edge was exercised.
+
+### PLAN-002 Phase 5 results (2026-10-04T00:06:00+08:00)
+
+Requirements: FEAT-006/REQ-002, REQ-003, REQ-009 through REQ-013.
+
+| Check or scenario | Actual result | Limits |
+| --- | --- | --- |
+| `flutter analyze` in `mobile/` | Passed, no issues found. | Static analysis only. |
+| `flutter test` in `mobile/` | Passed 53/53 with 1 skipped (the live contract test, run separately below). | Host widget and unit tests with a mocked HTTP client. |
+| `FINANCE_LIVE_API=http://127.0.0.1:3000/api flutter test test/finance_live_test.dart` | Passed 1/1 against the real local server and seeded `pipeline_test` database. | Dart client on the host, not on a device. |
+| `flutter build apk --debug` | Passed after clearing stuck generated folders (ISS-011); `app-debug.apk` built on 2026-10-03. | Debug build only. |
+| Android emulator run | Passed the scenarios listed below. | `sdk_gphone16k_x86_64`, Android 17, API 37, headless, 420 dpi, server on the host at `10.0.2.2:3000`. |
+
+Emulator scenarios actually run on API 37 (emulator evidence, not physical-device evidence):
+
+- Signed in as Sam Taylor (Member) through the account menu; the header switched to the real organization AqOne and real records.
+- Opened Finance from the labeled Overview button "Finance: budgets and expenses"; the bottom bar still has four destinations.
+- The screen showed Organization AqOne, "Currency: PHP", and Budget PHP 100.00, Actual PHP 0.30, Remaining PHP 99.70, Month-end estimate PHP 3.10, identical to the API report fetched at the same time (100.00, 0.30, 99.70, 3.10).
+- Recorded an expense of 1250.50 through the form; the register showed 3 expenses totalling PHP 1,250.80 and the API reported actual 1250.80.
+- After midnight in Manila the same screen showed the estimate PHP 9,693.70 for 4 of 31 days, which equals 1,250.80 × 31 ÷ 4 and the API value.
+- Airplane mode on, then refresh: "Finance needs a connection" with no figures left on screen; airplane mode off, then retry: figures returned.
+- Accessibility tree as exposed to screen readers: every clickable control on the Finance screen and in the expense dialog has a text label or field hint; every fully visible control measured at least 48 by 48 dp.
+- Font scale 2.0: the screen and the expense dialog rendered with no overflow or exception lines in the device log, and no control was unlabeled or narrower than 48 dp.
+
+Screenshots (emulator, API 37): `docs/evidence/screenshots/plan2-p5-android-home-signed-in.png`, `plan2-p5-android-finance-top.png`, `plan2-p5-android-finance-expenses.png`, `plan2-p5-android-expense-form.png`, `plan2-p5-android-finance-offline.png`, `plan2-p5-android-finance-200pct-top.png`, `plan2-p5-android-finance-200pct-categories.png`, `plan2-p5-android-finance-200pct-expenses.png`, and `plan2-p5-android-expense-form-200pct.png`.
+
+Host tests actually run (`mobile/test/finance_test.dart`): PHP formatting from server digits; amount input rules; Manila date; server totals and estimate displayed unchanged; category lines with status in words; trend, register, history, and the web spreadsheet signpost; organization switching and the owner's organization choice; a Member recording an expense; invalid input stopped before any request; offline save keeping the dialog and input, then succeeding; stale edit showing latest values and retrying with the new version; void with confirmation; budget set and change; offline and denied states; 200 percent text scale; Android tap-target and labeled-tap-target guidelines.
+
+Live contract test actually run: the Android client signed in to the real API, read organizations, members, and tasks, set a budget, recorded three expenses (0.10, 0.20, 120.00), read a category line of actual 120.30 and remaining -20.30, matched budget, actual, remaining, estimate, and register total to the raw API report, edited, received a conflict on a stale version, voided, and was refused for an organization it does not belong to.
+
+Design notes: Android never calculates a displayed amount; totals and the estimate are the server's strings.
+Finance records are held in memory only; a failed load clears them, and nothing is cached or queued.
+No dependency was added.
+
+Failures observed and fixed:
+
+- ISS-002, partially resolved because it blocked a usable signed-in session: `mobile/lib/main.dart` now starts the API-backed repository (demo data until sign-in), and member and task reads use the real per-organization routes. Member, task, and announcement write calls on Android still use routes the server does not serve; that remainder is reported to Len and not changed here.
+- ISS-011, `flutter build apk --debug` failed three times on generated folders that could not be deleted or written (`mergeDebugAssets`, `merged_native_libs`). Attempt 1 retried; attempt 2 removed one folder; attempt 3 ran `flutter clean`, which also failed; attempt 4 removed `mobile/build/app/intermediates` (generated output) and the build passed.
+- ISS-012, two new widget tests failed: the fake server counted a request made while offline, and opening a route from the home screen asserted on three floating buttons sharing one hero tag. Attempt 1 recorded only requests that reach the server and gave each floating button its own tag. Result: 53/53 passed.
+- ISS-013, the emulator was in airplane mode from an earlier session, so sign-in sent nothing. Airplane mode was turned off for the run and is off now.
+
+Limitations: TalkBack itself was not switched on; labels were read from the accessibility tree it uses.
+Only API 37 was run; the API 24 emulator and physical devices remain pending Len's validation.
+The Android Overview still computes "today" from a fixed date, which predates this plan.

@@ -6,6 +6,7 @@ import 'overview_screen.dart';
 import 'members_screen.dart';
 import 'tasks_screen.dart';
 import 'announcements_screen.dart';
+import 'finance_screen.dart';
 
 class HomeShell extends StatefulWidget {
   final SyntheticDataRepository repo;
@@ -18,6 +19,11 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _currentIndex = 0;
+
+  /// Finance is a secondary destination: the bottom bar keeps its four items.
+  void _openFinance() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => FinanceScreen(repo: widget.repo)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +95,9 @@ class _HomeShellState extends State<HomeShell> {
                 tooltip: 'Account & Demo Personas',
                 onSelected: (persona) {
                   switch (persona) {
+                    case 'finance':
+                      _openFinance();
+                      break;
                     case 'sign_in':
                       _showSignInDialog(context);
                       break;
@@ -123,6 +132,10 @@ class _HomeShellState extends State<HomeShell> {
                   }
                 },
                 itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'finance',
+                    child: Text('Finance'),
+                  ),
                   const PopupMenuItem(
                     value: 'sign_in',
                     child: Text('Sign In (API)'),
@@ -202,6 +215,7 @@ class _HomeShellState extends State<HomeShell> {
                 repo: widget.repo,
                 onNavigateToTasks: () => setState(() => _currentIndex = 2),
                 onNavigateToAnnouncements: () => setState(() => _currentIndex = 3),
+                onOpenFinance: _openFinance,
               ),
               MembersScreen(repo: widget.repo),
               TasksScreen(repo: widget.repo),

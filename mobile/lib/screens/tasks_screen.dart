@@ -51,6 +51,7 @@ class _TasksScreenState extends State<TasksScreen> {
       backgroundColor: AppColors.background,
       floatingActionButton: isLead && !_showArchived
           ? FloatingActionButton.extended(
+              heroTag: 'fab-tasks',
               key: const Key('btn-fab-task'),
               onPressed: () => _showCreateTaskDialog(context),
               backgroundColor: AppColors.primary,

@@ -41,6 +41,7 @@ class _MembersScreenState extends State<MembersScreen> {
       backgroundColor: AppColors.background,
       floatingActionButton: isLead
           ? FloatingActionButton.extended(
+              heroTag: 'fab-members',
               key: const Key('btn-fab-invite'),
               onPressed: () => _showInviteDialog(context),
               backgroundColor: AppColors.primary,
