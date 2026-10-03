@@ -1,33 +1,33 @@
-# Architecture: AqOne and Dev Guild Manager
+# Architecture: Configurable Team Manager
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-09-16T21:54:37+08:00
-Revision: 2
-Status: Draft
+Updated: 2026-10-03T22:31:00+08:00
+Revision: 3
+Status: Approved
 
 ## Observed facts and assumptions
 
-The repository currently contains project rules, skills, and documentation templates, but no application code, database, or existing service contract.
+The repository now contains a completed local web, backend, PostgreSQL, and Flutter Android MVP.
 
-Len requested both a web dashboard and a Flutter native app.
+Len requested a configurable app for Len's teams rather than a separate customer-facing organization service.
 
-Len currently leads AqOne and the dev guild.
+The current installation includes AqOne and Dev Guild data, and clients still contain some fixed-name assumptions that this proposal removes.
 
 No hosting provider, identity provider, or existing backend was specified.
 
-The approved proposal is online-first, Android-first, email-based accounts with invite links, one shared backend, and one shared database.
+The existing product is online-first, Android-first, email-based, and uses one shared backend and database for the configured teams.
 
 The following implementation choices are proposed defaults and are not evidence of an existing stack.
 
 ## Components, boundaries, and flows
 
-The web client is a responsive browser application for desktop and tablet use.
+The web client is a responsive browser application for desktop, tablet, and phone use.
 
 The Flutter client is an Android application that calls the same backend API.
 
 The backend API authenticates users, validates request data, enforces organization and role permissions, and exposes organization-scoped resources.
 
-PostgreSQL is the source of truth for users, organizations, memberships, invitations, tasks, comments, announcements, and activity events.
+PostgreSQL is the source of truth for users, organizations, memberships, invitations, tasks, comments, announcements, activity events, budgets, and expenses.
 
 An email delivery service sends account invitations and account access messages through a provider-neutral adapter.
 
@@ -37,7 +37,11 @@ The normal flow is client request, authenticated API validation, permission chec
 
 The API must reject organization identifiers that the authenticated user cannot access, even when a client sends a forged identifier.
 
-The owner can view both organizations and organization leads are restricted to their assigned organizations.
+The owner overview may aggregate any configured organizations; leads and members remain restricted to organizations where they have active membership.
+
+Organization names and counts come from database records and API responses. Client code must not identify organizations by hard-coded names or assume a fixed count.
+
+Finance is a feature module in the existing modular monolith. Its use cases own amount validation, budget and expense rules, organization scope, audit behavior, and analytics definitions. HTTP routes, SQL persistence, and XLSX/CSV parsing and generation remain outer adapters.
 
 ## Decisions and trade-offs
 
@@ -45,13 +49,13 @@ The owner can view both organizations and organization leads are restricted to t
 
 Devil's advocate: a separate web backend and mobile backend would duplicate authorization and create inconsistent behavior.
 
-Simplicity: one modular backend and one database are sufficient for two organizations and avoid premature microservices, synchronization jobs, and duplicated domain logic.
+Simplicity: one modular backend and one database are sufficient for Len's teams and avoid premature microservices, synchronization jobs, and duplicated domain logic.
 
 Security and reliability: clients are untrusted, so authentication, validation, authorization, and transaction boundaries belong in the backend, with database constraints enforcing relationships.
 
 Architecture: a modular monolith keeps members, tasks, and announcements separated in code while preserving one deployable service and one source of truth.
 
-The Council synthesis is to use one backend API with PostgreSQL and two thin clients, with organization-scoped authorization at the API boundary.
+The Council synthesis remains one backend API with PostgreSQL and two thin clients, with organization-scoped authorization at the API boundary.
 
 The main trade-off is that a single service creates a shared deployment failure domain, which is acceptable for the initial scale and can be revisited if uptime or team size requires independent services.
 
@@ -77,7 +81,7 @@ Do not add a web framework, ORM, state-management package, custom component fram
 
 Use SQL migrations and parameterized queries with pg, with a transaction-scoped client for related writes and activity records.
 
-The permitted direct runtime packages proposed for approval are fastify, @fastify/static, @fastify/cookie, @fastify/jwt, @fastify/rate-limit, pg, and nodemailer.
+The permitted direct runtime packages proposed for approval are fastify, @fastify/static, @fastify/cookie, @fastify/jwt, @fastify/rate-limit, pg, nodemailer, and the proposed `exceljs@4.4.0` for XLSX/CSV import and export.
 
 The permitted web test dependency is @playwright/test.
 
@@ -87,7 +91,7 @@ The permitted Flutter packages are http and flutter_secure_storage, plus Flutter
 
 Approval covers compatible stable versions of this named set and their required transitive dependencies; the executor resolves exact versions once, commits generated lockfiles, and records versions in verification evidence.
 
-Additional direct dependencies or major stack substitutions require approval.
+The ExcelJS package is an additional direct dependency and requires Len's explicit approval with FEAT-006 and PLAN-002. Any other additional direct dependency or major stack substitution also requires approval.
 
 Use Node's asynchronous scrypt password hashing with a unique random salt, recorded parameters, constant-time verification, and a resource limit appropriate to the selected cost.
 
@@ -125,4 +129,4 @@ Hosting provider and production credentials are deferred release choices, not pr
 
 This revision proposes the stack and dependency authorization together so execution can proceed without repeated package-selection questions.
 
-Exact approval of this revision is pending against the document revision rather than the earlier proposal message.
+Revision 3, including the `exceljs@4.4.0` direct dependency named in the approval request, was approved by Len in chat on 2026-10-03T22:31:00+08:00: "Yes I approve of the revisions".

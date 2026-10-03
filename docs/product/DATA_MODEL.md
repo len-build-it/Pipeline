@@ -1,22 +1,25 @@
-# Shared data model: AqOne and Dev Guild Manager
+# Shared data model: Configurable Team Manager
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-09-16T21:54:37+08:00
-Revision: 2
-Status: Draft
+Updated: 2026-10-03T22:31:00+08:00
+Revision: 3
+Status: Approved
 
 ## Entities and ownership
 
 | Entity | Required fields | Ownership and lifecycle |
 | --- | --- | --- |
 | User | id, email, display name, avatar, status, created at | Global account; deactivation preserves history. |
-| Organization | id, name, status, created at | Top-level group; seeded with AqOne and the dev guild. |
+| Organization | id, name, status, created at | Top-level team scope; records are configured data and clients support any count. |
 | Membership | user id, organization id, role, status, joined at | Connects users to organizations; unique per user and organization. |
 | Invitation | id, email, organization id, role, token digest, expires at, status | Single-use pending record that becomes a membership when accepted. |
 | Task | id, organization id, title, description, creator, assignee, status, priority, due date, labels, timestamps | Organization-owned work item; completion preserves history. |
 | Task comment | id, task id, author, body, created at | Task-owned discussion entry; editable only by its author or an authorized lead. |
 | Announcement | id, author, title, body, publication status, target organizations, published at, timestamps | Draft or published message; publication preserves the displayed content. |
 | Activity event | id, organization id, actor, entity type, entity id, action, metadata, created at | Append-only management history for important changes. |
+| Budget | id, organization id, Manila calendar month, trimmed category text, amount in centavos, currency, creator, timestamps | One monthly budget per organization and case-insensitive category; all active members can view and change it. |
+| Expense | id, organization id, occurred date, category, description, amount in centavos, currency, optional vendor/reference, source, import batch, creator/updater, void time, timestamps | Actual internal spending; stored in PHP for the first release and voided rather than permanently deleted. |
+| Import batch | id, organization id, actor, source filename, content digest, row counts, created at | Records the source and result of a CSV/XLSX import; imported expenses retain their batch and source row. |
 
 User accounts are not organization-owned, while memberships are the source of truth for organization access.
 
@@ -38,9 +41,9 @@ Email addresses must be normalized before uniqueness checks.
 
 An active membership is required for organization access except for the global owner, whose explicit permission allows access across organizations.
 
-Only the owner can manage all organizations.
+Only the owner can manage the global overview; the overview scope includes configured organizations the owner can access.
 
-Only an organization lead or owner can invite members, change membership roles, deactivate memberships, create announcements, publish announcements, and manage organization tasks.
+Only an organization lead or owner can invite members, change membership roles, deactivate memberships, create announcements, publish announcements, and manage organization tasks. All active organization members have equal view and write access to that organization's finance records.
 
 Members can view their organizations, view tasks and announcements, update their assigned tasks, and add comments to tasks they can view.
 
@@ -85,7 +88,13 @@ These policies resolve earlier open questions and require approval as part of th
 | Dates | Store event timestamps in UTC; show dates in Asia/Manila and interpret date-only task deadlines as the end of that day in Asia/Manila. |
 | Task defaults | New tasks start in Backlog with Medium priority; assignee, description, due date, and labels are optional. |
 | Metrics | Open means non-archived and not Done; overdue means open with a due date before today's Manila date; recent announcements means published and not archived within seven Manila calendar days including today. |
-| Combined overview | Count distinct active users across both organizations, distinct tasks, and distinct announcements; single-organization counts are scoped to that organization. |
+| Combined overview | Count distinct active users, tasks, and announcements across the selected configured organizations; single-organization counts are scoped to that organization. |
+| Currency | The first finance release records and calculates PHP only; represent amounts as integer centavos in storage and decimal strings at API boundaries. |
+| Budgets | Budgets are monthly and category-scoped. Categories are trimmed free text, 1 to 60 characters, matched case-insensitively, and suggested from existing records. Remaining budget equals budget amount minus non-void actual expenses in the same organization, Manila month, and category. |
+| Expense lifecycle | Expenses are actual spending only; commitments and unpaid bills are excluded. Members can edit and void expenses, with actor, timestamp, and allowlisted before/after financial values recorded. |
+| Imports | CSV/XLSX imports require preview and explicit confirmation. Formula cells in financial fields are rejected, row errors are reported before commit, and likely duplicates are called out for member review. |
+| Analytics | Category totals and monthly trends use non-void actual expenses. Month-end run rate equals month-to-date actual divided by elapsed calendar days multiplied by days in the month and is omitted when no actual spend exists. |
+| Expense amount | Expense amounts are positive PHP values up to PHP 999,999,999.99 in integer centavos. Expense dates cannot be in the future. |
 | Pagination | Return 25 records by default, at most 100, with deterministic ordering and an explicit next-page indicator. |
 
 An invitation expires after 72 hours and is bound to its normalized email.
@@ -116,7 +125,7 @@ Refresh sessions contain account identifier, expiry, revocation time, current an
 
 Activity events contain action, actor identifier, target identifier, timestamp, and allowlisted changed field names or non-sensitive enum values.
 
-Events never contain passwords, tokens, profile notes, private text bodies, or full request payloads.
+Events never contain passwords, tokens, profile notes, private text bodies, or full request payloads. Finance events may include allowlisted old and new amounts, dates, and categories so all members can audit changes.
 
 One transaction writes a multi-organization announcement and its target-scoped activity records, and readers see only their authorized target context.
 
@@ -126,4 +135,4 @@ Write requests use an updated_at precondition on edits; stale edits return a con
 
 Production retention and erasure decisions remain outside local implementation completion.
 
-Exact approval of this revision is pending.
+Revision 3 was approved by Len in chat on 2026-10-03T22:31:00+08:00: "Yes I approve of the revisions".

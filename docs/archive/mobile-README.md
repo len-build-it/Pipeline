@@ -1,8 +1,17 @@
-# mobile
+# Archived: mobile/README.md
+
+Archived: 2026-10-03T22:28:00+08:00
+Status: Archived, superseded.
+Replacement: the Mobile application and Verification commands sections of [../../README.md](../../README.md).
+Reason: unmodified Flutter project-template text that described no part of this product.
+
+Original content follows.
+
+## mobile
 
 A new Flutter project.
 
-## Getting Started
+### Getting Started
 
 This project is a starting point for a Flutter application.
 

@@ -1,9 +1,9 @@
 # FEAT-001: Account access and organization dashboard
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-09-16T21:54:37+08:00
-Revision: 2
-Status: Draft
+Updated: 2026-10-03T22:31:00+08:00
+Revision: 3
+Status: Approved
 
 ## Purpose and success
 
@@ -23,7 +23,7 @@ An invited user opens an invitation link and either creates an account or signs 
 
 A returning user signs in and sees the combined owner overview or their last accessible organization.
 
-An owner can switch between a combined overview and either organization.
+An owner can switch between the combined overview and any configured organization they can access.
 
 A lead or member can switch only among organizations where they have an active membership.
 
@@ -41,7 +41,7 @@ Loading, empty, permission-denied, network-error, and retry states are required 
 | REQ-002 | Authenticate an active user. | Correct credentials open the user's accessible landing view, while incorrect credentials return a generic error. |
 | REQ-003 | Enforce organization isolation. | A user without an active membership or explicit global Owner permission cannot access that organization's data, even with a direct URL or API identifier. |
 | REQ-004 | Show dashboard summaries. | The selected view shows member count, open task count, overdue task count, and recent announcements for the permitted scope. |
-| REQ-005 | Switch organization scope. | An owner can select combined, AqOne, or dev guild scope, while a lead or member sees only permitted organizations. |
+| REQ-005 | Switch organization scope. | An owner can select the combined overview or any configured organization they can access, while a lead or member sees only organizations where they have active membership. |
 | REQ-006 | Recover from session and network failures. | Expired sessions and failed loads show an actionable message and retry or sign-in path without silently displaying stale protected data. |
 | REQ-007 | Enforce account and invitation lifecycle. | Existing-account acceptance requires matching sign-in, expired or consumed tokens cannot grant access, and sign-out revokes the server session. |
 | REQ-008 | Produce consistent summaries. | Shared metric definitions yield identical scoped totals on web and Android, including deduplication in the Owner overview. |
@@ -68,4 +68,4 @@ The combined overview is a proposed owner-only convenience view built from the a
 
 Use the session policy in [ARCHITECTURE.md](../product/ARCHITECTURE.md), invitation and summary policies in [DATA_MODEL.md](../product/DATA_MODEL.md), and owner provisioning and recovery in [CONSTRAINTS.md](../product/CONSTRAINTS.md).
 
-Exact approval of this revision is pending.
+Revision 3 was approved by Len in chat on 2026-10-03T22:31:00+08:00: "Yes I approve of the revisions".

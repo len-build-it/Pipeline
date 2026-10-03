@@ -1,9 +1,9 @@
 # FEAT-005: Flutter mobile companion and offline reads
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-09-16T21:54:37+08:00
+Updated: 2026-10-03T22:08:00+08:00
 Revision: 2
-Status: Draft
+Status: Approved
 
 ## Purpose and success
 
@@ -78,4 +78,4 @@ On reconnect, revalidate account and memberships before displaying refreshed rec
 
 Disable Android backup of credentials and cached protected data.
 
-Exact approval of this revision is pending.
+Approved by Len in chat on 2026-09-16T21:57:07+08:00 for revision 2.
