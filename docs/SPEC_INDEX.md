@@ -1,7 +1,7 @@
 # Specification index
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T00:06:00+08:00
+Updated: 2026-10-04T00:14:00+08:00
 
 | Category | ID | Current path | Revision | Status | Replaces |
 | --- | --- | --- | --- | --- | --- |
@@ -17,14 +17,14 @@ Updated: 2026-10-04T00:06:00+08:00
 | Feature | FEAT-005 | [features/FEAT-005-mobile-offline.md](features/FEAT-005-mobile-offline.md) | 2 | Approved | - |
 | Feature | FEAT-006 | [features/FEAT-006-configurable-finance.md](features/FEAT-006-configurable-finance.md) | 2 | Approved | - |
 | Plan | PLAN-001 | [plans/FEAT-001-implementation.md](plans/FEAT-001-implementation.md) | 1 | Approved; all eight phases complete | - |
-| Plan | PLAN-002 | [plans/FEAT-006-implementation.md](plans/FEAT-006-implementation.md) | 3 | Approved, in progress | - |
-| Evidence | EVID-001 | [evidence/MVP-verification.md](evidence/MVP-verification.md) | 13 | PLAN-001 complete; PLAN-002 in progress | - |
+| Plan | PLAN-002 | [plans/FEAT-006-implementation.md](plans/FEAT-006-implementation.md) | 3 | Approved, complete | - |
+| Evidence | EVID-001 | [evidence/MVP-verification.md](evidence/MVP-verification.md) | 14 | PLAN-001 complete; PLAN-002 complete | - |
 
 Current handoff: [../HANDOFF.md](../HANDOFF.md)
 
 Completed implementation plan: [PLAN-001 revision 1](plans/FEAT-001-implementation.md), covering FEAT-001 through FEAT-005 in eight phases for Gemini 3.8.
 
-Current implementation plan: [PLAN-002 revision 3](plans/FEAT-006-implementation.md), covering FEAT-006 in six phases. It is approved and in progress; see the handoff for the current phase.
+Current implementation plan: [PLAN-002 revision 3](plans/FEAT-006-implementation.md), covering FEAT-006 in six phases. It is approved and complete.
 
 PLAN-001 execution was authorized by Len on 2026-09-16T21:57:07+08:00. PLAN-002 revision 3 and the revisions listed above were approved by Len on 2026-10-03T22:31:00+08:00.
 

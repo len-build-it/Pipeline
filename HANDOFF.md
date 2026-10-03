@@ -1,9 +1,9 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T00:06:00+08:00
-State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 and PLAN-002 revision 3 are approved and in execution.
-Feature: FEAT-006 approved; implementation authorized under PLAN-002 revision 3; see the PLAN-002 phase table.
+Updated: 2026-10-04T00:14:00+08:00
+State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 is implemented and PLAN-002 revision 3 is complete; local software is verified, and physical-device and production checks are pending.
+Feature: FEAT-006 approved; implemented under PLAN-002 revision 3; all six phases complete.
 Intended executor: Claude Code (Opus 5.5), selected by Len in chat on 2026-10-03 with "Execute".
 
 ## Read first
@@ -39,7 +39,7 @@ Execution of PLAN-001 P1 through P8 proceeded continuously without routine phase
 | PLAN-001 Coordinated implementation | 1 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
 | PLAN-002 Configurable finance implementation | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 
-Allowed execution phases: PLAN-002 Phase 1 through Phase 6 continuously, looping fix-and-check per its Recovery section; PLAN-001 P1 through P8 are complete.
+Allowed execution phases: none remain; PLAN-001 P1 through P8 and PLAN-002 Phase 1 through Phase 6 are complete.
 
 PLAN-002 is a separate scope with its own approval: on 2026-10-03T22:31:00+08:00 Len wrote "Yes I approve of the revisions" in reply to a request naming FEAT-006 revision 2, PLAN-002 revision 3, the other draft revisions in this table, and `exceljs@4.4.0`.
 
@@ -66,12 +66,12 @@ PLAN-002 progress:
 | Phase | Outcome | State | Checkpoint |
 | --- | --- | --- | --- |
 | Docs | Approved spec and plan recorded | Complete | docs(finance): approve configurable finance spec and plan (commit 2f672b1) |
-| 1 | Remove fixed organization assumptions | Complete | refactor(orgs): remove fixed team assumptions |
-| 2 | Exact-money budgets and expenses | Complete | feat(finance): add budgets and expense records |
-| 3 | Web finance and spreadsheet workflows | Complete | feat(finance): add web budgets imports and exports |
-| 4 | Budget and cost analytics | Complete | feat(finance): add transparent budget analytics |
-| 5 | Android finance workflows | Complete | feat(mobile): add team finance workflows |
-| 6 | Integrated verification and local handoff | Not started | - |
+| 1 | Remove fixed organization assumptions | Complete | refactor(orgs): remove fixed team assumptions (commit 5294069) |
+| 2 | Exact-money budgets and expenses | Complete | feat(finance): add budgets and expense records (commit 6301a68) |
+| 3 | Web finance and spreadsheet workflows | Complete | feat(finance): add web budgets imports and exports (commit da623a7) |
+| 4 | Budget and cost analytics | Complete | feat(finance): add transparent budget analytics (commit 9116d28) |
+| 5 | Android finance workflows | Complete | feat(mobile): add team finance workflows (commit 90d9983) |
+| 6 | Integrated verification and local handoff | Complete | test(finance): verify configurable team finance release |
 
 | Phase | Outcome | State | Checkpoint |
 | --- | --- | --- | --- |
@@ -132,6 +132,16 @@ PLAN-002, since revision 2, replaces this three-attempt stop at Len's direction 
 
 ## Next action
 
-Continue PLAN-002 at Phase 6: full local gate set, integrated end-to-end finance flow, README, and final handoff. Open items for Len: the remaining ISS-002 Android write routes, the ISS-006 XLSX parse-time deviation, and the dependency audit advisories.
+PLAN-002 is complete and nothing further is authorized.
 
-The final handoff must distinguish locally verified software completion from pending physical-device and production-release checks.
+Len's decisions and checks, none of which block the local software:
+
+- Acknowledge or reject the ISS-006 deviation: XLSX files are loaded under a 20 MiB cap on inflated bytes and then stopped at row 5,001, instead of aborting during parsing as FEAT-006 words it.
+- Decide whether to authorize fixing the remaining Android write routes for members, tasks, and announcements (ISS-002).
+- Decide whether to authorize the breaking upgrades that `npm audit` proposes for `@fastify/static`, `nodemailer`, and `uuid` through `exceljs`.
+- Run physical Android device checks, including TalkBack, for the Finance screens.
+
+Locally verified: the web Finance workspace, spreadsheet import and export, the budget report, and Android Finance on the API 37 emulator, with the full gate set passing on 2026-10-04.
+
+Pending and unverified: physical Android devices, the API 24 emulator, real Safari, production hosting, production SMTP, hosted backups, and store distribution.
+

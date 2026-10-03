@@ -1,9 +1,9 @@
 # Implementation plan: Configurable team finance and spending transparency
 
 Created: 2026-10-03T21:54:00+08:00
-Updated: 2026-10-04T00:06:00+08:00
+Updated: 2026-10-04T00:14:00+08:00
 Revision: 3
-Status: Approved, in progress
+Status: Approved, complete
 Feature spec and revision: [FEAT-006 revision 2](../features/FEAT-006-configurable-finance.md), Approved
 Approved baseline revisions: PROD-001 revision 3, PROD-002 revision 3, PROD-003 revision 3, PROD-004 revision 4, PROD-005 revision 3, FEAT-001 revision 3, FEAT-004 revision 3, and FEAT-006 revision 2. Existing FEAT-002, FEAT-003, and FEAT-005 remain at approved revision 2.
 Len's chat approval: Approved by Len in chat on 2026-10-03T22:31:00+08:00: "Yes I approve of the revisions". The reply answered a request naming FEAT-006 revision 2, PLAN-002 revision 3, the baseline revisions above, and `exceljs@4.4.0`.
@@ -162,29 +162,29 @@ State: Complete
 ## Phase 6: Integrated verification and local handoff
 
 Requirements: FEAT-006/REQ-001 through REQ-013 and existing FEAT-001 through FEAT-005
-State: Approved, not started
+State: Complete
 
 ### Tasks
 
-- [ ] Run the complete local gate set and resolve only failures caused by or blocking this approved work.
-- [ ] Run the end-to-end flow: member records a budget, adds an expense, imports reviewed rows, inspects audit history and analytics, exports XLSX, and verifies the workbook values and organization scope.
-- [ ] Verify all existing seed/demo/auth/member/task/announcement workflows and the existing Android offline-read behavior still work.
-- [ ] Update the spec index and handoff with exact approved revisions and actual evidence; do not change approved behavior or architecture without new approval.
-- [ ] Update `README.md` with the approved Finance workflow, workbook template, import limits, and local verification commands.
-- [ ] Record limitations: neutral accountant export only, no tax/formal bookkeeping, web-only spreadsheet transfer, online-only Android finance, and physical/production checks still pending.
+- [x] Run the complete local gate set and resolve only failures caused by or blocking this approved work.
+- [x] Run the end-to-end flow: member records a budget, adds an expense, imports reviewed rows, inspects audit history and analytics, exports XLSX, and verifies the workbook values and organization scope.
+- [x] Verify all existing seed/demo/auth/member/task/announcement workflows and the existing Android offline-read behavior still work.
+- [x] Update the spec index and handoff with exact approved revisions and actual evidence; do not change approved behavior or architecture without new approval.
+- [x] Update `README.md` with the approved Finance workflow, workbook template, import limits, and local verification commands.
+- [x] Record limitations: neutral accountant export only, no tax/formal bookkeeping, web-only spreadsheet transfer, online-only Android finance, and physical/production checks still pending.
 
 ### Verification
 
-- [ ] From the repository root run `npm ci`, `npm run check`, `npm test`, `npm run test:ui`, `npm run test:e2e`, `npm run test:performance`, and `npm run test:restore`; expect every command to pass.
-- [ ] From `mobile/` run `flutter pub get`, `flutter analyze`, `flutter test`, and `flutter build apk --debug`; expect every command to pass.
-- [ ] Run the combined finance, role, cross-organization isolation, import/export, accessibility, restore, and end-to-end scenarios; save actual results and screenshots when available.
-- [ ] Review final tracked and staged content for secrets, unapproved dependencies, out-of-scope changes, and unrelated work.
+- [x] From the repository root run `npm ci`, `npm run check`, `npm test`, `npm run test:ui`, `npm run test:e2e`, `npm run test:performance`, and `npm run test:restore`; expect every command to pass.
+- [x] From `mobile/` run `flutter pub get`, `flutter analyze`, `flutter test`, and `flutter build apk --debug`; expect every command to pass.
+- [x] Run the combined finance, role, cross-organization isolation, import/export, accessibility, restore, and end-to-end scenarios; save actual results and screenshots when available.
+- [x] Review final tracked and staged content for secrets, unapproved dependencies, out-of-scope changes, and unrelated work.
 
 ### Review and checkpoint
 
-- [ ] Confirm all phases have successful checks and verified commits; inspect the final staged diff and preserve unrelated changes.
-- [ ] Update the verification ledger and current handoff with exact commands, results, environment, limitations, and commit hashes.
-- [ ] Commit as `test(finance): verify configurable team finance release` and verify the commit hash.
+- [x] Confirm all phases have successful checks and verified commits; inspect the final staged diff and preserve unrelated changes.
+- [x] Update the verification ledger and current handoff with exact commands, results, environment, limitations, and commit hashes.
+- [x] Commit as `test(finance): verify configurable team finance release` and verify the commit hash.
 
 ## Recovery
 

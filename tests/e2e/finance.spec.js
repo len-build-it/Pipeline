@@ -184,6 +184,89 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
     await page.screenshot({ path: `${screenshotsDir}/plan2-p3-finance-desktop-1440.png`, fullPage: true });
   });
 
+  test('integrated flow: budget, expense, reviewed import, history, analytics, and export in one session', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await signIn(page, 'jordan@example.com');
+    await page.locator('#nav-btn-finance').click();
+    await expect(page.locator('.page-title-group')).toContainText('Dev Guild');
+    const month = TODAY.slice(0, 7);
+
+    // 1. Budget
+    await page.locator('#btn-set-budget').click();
+    const budgetDialog = page.locator('#budget-form-modal');
+    await budgetDialog.locator('#budget-category').fill('Workshops');
+    await budgetDialog.locator('#budget-amount').fill('1000');
+    await budgetDialog.locator('#btn-save-budget').click();
+    await expect(page.locator('#finance-status')).toContainText('Budget set.');
+
+    // 2. Expense
+    await recordExpense(page, { amount: '250.25', category: 'Workshops', description: 'Venue deposit', reference: 'INT-1' });
+
+    // 3. Reviewed import: one duplicate of the expense above is skipped, two rows are imported
+    await page.locator('#btn-import-expenses').click();
+    const importDialog = page.locator('#finance-import-modal');
+    await importDialog.locator('#import-file').setInputFiles(csvFile('integrated.csv',
+      `${TODAY},250.25,workshops,Same as recorded,,int-1`,
+      `${TODAY},0.10,Workshops,Sticker,,INT-2`,
+      `${TODAY},0.20,Snacks,Candy,,INT-3`
+    ));
+    await importDialog.locator('#btn-preview-import').click();
+    await expect(importDialog.locator('#import-preview-summary')).toContainText('3 row(s), 2 ready, 1 possible duplicate(s), 0 with problems');
+    await importDialog.getByLabel('Skip the possible duplicates').check();
+    await importDialog.locator('#btn-confirm-import').click();
+    await expect(importDialog.locator('[data-import-alert]')).toContainText('Imported 2 expense(s) totalling PHP 0.30');
+    await importDialog.locator('#btn-close-import').click();
+
+    // 4. Audit history names the member for every step
+    const recent = page.locator('table[aria-label="Recent finance changes"]');
+    await expect(recent.locator('tbody tr')).toHaveCount(3);
+    await expect(recent).toContainText('Imported spreadsheet');
+    await expect(recent).toContainText('Recorded expense');
+    await expect(recent).toContainText('Recorded budget');
+    for (const row of await recent.locator('tbody tr').all()) await expect(row).toContainText('Jordan Lee');
+
+    // 5. Analytics reconcile with the register
+    const stat = id => page.locator(`[data-finance-stat="${id}"]`);
+    await expect(stat('budget')).toContainText('PHP 1,000.00');
+    await expect(stat('actual')).toContainText('PHP 250.55');
+    await expect(stat('actual')).toContainText('Includes PHP 0.20 without a budget');
+    await expect(stat('remaining')).toContainText('PHP 749.45');
+    await expect(stat('forecast')).toContainText('Estimate, not actual');
+    await expect(page.locator('.finance-bars li', { hasText: 'Workshops' })).toContainText('PHP 250.35 of PHP 1,000.00 · Remaining PHP 749.65');
+    await expect(page.locator('#finance-expense-total')).toContainText('3 expense(s)');
+    await expect(page.locator('#finance-expense-total')).toContainText('PHP 250.55');
+
+    // 6. Export: the workbook holds exactly this organization's three expenses and the same total
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.locator('#btn-export-expenses').click(),
+    ]);
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(await download.path());
+    const exported = [];
+    workbook.getWorksheet('Expenses').eachRow((row, number) => {
+      if (number > 1) exported.push([row.getCell(3).value, row.getCell(6).value, row.getCell(7).value, row.getCell(8).value]);
+    });
+    expect(exported.sort((a, b) => a[1] - b[1])).toEqual([
+      ['Sticker', 0.1, 'import', 'Jordan Lee'],
+      ['Candy', 0.2, 'import', 'Jordan Lee'],
+      ['Venue deposit', 250.25, 'manual', 'Jordan Lee'],
+    ]);
+    const facts = {};
+    workbook.getWorksheet('Summary').eachRow(row => { facts[row.getCell(1).value] = row.getCell(2).value; });
+    expect(facts.Organization).toBe('Dev Guild');
+    expect(facts.Currency).toBe('PHP');
+    expect(facts['Period from']).toBe(`${month}-01`);
+    expect(facts['Expense count']).toBe('3');
+    expect(facts['Total amount']).toBe(250.55);
+
+    // Existing destinations still work in the same session.
+    for (const [button, title] of [['#nav-btn-overview', 'Overview'], ['#nav-btn-members', 'Members'], ['#nav-btn-tasks', 'Tasks'], ['#nav-btn-announcements', 'Announcements']]) {
+      await page.locator(button).click();
+      await expect(page.locator('h1')).toHaveText(title);
+    }
+  });
+
   test('budget report: totals, charts with matching tables, and the labeled estimate reconcile with the register', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await signIn(page, 'sam@example.com');

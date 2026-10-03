@@ -1,9 +1,9 @@
 # Verification ledger for the organization management MVP
 
 Created: 2026-09-16T21:49:38+08:00
-Updated: 2026-10-04T00:06:00+08:00
-Revision: 13
-Status: PLAN-001 Phase 1 through Phase 8 complete; PLAN-002 Phase 1 through Phase 5 complete, Phase 6 through Phase 6 pending.
+Updated: 2026-10-04T00:14:00+08:00
+Revision: 14
+Status: PLAN-001 and PLAN-002 complete; local software verified, physical-device and production checks pending.
 
 ## Planning checks
 
@@ -529,3 +529,50 @@ Failures observed and fixed:
 Limitations: TalkBack itself was not switched on; labels were read from the accessibility tree it uses.
 Only API 37 was run; the API 24 emulator and physical devices remain pending Len's validation.
 The Android Overview still computes "today" from a fixed date, which predates this plan.
+
+### PLAN-002 Phase 6 results (2026-10-04T00:14:00+08:00)
+
+Requirements: FEAT-006/REQ-001 through REQ-013 and existing FEAT-001 through FEAT-005.
+
+Complete local gate set, run from a clean dependency install on 2026-10-04 (Asia/Manila):
+
+| Command | Actual result |
+| --- | --- |
+| `npm ci` | Passed, exit 0. |
+| `npm run check` | Passed, 60 JavaScript files. |
+| `npm test` | Passed: auth 26/26, members 22/22, tasks 33/33, announcements 25/25, finance 122/122 (228 in total). |
+| `npm run test:ui` | Passed 10/10 in Microsoft Edge. |
+| `npm run test:e2e` | Passed 13/13 in Microsoft Edge against the real server and PostgreSQL. |
+| `npm run test:performance` | Passed: dashboard p95 140.10 ms against the 2000 ms target; finance report p95 139.95 ms recorded with no target. |
+| `npm run test:restore` | Passed, including budgets, expenses, import batches, and finance history. |
+| `flutter pub get` in `mobile/` | Passed. |
+| `flutter analyze` | Passed, no issues found. |
+| `flutter test` | Passed 53/53 with 1 skipped (the live contract test, which passed in Phase 5 against the real server). |
+| `flutter build apk --debug` | Passed, `app-debug.apk` built. |
+
+Environment: Windows 11, Node 24.14.0, PostgreSQL 18.4 on 127.0.0.1:5433, Flutter 3.44.7 with Dart 3.12, Microsoft Edge through Playwright, Android emulator API 37 for the Phase 5 run.
+
+Integrated end-to-end flow actually run in the browser as a Lead of the second organization (`tests/e2e/finance.spec.js`, "integrated flow"): set a budget of 1,000.00; recorded an expense of 250.25; previewed a three-row CSV in which one row duplicated that expense, chose to skip it, and imported two rows totalling 0.30; saw three history rows all naming the member; saw budget 1,000.00, actual 250.55 including 0.20 unbudgeted, remaining 749.45, and a labeled estimate; saw the register at 3 expenses and 250.55; exported the workbook and read back exactly those three expenses, the organization name, the period, the count 3, and the total 250.55; then opened Overview, Members, Tasks, and Announcements in the same session.
+
+Existing behavior rechecked: the MVP journey (sign-in, invitation, task update, announcement, overview) passes with real sign-in now active; the demo UI suite passes with three fixture organizations; the Android suite for offline reads, cache limits, and write restrictions passes unchanged apart from the corrected read routes.
+
+Requirement-to-evidence map for FEAT-006:
+
+- REQ-001: three-organization API, web, and Android tests (Phase 1); four-organization browser suite (Phases 4 and 6).
+- REQ-002, REQ-003: scope and equal-access tests in `tests/finance/finance.test.js`, plus scope checks in the import, export, and analytics suites.
+- REQ-004 through REQ-006: `tests/finance/money.test.js` and `tests/finance/finance.test.js`.
+- REQ-007: `tests/finance/import.test.js` and the import browser journey.
+- REQ-008: `tests/finance/export.test.js` and the export browser journeys.
+- REQ-009, REQ-010: `tests/finance/analytics.test.js`, the report browser journey, and the Android tests.
+- REQ-011: Android host tests, the live contract test, and the API 37 emulator run.
+- REQ-012: validation, conflict, offline, denied, and import-preview journeys in the browser and Android tests.
+- REQ-013: the full pre-existing suites listed above.
+
+Final review: the only new direct dependency since the plan started is `exceljs@4.4.0`; `mobile/pubspec.yaml` is unchanged; a search of the plan's diff for credentials and private keys found none; untracked toolkit files and `CLAUDE.md` were never staged.
+
+Limitations that remain true:
+
+- The export is a neutral accountant handoff, not a formal ledger; there is no tax or double-entry bookkeeping.
+- Spreadsheet transfer is web-only and Android Finance is online-only.
+- Physical Android devices, the API 24 emulator, TalkBack switched on, real Safari, and every production check remain pending and unverified.
+- Open items for Len: the remaining Android write routes (ISS-002), the XLSX parse-time wording in FEAT-006 (ISS-006), and the `npm audit` advisories.
