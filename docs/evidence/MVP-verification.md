@@ -1,9 +1,9 @@
 # Verification ledger for the organization management MVP
 
 Created: 2026-09-16T21:49:38+08:00
-Updated: 2026-10-03T22:45:00+08:00
-Revision: 9
-Status: PLAN-001 Phase 1 through Phase 8 complete; PLAN-002 Phase 1 complete, Phase 2 through Phase 6 pending.
+Updated: 2026-10-03T22:53:00+08:00
+Revision: 10
+Status: PLAN-001 Phase 1 through Phase 8 complete; PLAN-002 Phase 1 through Phase 2 complete, Phase 3 through Phase 6 pending.
 
 ## Planning checks
 
@@ -338,3 +338,42 @@ Limitations: no Android emulator or physical-device run in Phase 1; emulator che
 
 Separate finding, not fixed here (issue ISS-002): the Android `ApiClient` requests `/api/members` and `/api/tasks` with a `scope` query, while the server only serves `/api/organizations/:orgId/members` and `/api/organizations/:orgId/tasks`, and `mobile/lib/main.dart` starts the synthetic repository rather than the API-backed one.
 Phase 1 corrected only the auth-response parsing needed to read organizations from the API.
+
+### PLAN-002 Phase 2 results (2026-10-03T22:53:00+08:00)
+
+Requirements: FEAT-006/REQ-002 through REQ-006.
+
+| Check or scenario | Actual result | Limits |
+| --- | --- | --- |
+| `npm run db:migrate` | Passed: applied `002_finance.sql` to `pipeline_dev`; a second run skipped it with 0 migrations applied. | Local development database. |
+| `npm run db:migrate:test` | Passed: applied `002_finance.sql` to `pipeline_test`. | Local test database. |
+| `npm run test:finance` | Passed 59/59, then passed 59/59 on six consecutive reruns after the locking fix below. | Local test database with three organizations. |
+| `npm test` | Passed: auth 26/26, members 22/22, tasks 33/33, announcements 25/25, finance 59/59. | Local test database. |
+| `npm run test:restore` | Passed: 2 budgets, 4 expenses (one void, one imported), 1 import batch, and 4 finance history events matched exactly after restore; active totals `org-1=30` and `org-2=99999999999` centavos; zero broken relationships. | Disposable local database, dropped afterwards. |
+| `npm run check` | Passed, 46 JavaScript files. | Syntax and reference check only. |
+
+Schema review: `002_finance.sql` only creates tables and indexes (`import_batches`, `budgets`, `expenses`, one new index on `activity_events`); it alters and drops nothing.
+Amounts are `BIGINT` centavos constrained to 1 through 99,999,999,999 with currency fixed to `PHP`.
+One budget per organization, month, and case-insensitive category is enforced by a unique index.
+
+What the finance tests exercise:
+
+- Equal access: the Owner, a Lead, and a Member each create, edit, and void an expense and create and change a budget.
+- Scope: a non-member receives 403 on all nine finance routes; unauthenticated requests receive 401; a record cannot be reached through another organization the caller belongs to (404); inactive membership, archived organization, and unknown organization receive 403; third-organization records are invisible to non-members.
+- Exact money: `0.10 + 0.20 + 0.70 + 1.10 + 2.20` totals `4.30`; two amounts of `999999999.99` plus `0.02` total `2000000000.00`; stored centavos are compared as integers.
+- Validation: thirteen invalid inputs each return 400 with unchanged row and history counts; an invalid edit leaves the stored expense and its version unchanged.
+- Budgets: duplicates differing only by case or surrounding spaces return 409; the same category is allowed in another month and another organization.
+- History: create, edit, and void events carry actor name, timestamp, and before and after amount, date, and category; free-text contents never appear; other organizations cannot read them.
+- Voiding: a void expense leaves totals and the default register, stays stored, and cannot be edited or voided again; no delete route exists.
+- Stale edits: an old version returns 409 for expense edit, expense void, and budget edit; a missing version returns 400; of two concurrent edits with the same version exactly one succeeds.
+
+Failure observed and fixed (issue ISS-003):
+
+- Initial failure: in the first full `npm test` run, `concurrent edits with the same version let exactly one win` returned statuses `[200, 404]` instead of `[200, 409]`.
+- Cause: the locking read joined `users` on `updated_by`; after waiting for the concurrent writer, PostgreSQL rechecked the row against the old join partner and dropped it, so the loser saw "not found".
+- Attempt 1: lock the row with a single-table `SELECT ... FOR UPDATE` and read the joined record afterwards. Result: passed, and stayed green across six consecutive reruns.
+- The assertion was not changed.
+
+Review notes: every repository function takes the organization ID and filters by it; role is not consulted for finance; amounts never pass through floating point; no dependency was added.
+
+Limitations: no web or Android finance screens yet; no spreadsheet import yet; JSON numbers sent as amounts are coerced to strings by the existing Fastify validator before the strict decimal check, so `0.1 + 0.2` is rejected but `12.5` is accepted as `12.50`.

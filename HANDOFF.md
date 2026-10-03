@@ -1,7 +1,7 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-03T22:45:00+08:00
+Updated: 2026-10-03T22:53:00+08:00
 State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 and PLAN-002 revision 3 are approved and in execution.
 Feature: FEAT-006 approved; implementation authorized under PLAN-002 revision 3; see the PLAN-002 phase table.
 Intended executor: Claude Code (Opus 5.5), selected by Len in chat on 2026-10-03 with "Execute".
@@ -67,7 +67,7 @@ PLAN-002 progress:
 | --- | --- | --- | --- |
 | Docs | Approved spec and plan recorded | Complete | docs(finance): approve configurable finance spec and plan (commit 2f672b1) |
 | 1 | Remove fixed organization assumptions | Complete | refactor(orgs): remove fixed team assumptions |
-| 2 | Exact-money budgets and expenses | Not started | - |
+| 2 | Exact-money budgets and expenses | Complete | feat(finance): add budgets and expense records |
 | 3 | Web finance and spreadsheet workflows | Not started | - |
 | 4 | Budget and cost analytics | Not started | - |
 | 5 | Android finance workflows | Not started | - |
@@ -111,6 +111,7 @@ Local PostgreSQL on port 5433, the API 37 Android emulator, and Microsoft Edge w
 | P8 E2E user name selector | 0, resolved | In tests/e2e/e2e-workflow.spec.js locator looked for #current-user-name instead of .user-name; updated selector. | E2E user name verification passing. |
 | ISS-001 clock-dependent overview test (PLAN-002 baseline) | 1, resolved on attempt 2 | `npm run test:auth` failed 21/22 because fixed seed dates had passed; the test setup now pins seed due dates and publication dates relative to today, with expected values unchanged. | Auth suite passing 26/26. |
 | ISS-002 Android API contract mismatch (reported, not in PLAN-002 scope) | 0, open | `mobile/lib/services/api_client.dart` calls `/api/members` and `/api/tasks`, which the server does not serve, and `mobile/lib/main.dart` starts the synthetic repository. | Len decides whether to authorize a fix; PLAN-002 Phase 5 adds finance calls that match the real finance routes. |
+| ISS-003 concurrent finance edit returned 404 (PLAN-002 Phase 2) | 0, resolved on attempt 1 | Locking read joined `users` on `updated_by` and lost the row after a concurrent update; the lock is now a single-table `FOR UPDATE`. | Finance suite passing 59/59 on seven consecutive runs. |
 | P8 E2E announcement status code | 0, resolved | POST /api/announcements returned 200 instead of 201; updated assertion to expect([200, 201]). | E2E workflow passing. |
 
 For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
@@ -121,6 +122,6 @@ PLAN-002, since revision 2, replaces this three-attempt stop at Len's direction 
 
 ## Next action
 
-Continue PLAN-002 at Phase 2: forward-only finance migration, exact-centavo budgets and expenses API, and `npm run test:finance`.
+Continue PLAN-002 at Phase 3: web Finance workspace, CSV and XLSX import with stateless preview and revalidating confirm, XLSX export, and the approved exceljs@4.4.0 dependency.
 
 The final handoff must distinguish locally verified software completion from pending physical-device and production-release checks.

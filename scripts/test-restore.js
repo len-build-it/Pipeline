@@ -21,9 +21,46 @@ const PG_BIN = process.env.PG_BIN_DIR || 'C:\\Program Files\\PostgreSQL\\18\\bin
 const PG_DUMP = path.join(PG_BIN, 'pg_dump.exe');
 const PSQL = path.join(PG_BIN, 'psql.exe');
 
+/** Adds finance records to the source so the restore check covers budgets, expenses, imports, and history. */
+async function seedFinanceFixture(pool) {
+  await pool.query(`
+    INSERT INTO import_batches (id, organization_id, actor_id, source_filename, content_digest, row_count, imported_count, skipped_duplicate_count)
+    VALUES ('imp-restore-1', 'org-2', 'usr-jordan', 'restore.csv', 'digest-restore', 2, 1, 1);
+
+    INSERT INTO budgets (id, organization_id, month, category, amount_centavos, created_by, updated_by) VALUES
+      ('bud-restore-1', 'org-1', '2026-09-01', 'Supplies', 500000, 'usr-alex', 'usr-alex'),
+      ('bud-restore-2', 'org-2', '2026-09-01', 'Workshops', 99999999999, 'usr-jordan', 'usr-sam');
+
+    INSERT INTO expenses (id, organization_id, occurred_on, amount_centavos, category, description, vendor, reference, source, import_batch_id, source_row, created_by, updated_by, voided_at, voided_by) VALUES
+      ('exp-restore-1', 'org-1', '2026-09-02', 10, 'Supplies', 'Paper clips', NULL, NULL, 'manual', NULL, NULL, 'usr-alex', 'usr-alex', NULL, NULL),
+      ('exp-restore-2', 'org-1', '2026-09-03', 20, 'Supplies', 'Staples', 'Ace', 'OR-1', 'manual', NULL, NULL, 'usr-sam', 'usr-alex', NULL, NULL),
+      ('exp-restore-3', 'org-1', '2026-09-04', 123456, 'Travel', 'Voided fare', NULL, NULL, 'manual', NULL, NULL, 'usr-sam', 'usr-sam', NOW(), 'usr-sam'),
+      ('exp-restore-4', 'org-2', '2026-09-05', 99999999999, 'Workshops', 'Venue', NULL, 'INV-9', 'import', 'imp-restore-1', 2, 'usr-jordan', 'usr-jordan', NULL, NULL);
+
+    INSERT INTO activity_events (id, organization_id, actor_id, entity_type, entity_id, action, metadata) VALUES
+      ('act-restore-1', 'org-1', 'usr-alex', 'expense', 'exp-restore-1', 'create', '{"after":{"amount":"0.10","occurredOn":"2026-09-02","category":"Supplies"}}'),
+      ('act-restore-2', 'org-1', 'usr-sam', 'expense', 'exp-restore-3', 'void', '{"before":{"amount":"1234.56","occurredOn":"2026-09-04","category":"Travel"}}'),
+      ('act-restore-3', 'org-1', 'usr-alex', 'budget', 'bud-restore-1', 'create', '{"after":{"amount":"5000.00","month":"2026-09","category":"Supplies"}}'),
+      ('act-restore-4', 'org-2', 'usr-jordan', 'import_batch', 'imp-restore-1', 'import', '{"importedCount":1}');
+  `);
+}
+
+/** Every finance row and its history, in a stable order, for an exact before/after comparison. */
+async function financeSnapshot(pool) {
+  const rows = async (sql) => (await pool.query(sql)).rows;
+  return {
+    budgets: await rows(`SELECT id, organization_id, month::text, category, amount_centavos::text, currency, version, created_by, updated_by FROM budgets ORDER BY id`),
+    expenses: await rows(`SELECT id, organization_id, occurred_on::text, amount_centavos::text, currency, category, description, vendor, reference, source, import_batch_id, source_row, version, created_by, updated_by, voided_at IS NOT NULL AS voided, voided_by FROM expenses ORDER BY id`),
+    importBatches: await rows(`SELECT id, organization_id, actor_id, source_filename, content_digest, row_count, imported_count, skipped_duplicate_count FROM import_batches ORDER BY id`),
+    history: await rows(`SELECT id, organization_id, actor_id, entity_type, entity_id, action, metadata FROM activity_events WHERE entity_type IN ('budget', 'expense', 'import_batch') ORDER BY id`),
+    activeTotal: await rows(`SELECT organization_id, SUM(amount_centavos)::text AS total FROM expenses WHERE voided_at IS NULL GROUP BY organization_id ORDER BY organization_id`),
+  };
+}
+
 async function main() {
   console.log('[restore] 1. Preparing source test database...');
-  await setupTestDatabase();
+  const seededPool = await setupTestDatabase();
+  await seedFinanceFixture(seededPool);
   await cleanupTestDatabase();
 
   const maintenancePool = new pg.Pool({
@@ -52,6 +89,7 @@ async function main() {
       publicationTargets: (await srcPool.query('SELECT id, target_organizations FROM announcements')).rows,
       activityEvents: (await srcPool.query('SELECT COUNT(*)::int AS count FROM activity_events')).rows[0].count,
     };
+    const srcFinance = await financeSnapshot(srcPool);
     await srcPool.end();
 
     console.log('[restore] Source database stats:');
@@ -156,6 +194,16 @@ async function main() {
       }
       console.log(`  ✔ Activity events: ${dstCounts.activityEvents} matched.`);
 
+      const dstFinance = await financeSnapshot(restoredPool);
+      if (srcFinance.budgets.length === 0 || srcFinance.expenses.length === 0 || srcFinance.history.length === 0) {
+        throw new Error('Finance fixture missing from source database; restore check would be vacuous.');
+      }
+      if (JSON.stringify(dstFinance) !== JSON.stringify(srcFinance)) {
+        throw new Error('Finance records mismatch between source and restored database!');
+      }
+      console.log(`  ✔ Finance: ${dstFinance.budgets.length} budgets, ${dstFinance.expenses.length} expenses, ${dstFinance.importBatches.length} import batches, ${dstFinance.history.length} history events matched exactly.`);
+      console.log(`  ✔ Finance active totals by organization: ${dstFinance.activeTotal.map(t => `${t.organization_id}=${t.total}`).join(', ')} centavos.`);
+
       // Verify relational integrity (referential keys)
       console.log(`[restore] Verifying relational integrity across entities...`);
       const orphanMemberships = await restoredPool.query(`
@@ -185,6 +233,32 @@ async function main() {
       `);
       if (orphanAnnouncements.rows.length > 0) {
         throw new Error(`Found ${orphanAnnouncements.rows.length} orphaned announcements!`);
+      }
+
+      const orphanFinance = await restoredPool.query(`
+        SELECT 'budget' AS kind, b.id FROM budgets b
+          LEFT JOIN organizations o ON b.organization_id = o.id
+          LEFT JOIN users cu ON b.created_by = cu.id
+          LEFT JOIN users uu ON b.updated_by = uu.id
+          WHERE o.id IS NULL OR cu.id IS NULL OR uu.id IS NULL
+        UNION ALL
+        SELECT 'expense', e.id FROM expenses e
+          LEFT JOIN organizations o ON e.organization_id = o.id
+          LEFT JOIN users cu ON e.created_by = cu.id
+          LEFT JOIN users uu ON e.updated_by = uu.id
+          LEFT JOIN import_batches ib ON e.import_batch_id = ib.id
+          LEFT JOIN memberships m ON m.user_id = e.created_by AND m.organization_id = e.organization_id
+          WHERE o.id IS NULL OR cu.id IS NULL OR uu.id IS NULL
+             OR (e.import_batch_id IS NOT NULL AND ib.id IS NULL)
+             OR (m.id IS NULL AND NOT cu.is_owner)
+        UNION ALL
+        SELECT 'import_batch', ib.id FROM import_batches ib
+          LEFT JOIN organizations o ON ib.organization_id = o.id
+          LEFT JOIN users u ON ib.actor_id = u.id
+          WHERE o.id IS NULL OR u.id IS NULL;
+      `);
+      if (orphanFinance.rows.length > 0) {
+        throw new Error(`Found ${orphanFinance.rows.length} finance records with broken relationships!`);
       }
 
       console.log(`  ✔ Foreign keys and relationships validated with zero orphans.`);

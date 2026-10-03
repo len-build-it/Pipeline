@@ -1,7 +1,7 @@
 # Implementation plan: Configurable team finance and spending transparency
 
 Created: 2026-10-03T21:54:00+08:00
-Updated: 2026-10-03T22:45:00+08:00
+Updated: 2026-10-03T22:53:00+08:00
 Revision: 3
 Status: Approved, in progress
 Feature spec and revision: [FEAT-006 revision 2](../features/FEAT-006-configurable-finance.md), Approved
@@ -50,31 +50,31 @@ State: Complete
 ## Phase 2: Add exact-money budgets and expenses
 
 Requirements: FEAT-006/REQ-002 through REQ-006
-State: Approved, not started
+State: Complete
 
 ### Tasks
 
-- [ ] Add a forward-only PostgreSQL migration for organization-scoped monthly budgets, expenses, import provenance, and indexes/constraints.
-- [ ] Store amounts as integer centavos and currency as `PHP`; expose decimal strings at the API boundary and never use JavaScript floating-point arithmetic for money.
-- [ ] Add finance use cases and thin route/persistence adapters for list, create, edit, and void operations; keep every query organization-scoped and validate active membership server-side.
-- [ ] Normalize category text by trimming, enforce its length, compare categories case-insensitively, and suggest existing categories without adding a category-management subsystem.
-- [ ] Allow active Owner, Lead, and Member users equal finance permissions as approved; record actor, timestamp, and allowlisted before/after financial values for every budget and expense mutation.
-- [ ] Apply existing optimistic concurrency conventions to edits; void rather than hard-delete expense records.
-- [ ] Add targeted integration coverage for exact centavo sums, validation, permissions, organization isolation, duplicate budgets, audit visibility, voiding, and stale edits.
-- [ ] Add the finance tests to both `npm run test:finance` and the existing `npm test` command.
+- [x] Add a forward-only PostgreSQL migration for organization-scoped monthly budgets, expenses, import provenance, and indexes/constraints.
+- [x] Store amounts as integer centavos and currency as `PHP`; expose decimal strings at the API boundary and never use JavaScript floating-point arithmetic for money.
+- [x] Add finance use cases and thin route/persistence adapters for list, create, edit, and void operations; keep every query organization-scoped and validate active membership server-side.
+- [x] Normalize category text by trimming, enforce its length, compare categories case-insensitively, and suggest existing categories without adding a category-management subsystem.
+- [x] Allow active Owner, Lead, and Member users equal finance permissions as approved; record actor, timestamp, and allowlisted before/after financial values for every budget and expense mutation.
+- [x] Apply existing optimistic concurrency conventions to edits; void rather than hard-delete expense records.
+- [x] Add targeted integration coverage for exact centavo sums, validation, permissions, organization isolation, duplicate budgets, audit visibility, voiding, and stale edits.
+- [x] Add the finance tests to both `npm run test:finance` and the existing `npm test` command.
 
 ### Verification
 
-- [ ] Run `npm run db:migrate` and `npm run db:migrate:test`; expect idempotent success and no destructive schema changes.
-- [ ] Run the new `npm run test:finance` and existing `npm test`; expect every test to pass.
-- [ ] Run `npm run test:restore`; verify budgets, expenses, audit history, membership relationships, and foreign keys survive restore.
+- [x] Run `npm run db:migrate` and `npm run db:migrate:test`; expect idempotent success and no destructive schema changes.
+- [x] Run the new `npm run test:finance` and existing `npm test`; expect every test to pass.
+- [x] Run `npm run test:restore`; verify budgets, expenses, audit history, membership relationships, and foreign keys survive restore.
 
 ### Review and checkpoint
 
-- [ ] Review arithmetic, constraints, transaction boundaries, permission checks, and audit contents for exactness and data leakage.
-- [ ] Review dependency changes; only add `exceljs@4.4.0` after its explicit approval, in the phase that needs it.
-- [ ] Update evidence, plan state, and `HANDOFF.md`; stage only reviewed phase paths and inspect the staged diff.
-- [ ] Commit as `feat(finance): add budgets and expense records` and verify the commit hash.
+- [x] Review arithmetic, constraints, transaction boundaries, permission checks, and audit contents for exactness and data leakage.
+- [x] Review dependency changes; only add `exceljs@4.4.0` after its explicit approval, in the phase that needs it.
+- [x] Update evidence, plan state, and `HANDOFF.md`; stage only reviewed phase paths and inspect the staged diff.
+- [x] Commit as `feat(finance): add budgets and expense records` and verify the commit hash.
 
 ## Phase 3: Deliver web finance and spreadsheet workflows
 

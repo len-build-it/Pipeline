@@ -17,7 +17,7 @@ export function getTestPool() {
 export async function setupTestDatabase() {
   await runMigrations({ isTest: true, customUrl: TEST_DB_URL });
   const pool = getTestPool();
-  await pool.query('TRUNCATE activity_events, task_comments, tasks, invitations, memberships, sessions, users, organizations CASCADE;');
+  await pool.query('TRUNCATE activity_events, expenses, budgets, import_batches, task_comments, tasks, invitations, memberships, sessions, users, organizations CASCADE;');
   await seedDatabase({ customUrl: TEST_DB_URL });
   return pool;
 }
