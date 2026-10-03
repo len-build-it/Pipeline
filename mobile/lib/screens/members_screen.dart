@@ -151,7 +151,7 @@ class _MembersScreenState extends State<MembersScreen> {
                             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                           ),
                           subtitle: Text(
-                            '${m.orgId == 'org-1' ? 'AqOne' : 'Dev Guild'} • ${m.email}',
+                            '${widget.repo.orgName(m.orgId)} • ${m.email}',
                             style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                           ),
                           trailing: Column(
@@ -210,7 +210,7 @@ class _MembersScreenState extends State<MembersScreen> {
 
   void _showInviteDialog(BuildContext context) {
     final emailController = TextEditingController();
-    String selectedOrg = widget.repo.currentScope != 'all' ? widget.repo.currentScope : 'org-1';
+    String selectedOrg = widget.repo.defaultOrgId;
     String selectedRole = 'Member';
     final formKey = GlobalKey<FormState>();
 
@@ -371,7 +371,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    _buildInfoRow('Organization', widget.member.orgId == 'org-1' ? 'AqOne' : 'Dev Guild'),
+                    _buildInfoRow('Organization', widget.repo.orgName(widget.member.orgId)),
                     const Divider(height: 24),
                     _buildInfoRow('Role', widget.member.role),
                     const Divider(height: 24),

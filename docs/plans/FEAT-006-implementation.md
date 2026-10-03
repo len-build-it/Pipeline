@@ -1,9 +1,9 @@
 # Implementation plan: Configurable team finance and spending transparency
 
 Created: 2026-10-03T21:54:00+08:00
-Updated: 2026-10-03T22:31:00+08:00
+Updated: 2026-10-03T22:45:00+08:00
 Revision: 3
-Status: Approved, not started
+Status: Approved, in progress
 Feature spec and revision: [FEAT-006 revision 2](../features/FEAT-006-configurable-finance.md), Approved
 Approved baseline revisions: PROD-001 revision 3, PROD-002 revision 3, PROD-003 revision 3, PROD-004 revision 4, PROD-005 revision 3, FEAT-001 revision 3, FEAT-004 revision 3, and FEAT-006 revision 2. Existing FEAT-002, FEAT-003, and FEAT-005 remain at approved revision 2.
 Len's chat approval: Approved by Len in chat on 2026-10-03T22:31:00+08:00: "Yes I approve of the revisions". The reply answered a request naming FEAT-006 revision 2, PLAN-002 revision 3, the baseline revisions above, and `exceljs@4.4.0`.
@@ -24,28 +24,28 @@ Use the existing Fastify, PostgreSQL, browser-native file input/download, and Fl
 ## Phase 1: Remove fixed organization assumptions
 
 Requirements: FEAT-006/REQ-001, REQ-002, REQ-013
-State: Approved, not started
+State: Complete
 
 ### Tasks
 
-- [ ] Trace organization names and IDs through API responses, web views, Flutter views, demo data, seed data, tests, and documentation; remove name-to-ID conditionals from runtime clients.
-- [ ] Render organization labels from organization data returned by the API or repository; preserve existing access rules and scope selection.
-- [ ] Replace assumptions that exactly two organizations exist with data-driven lists and a fixture containing at least three unrelated organization names.
-- [ ] Keep organization create, rename, and archive workflows out of scope; do not add customer tenancy or billing.
-- [ ] Add regression coverage for arbitrary organization names, target labels, member/task labels, and scoped overview totals.
+- [x] Trace organization names and IDs through API responses, web views, Flutter views, demo data, seed data, tests, and documentation; remove name-to-ID conditionals from runtime clients.
+- [x] Render organization labels from organization data returned by the API or repository; preserve existing access rules and scope selection.
+- [x] Replace assumptions that exactly two organizations exist with data-driven lists and a fixture containing at least three unrelated organization names.
+- [x] Keep organization create, rename, and archive workflows out of scope; do not add customer tenancy or billing.
+- [x] Add regression coverage for arbitrary organization names, target labels, member/task labels, and scoped overview totals.
 
 ### Verification
 
-- [ ] Run `npm run check`, `npm test`, and `npm run test:ui`; expect all checks to pass and all existing behavior to remain intact.
-- [ ] Run `flutter analyze` and `flutter test` from `mobile/`; expect zero analyzer issues and all tests to pass.
-- [ ] Record the three-organization web and Android scenarios in `docs/evidence/MVP-verification.md` with actual versions and results.
+- [x] Run `npm run check`, `npm test`, and `npm run test:ui`; expect all checks to pass and all existing behavior to remain intact.
+- [x] Run `flutter analyze` and `flutter test` from `mobile/`; expect zero analyzer issues and all tests to pass.
+- [x] Record the three-organization web and Android scenarios in `docs/evidence/MVP-verification.md` with actual versions and results.
 
 ### Review and checkpoint
 
-- [ ] Search runtime code and tests for organization-name-to-ID mappings and document any remaining occurrences that are intentional seed content.
-- [ ] Review the diff for unrelated changes, dependency additions, and preserved pre-existing work.
-- [ ] Update evidence, plan state, and `HANDOFF.md`; stage only reviewed phase paths and inspect the staged diff.
-- [ ] Commit as `refactor(orgs): remove fixed team assumptions` and verify the commit hash.
+- [x] Search runtime code and tests for organization-name-to-ID mappings and document any remaining occurrences that are intentional seed content.
+- [x] Review the diff for unrelated changes, dependency additions, and preserved pre-existing work.
+- [x] Update evidence, plan state, and `HANDOFF.md`; stage only reviewed phase paths and inspect the staged diff.
+- [x] Commit as `refactor(orgs): remove fixed team assumptions` and verify the commit hash.
 
 ## Phase 2: Add exact-money budgets and expenses
 

@@ -4,13 +4,14 @@
  */
 
 import { FIXTURE_USERS } from '../fixtures.js';
+import { orgLabel } from '../format.js';
 
 export function renderSignIn(container, state, actions) {
   container.innerHTML = `
     <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: var(--spacing-4); background-color: var(--color-background);">
       <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); width: 100%; max-width: 440px; padding: var(--spacing-8);">
         <div style="text-align: center; margin-bottom: var(--spacing-6);">
-          <h1 style="color: var(--color-primary); font-size: var(--font-size-2xl); font-weight: 800; letter-spacing: -0.02em;">AqOne & Dev Guild</h1>
+          <h1 style="color: var(--color-primary); font-size: var(--font-size-2xl); font-weight: 800; letter-spacing: -0.02em;">Team Manager</h1>
           <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-top: 4px;">Sign in to your management dashboard</p>
         </div>
 
@@ -164,7 +165,7 @@ export function renderInviteAccept(container, state, actions) {
       <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); width: 100%; max-width: 460px; padding: var(--spacing-8);">
         <div style="text-align: center; margin-bottom: var(--spacing-6);">
           <h1 style="color: var(--color-primary); font-size: var(--font-size-2xl); font-weight: 800;">Accept Invitation</h1>
-          <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-top: 4px;">Join AqOne or Dev Guild</p>
+          <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-top: 4px;">Join your team</p>
         </div>
 
         <div id="invite-alert-container"></div>
@@ -265,6 +266,8 @@ export function renderInviteAccept(container, state, actions) {
       }
     } catch {
       // API unreachable: simulate successful acceptance in demo state
+      const invitation = state.invitations.find(i => i.email.toLowerCase() === email.toLowerCase());
+      const invitedOrgId = invitation ? invitation.orgId : state.organizations[0].id;
       const newUser = {
         id: 'usr-new-' + Date.now(),
         email,
@@ -275,14 +278,14 @@ export function renderInviteAccept(container, state, actions) {
         skills: [],
         interests: [],
         memberships: [
-          { orgId: 'org-1', role: 'Member', status: 'active', notes: '' }
+          { orgId: invitedOrgId, role: 'Member', status: 'active', notes: '' }
         ]
       };
 
       state.members.push({
         id: 'mem-' + Date.now(),
         userId: newUser.id,
-        orgId: 'org-1',
+        orgId: invitedOrgId,
         displayName: name,
         email,
         avatarColor: '#059669',
@@ -294,7 +297,7 @@ export function renderInviteAccept(container, state, actions) {
         notes: ''
       });
 
-      alert(`Welcome, ${name}! Invitation accepted for AqOne.`);
+      alert(`Welcome, ${name}! Invitation accepted for ${orgLabel(state, invitedOrgId)}.`);
       actions.signInUser(newUser);
     }
   });

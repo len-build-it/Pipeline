@@ -1,9 +1,9 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-03T22:31:00+08:00
-State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 and PLAN-002 revision 3 are approved and not started.
-Feature: FEAT-006 approved; implementation authorized under PLAN-002 revision 3, no phase started.
+Updated: 2026-10-03T22:45:00+08:00
+State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 and PLAN-002 revision 3 are approved and in execution.
+Feature: FEAT-006 approved; implementation authorized under PLAN-002 revision 3; see the PLAN-002 phase table.
 Intended executor: Claude Code (Opus 5.5), selected by Len in chat on 2026-10-03 with "Execute".
 
 ## Read first
@@ -61,7 +61,17 @@ The same documentation pass archived the template `mobile/README.md` to [docs/ar
 
 The local MVP worktree is at the verified P8 commit. The current branch also contains untracked toolkit setup files from the earlier `npx len-toolkit start`; preserve them and do not stage them as part of PLAN-002.
 
-PLAN-002 has no implementation phases started and no phase commits.
+PLAN-002 progress:
+
+| Phase | Outcome | State | Checkpoint |
+| --- | --- | --- | --- |
+| Docs | Approved spec and plan recorded | Complete | docs(finance): approve configurable finance spec and plan (commit 2f672b1) |
+| 1 | Remove fixed organization assumptions | Complete | refactor(orgs): remove fixed team assumptions |
+| 2 | Exact-money budgets and expenses | Not started | - |
+| 3 | Web finance and spreadsheet workflows | Not started | - |
+| 4 | Budget and cost analytics | Not started | - |
+| 5 | Android finance workflows | Not started | - |
+| 6 | Integrated verification and local handoff | Not started | - |
 
 | Phase | Outcome | State | Checkpoint |
 | --- | --- | --- | --- |
@@ -99,6 +109,8 @@ Local PostgreSQL on port 5433, the API 37 Android emulator, and Microsoft Edge w
 | P7 AppBar text scaling overflow | 0, resolved | 200 percent text scaling overflowed AppBar.title when refresh button added; wrapped in FittedBox. | All widget tests passing. |
 | P7 async throw test expectation | 0, resolved | In api_client_test.dart expect(() => ..., throwsA(...)) did not await future; changed to await expectLater. | All API client tests passing. |
 | P8 E2E user name selector | 0, resolved | In tests/e2e/e2e-workflow.spec.js locator looked for #current-user-name instead of .user-name; updated selector. | E2E user name verification passing. |
+| ISS-001 clock-dependent overview test (PLAN-002 baseline) | 1, resolved on attempt 2 | `npm run test:auth` failed 21/22 because fixed seed dates had passed; the test setup now pins seed due dates and publication dates relative to today, with expected values unchanged. | Auth suite passing 26/26. |
+| ISS-002 Android API contract mismatch (reported, not in PLAN-002 scope) | 0, open | `mobile/lib/services/api_client.dart` calls `/api/members` and `/api/tasks`, which the server does not serve, and `mobile/lib/main.dart` starts the synthetic repository. | Len decides whether to authorize a fix; PLAN-002 Phase 5 adds finance calls that match the real finance routes. |
 | P8 E2E announcement status code | 0, resolved | POST /api/announcements returned 200 instead of 201; updated assertion to expect([200, 201]). | E2E workflow passing. |
 
 For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
@@ -109,6 +121,6 @@ PLAN-002, since revision 2, replaces this three-attempt stop at Len's direction 
 
 ## Next action
 
-Claude Code executes PLAN-002 Phase 1 through Phase 6 continuously, staging only reviewed phase paths and preserving untracked toolkit files.
+Continue PLAN-002 at Phase 2: forward-only finance migration, exact-centavo budgets and expenses API, and `npm run test:finance`.
 
 The final handoff must distinguish locally verified software completion from pending physical-device and production-release checks.

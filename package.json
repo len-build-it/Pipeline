@@ -1,7 +1,7 @@
 {
   "name": "pipeline-org-manager",
   "version": "0.1.0",
-  "description": "AqOne and Dev Guild Manager MVP",
+  "description": "Configurable team manager for Len's teams",
   "type": "module",
   "scripts": {
     "start": "node server/index.js",

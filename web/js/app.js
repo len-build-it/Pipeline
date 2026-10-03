@@ -4,6 +4,7 @@
  */
 
 import { createInitialState, FIXTURE_USERS } from './fixtures.js';
+import { escapeHtml, orgLabel } from './format.js';
 import { renderOverview } from './views/overview.js';
 import { renderMembers } from './views/members.js';
 import { renderTasks } from './views/tasks.js';
@@ -124,7 +125,7 @@ class App {
     if (!user.isGlobalOwner) {
       const allowedOrgs = user.memberships.map(m => m.orgId);
       if (this.state.currentScope === 'all' || !allowedOrgs.includes(this.state.currentScope)) {
-        this.state.currentScope = allowedOrgs[0] || 'org-1';
+        this.state.currentScope = allowedOrgs[0] ?? null;
       }
     }
     this.currentView = 'overview';
@@ -218,10 +219,10 @@ class App {
 
       <!-- Mobile Top Bar -->
       <header class="mobile-top-bar">
-        <div class="brand-wordmark" style="margin-bottom:0; font-size:1.1rem;">AqOne &amp; Dev Guild</div>
+        <div class="brand-wordmark" style="margin-bottom:0; font-size:1.1rem;">Team Manager</div>
         <select id="mobile-scope-select" class="scope-select" style="width:auto; padding:4px 8px;" aria-label="Select organization scope">
           ${availableScopes.map(s => `
-            <option value="${s.id}" ${currentScope === s.id ? 'selected' : ''}>${s.name}</option>
+            <option value="${s.id}" ${currentScope === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>
           `).join('')}
         </select>
       </header>
@@ -230,12 +231,12 @@ class App {
         <!-- Persistent Desktop Left Navigation Rail -->
         <nav class="nav-rail" aria-label="Primary Navigation">
           <div class="nav-header">
-            <div class="brand-wordmark">AqOne &amp; Dev Guild</div>
+            <div class="brand-wordmark">Team Manager</div>
             <div class="scope-container">
               <label for="desktop-scope-select" class="scope-label">Organization Scope</label>
               <select id="desktop-scope-select" class="scope-select" aria-label="Organization scope selection">
                 ${availableScopes.map(s => `
-                  <option value="${s.id}" ${currentScope === s.id ? 'selected' : ''}>${s.name}</option>
+                  <option value="${s.id}" ${currentScope === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>
                 `).join('')}
               </select>
             </div>
@@ -430,7 +431,7 @@ class App {
               <div class="form-group">
                 <label for="invite-org-select" class="form-label">Target Organization *</label>
                 <select id="invite-org-select" class="form-select">
-                  ${availableOrgs.map(o => `<option value="${o.id}">${o.name}</option>`).join('')}
+                  ${availableOrgs.map(o => `<option value="${o.id}">${escapeHtml(o.name)}</option>`).join('')}
                 </select>
               </div>
 
@@ -525,7 +526,7 @@ class App {
           if (res.ok) {
             const data = await res.json();
             if (data.emailSent) {
-              alert(`Invitation sent to ${email} for ${role} role in ${orgId === 'org-1' ? 'AqOne' : 'Dev Guild'}.`);
+              alert(`Invitation sent to ${email} for ${role} role in ${orgLabel(this.state, orgId)}.`);
             } else {
               alert(`SMTP Error: Invitation delivery failed. Status recorded as delivery_failed with feedback: ${data.deliveryError}`);
             }
@@ -566,7 +567,7 @@ class App {
           status: 'pending',
           expiresAt: '2026-09-19T23:59:59+08:00'
         });
-        alert(`Invitation sent to ${email} for ${role} role in ${orgId === 'org-1' ? 'AqOne' : 'Dev Guild'}.`);
+        alert(`Invitation sent to ${email} for ${role} role in ${orgLabel(this.state, orgId)}.`);
       }
 
       closeModal();
@@ -614,7 +615,7 @@ class App {
                 <div class="form-group">
                   <label for="task-create-org" class="form-label">Organization *</label>
                   <select id="task-create-org" class="form-select">
-                    ${availableOrgs.map(o => `<option value="${o.id}" ${o.id === defaultOrgId ? 'selected' : ''}>${o.name}</option>`).join('')}
+                    ${availableOrgs.map(o => `<option value="${o.id}" ${o.id === defaultOrgId ? 'selected' : ''}>${escapeHtml(o.name)}</option>`).join('')}
                   </select>
                 </div>
 
@@ -821,7 +822,7 @@ class App {
                   ${availableOrgs.map(o => `
                     <label style="display:flex; align-items:center; gap:var(--spacing-2); font-size:var(--font-size-sm); cursor:pointer;">
                       <input type="checkbox" name="target-org" value="${o.id}" checked />
-                      ${o.name}
+                      ${escapeHtml(o.name)}
                     </label>
                   `).join('')}
                 </div>

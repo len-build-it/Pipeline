@@ -185,7 +185,7 @@ class OverviewScreen extends StatelessWidget {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
-                                task.orgId == 'org-1' ? 'AqOne' : 'Dev Guild',
+                                repo.orgName(task.orgId),
                                 style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                               ),
                               const Text(' • ', style: TextStyle(color: AppColors.textMuted)),

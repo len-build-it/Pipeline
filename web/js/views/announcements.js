@@ -3,6 +3,8 @@
  * Requirements: FEAT-004/REQ-001 through REQ-008; PROD-005/UI-REQ-001 through 007
  */
 
+import { escapeHtml, orgLabels } from '../format.js';
+
 export function renderAnnouncements(container, state, actions) {
   const { currentUser, currentScope } = state;
   const isOwner = currentUser.isGlobalOwner;
@@ -85,7 +87,7 @@ export function renderAnnouncements(container, state, actions) {
                 <div style="display:flex; align-items:center; gap:var(--spacing-2); margin-bottom:4px;">
                   <span class="badge badge-${a.status}">${a.status}</span>
                   <span style="font-size:0.75rem; color:var(--color-text-muted);">
-                    Audience: ${a.targetOrgs.map(o => o === 'org-1' ? 'AqOne' : 'Dev Guild').join(', ')}
+                    Audience: ${escapeHtml(orgLabels(state, a.targetOrgs))}
                   </span>
                   ${a.archived ? `<span class="badge badge-archived">Archived</span>` : ''}
                 </div>
@@ -184,7 +186,7 @@ export function openAnnouncementDetailModal(annId, state, actions) {
               <span class="badge badge-${ann.status}">${ann.status}</span>
               ${ann.archived ? `<span class="badge badge-archived">Archived</span>` : ''}
               <span style="font-size:0.75rem; color:var(--color-text-muted);">
-                Audience: ${ann.targetOrgs.map(o => o === 'org-1' ? 'AqOne' : 'Dev Guild').join(', ')}
+                Audience: ${escapeHtml(orgLabels(state, ann.targetOrgs))}
               </span>
             </div>
             <h2 id="ann-modal-title" class="modal-title">${escapeHtml(ann.title)}</h2>
@@ -300,12 +302,3 @@ export function openAnnouncementDetailModal(annId, state, actions) {
   });
 }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}

@@ -3,6 +3,8 @@
  * Requirements: FEAT-002/REQ-001 through REQ-009; PROD-005/UI-REQ-001 through 007
  */
 
+import { escapeHtml, orgLabel } from '../format.js';
+
 export function renderMembers(container, state, actions) {
   const { currentUser, currentScope } = state;
   const isOwner = currentUser.isGlobalOwner;
@@ -92,7 +94,7 @@ export function renderMembers(container, state, actions) {
                     </div>
                   </div>
                 </td>
-                <td>${m.orgId === 'org-1' ? 'AqOne' : 'Dev Guild'}</td>
+                <td>${escapeHtml(orgLabel(state, m.orgId))}</td>
                 <td><span class="badge badge-${m.role.toLowerCase()}">${m.role}</span></td>
                 <td><span class="badge badge-${m.status.toLowerCase()}">${m.status}</span></td>
                 <td>
@@ -222,7 +224,7 @@ export function openMemberDetailModal(memberId, state, actions) {
 
         <div class="modal-body">
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:var(--spacing-3); font-size:var(--font-size-sm);">
-            <div><strong>Organization:</strong> ${member.orgId === 'org-1' ? 'AqOne' : 'Dev Guild'}</div>
+            <div><strong>Organization:</strong> ${escapeHtml(orgLabel(state, member.orgId))}</div>
             <div><strong>Role:</strong> <span class="badge badge-${member.role.toLowerCase()}">${member.role}</span></div>
             <div><strong>Status:</strong> <span class="badge badge-${member.status.toLowerCase()}">${member.status}</span></div>
             <div><strong>Joined:</strong> ${member.joinedAt ? member.joinedAt.slice(0, 10) : 'Pending'}</div>
@@ -412,12 +414,3 @@ export function openMemberDetailModal(memberId, state, actions) {
   }
 }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}

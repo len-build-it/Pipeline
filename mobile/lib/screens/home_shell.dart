@@ -35,7 +35,7 @@ class _HomeShellState extends State<HomeShell> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'AqOne & Dev Guild',
+                    'Team Manager',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary),
                   ),
                   const SizedBox(width: 8),

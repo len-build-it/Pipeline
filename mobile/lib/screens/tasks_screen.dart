@@ -202,7 +202,7 @@ class _TasksScreenState extends State<TasksScreen> {
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     Text(
-                                      t.orgId == 'org-1' ? 'AqOne' : 'Dev Guild',
+                                      widget.repo.orgName(t.orgId),
                                       style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                                     ),
                                     const Text(' • ', style: TextStyle(color: AppColors.textMuted)),
@@ -281,7 +281,7 @@ class _TasksScreenState extends State<TasksScreen> {
   void _showCreateTaskDialog(BuildContext context) {
     final titleController = TextEditingController();
     final descController = TextEditingController();
-    String selectedOrg = widget.repo.currentScope != 'all' ? widget.repo.currentScope : 'org-1';
+    String selectedOrg = widget.repo.defaultOrgId;
     String selectedPriority = 'Medium';
     final formKey = GlobalKey<FormState>();
 
@@ -433,7 +433,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              '${widget.task.orgId == 'org-1' ? 'AqOne' : 'Dev Guild'} • ${widget.task.id}',
+              '${widget.repo.orgName(widget.task.orgId)} • ${widget.task.id}',
               style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
             ),
             const SizedBox(height: 16),

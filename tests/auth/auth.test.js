@@ -301,6 +301,18 @@ describe('Phase 3: Authentication and Organization Isolation', () => {
     let memberToken;
 
     before(async () => {
+      // Seed dates are fixed calendar dates, so pin them relative to today:
+      // two open tasks overdue, two still upcoming, and published announcements recent.
+      await pool.query(
+        `UPDATE tasks SET due_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date
+           + CASE WHEN id IN ('tsk-103', 'tsk-104') THEN -3 ELSE 30 END
+         WHERE id IN ('tsk-101', 'tsk-103', 'tsk-104', 'tsk-105')`
+      );
+      await pool.query(
+        `UPDATE announcements SET published_at = CURRENT_TIMESTAMP - INTERVAL '1 day'
+         WHERE publication_status = 'Published'`
+      );
+
       // Owner (Len)
       const lenLogin = await app.inject({
         method: 'POST',
@@ -571,6 +583,85 @@ describe('Phase 3: Authentication and Organization Isolation', () => {
         [userRes.rows[0].id, 'org-2']
       );
       assert.equal(memRes.rows.length, 1);
+    });
+  });
+
+  describe('8. Data-driven organizations (FEAT-006/REQ-001, FEAT-001/REQ-005)', () => {
+    const thirdOrgName = 'Harbor Robotics Club <2026> & Friends';
+    let ownerToken;
+    let samToken;
+    let jordanToken;
+
+    async function login(email) {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email, password: 'password123456' },
+      });
+      return JSON.parse(res.body).accessToken;
+    }
+
+    before(async () => {
+      await pool.query(`INSERT INTO organizations (id, name, status) VALUES ('org-harbor', $1, 'active')`, [thirdOrgName]);
+      await pool.query(
+        `INSERT INTO memberships (id, user_id, organization_id, role, status)
+         VALUES ('mem-sam-harbor', 'usr-sam', 'org-harbor', 'Member', 'active')`
+      );
+      await pool.query(
+        `INSERT INTO tasks (id, organization_id, title, creator_id, status, priority)
+         VALUES ('tsk-harbor-1', 'org-harbor', 'Calibrate drive motors', 'usr-len', 'Backlog', 'Medium')`
+      );
+      ownerToken = await login('len@example.com');
+      samToken = await login('sam@example.com');
+      jordanToken = await login('jordan@example.com');
+    });
+
+    test('Owner receives every configured organization with its stored name', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/api/organizations',
+        headers: { authorization: `Bearer ${ownerToken}` },
+      });
+
+      assert.equal(res.statusCode, 200);
+      const names = JSON.parse(res.body).organizations.map(o => o.name);
+      assert.deepEqual(names, ['AqOne', 'Dev Guild', thirdOrgName]);
+    });
+
+    test('Member receives exactly the organizations of their active memberships', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/api/organizations',
+        headers: { authorization: `Bearer ${samToken}` },
+      });
+
+      assert.equal(res.statusCode, 200);
+      const ids = JSON.parse(res.body).organizations.map(o => o.id).sort();
+      assert.deepEqual(ids, ['org-1', 'org-2', 'org-harbor']);
+    });
+
+    test('Third organization overview is scoped to its own records', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/api/overview?scope=org-harbor',
+        headers: { authorization: `Bearer ${samToken}` },
+      });
+
+      assert.equal(res.statusCode, 200);
+      const data = JSON.parse(res.body);
+      assert.equal(data.metrics.activeMembers, 1);
+      assert.equal(data.metrics.openTasks, 1);
+      assert.deepEqual(data.actionableTasks.map(t => t.id), ['tsk-harbor-1']);
+    });
+
+    test('Non-member is forbidden from the third organization', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/api/overview?scope=org-harbor',
+        headers: { authorization: `Bearer ${jordanToken}` },
+      });
+
+      assert.equal(res.statusCode, 403);
     });
   });
 });

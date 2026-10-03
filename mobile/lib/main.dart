@@ -4,19 +4,19 @@ import 'screens/home_shell.dart';
 import 'theme.dart';
 
 void main() {
-  runApp(const AqOneDevGuildApp());
+  runApp(const TeamManagerApp());
 }
 
-class AqOneDevGuildApp extends StatefulWidget {
+class TeamManagerApp extends StatefulWidget {
   final SyntheticDataRepository? initialRepo;
 
-  const AqOneDevGuildApp({super.key, this.initialRepo});
+  const TeamManagerApp({super.key, this.initialRepo});
 
   @override
-  State<AqOneDevGuildApp> createState() => _AqOneDevGuildAppState();
+  State<TeamManagerApp> createState() => _TeamManagerAppState();
 }
 
-class _AqOneDevGuildAppState extends State<AqOneDevGuildApp> {
+class _TeamManagerAppState extends State<TeamManagerApp> {
   late final SyntheticDataRepository _repo;
 
   @override
@@ -28,7 +28,7 @@ class _AqOneDevGuildAppState extends State<AqOneDevGuildApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AqOne & Dev Guild Manager',
+      title: 'Team Manager',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       home: HomeShell(repo: _repo),
