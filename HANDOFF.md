@@ -1,7 +1,7 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-03T23:19:00+08:00
+Updated: 2026-10-03T23:28:00+08:00
 State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 and PLAN-002 revision 3 are approved and in execution.
 Feature: FEAT-006 approved; implementation authorized under PLAN-002 revision 3; see the PLAN-002 phase table.
 Intended executor: Claude Code (Opus 5.5), selected by Len in chat on 2026-10-03 with "Execute".
@@ -69,7 +69,7 @@ PLAN-002 progress:
 | 1 | Remove fixed organization assumptions | Complete | refactor(orgs): remove fixed team assumptions |
 | 2 | Exact-money budgets and expenses | Complete | feat(finance): add budgets and expense records |
 | 3 | Web finance and spreadsheet workflows | Complete | feat(finance): add web budgets imports and exports |
-| 4 | Budget and cost analytics | Not started | - |
+| 4 | Budget and cost analytics | Complete | feat(finance): add transparent budget analytics |
 | 5 | Android finance workflows | Not started | - |
 | 6 | Integrated verification and local handoff | Not started | - |
 
@@ -117,6 +117,8 @@ Local PostgreSQL on port 5433, the API 37 Android emulator, and Microsoft Edge w
 | ISS-006 ExcelJS streaming reader unusable (PLAN-002 Phase 3) | 0, resolved on attempt 1 | Crashed on a two-sheet workbook and can leave spooled sheets in the temp directory; replaced by the in-memory reader behind a 20 MiB cap on inflated bytes. | Deviation from the FEAT-006 parse-time wording awaits Len's acknowledgement. |
 | ISS-007 browser journeys hit the request rate limit (PLAN-002 Phase 3) | 0, resolved on attempt 1 | Limit is now the `RATE_LIMIT_MAX` server setting, default 200; the e2e server starts with 10000. | No code path branches on test mode. |
 | ISS-008 browser journeys shared data and assumed one date tab stop (PLAN-002 Phase 3) | 0, resolved on attempt 1 | Each journey now creates its own records and tabs until the target field has focus. | 11/11 passing twice. |
+| ISS-009 finance timing step failed twice (PLAN-002 Phase 4) | 1, resolved on attempt 2 | Broken string literal, then HTTP 429 from creating 200 fixtures through the API; fixtures are now inserted directly. | `npm run test:performance` passing. |
+| ISS-010 owner journey counted organizations (PLAN-002 Phase 4) | 0, resolved on attempt 1 | A fourth fixture organization was added by another journey; it now lives in suite setup. | `npm run test:e2e` passing 12/12. |
 | P8 E2E announcement status code | 0, resolved | POST /api/announcements returned 200 instead of 201; updated assertion to expect([200, 201]). | E2E workflow passing. |
 
 For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
@@ -127,6 +129,6 @@ PLAN-002, since revision 2, replaces this three-attempt stop at Len's direction 
 
 ## Next action
 
-Continue PLAN-002 at Phase 4: budget-versus-actual report, category comparison, monthly trend, and the server-computed month-end run-rate with half-up centavo rounding. Len still needs to acknowledge the XLSX parse-time deviation recorded as ISS-006.
+Continue PLAN-002 at Phase 5: Android Finance as a labeled secondary destination, online-only, showing server-computed totals and the estimate. ISS-002 (Android API contract mismatch) and the ISS-006 deviation still need Len's attention.
 
 The final handoff must distinguish locally verified software completion from pending physical-device and production-release checks.

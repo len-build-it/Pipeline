@@ -76,10 +76,16 @@ async function tabTo(page, target, maxPresses = 6) {
 test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-006)', () => {
   test.beforeAll(async () => {
     const pool = await setupTestDatabase();
-    await pool.query(`INSERT INTO organizations (id, name, status) VALUES ('org-harbor', 'Harbor Robotics Club', 'active')`);
+    // Two more organizations, so every journey runs with four differently named teams.
     await pool.query(
-      `INSERT INTO memberships (id, user_id, organization_id, role, status)
-       VALUES ('mem-sam-harbor', 'usr-sam', 'org-harbor', 'Member', 'active')`
+      `INSERT INTO organizations (id, name, status) VALUES
+         ('org-harbor', 'Harbor Robotics Club', 'active'),
+         ('org-report', 'Report Fixture Team', 'active')`
+    );
+    await pool.query(
+      `INSERT INTO memberships (id, user_id, organization_id, role, status) VALUES
+         ('mem-sam-harbor', 'usr-sam', 'org-harbor', 'Member', 'active'),
+         ('mem-sam-report', 'usr-sam', 'org-report', 'Member', 'active')`
     );
   });
 
@@ -176,6 +182,93 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
     await expect(recent).toContainText('Recorded budget');
 
     await page.screenshot({ path: `${screenshotsDir}/plan2-p3-finance-desktop-1440.png`, fullPage: true });
+  });
+
+  test('budget report: totals, charts with matching tables, and the labeled estimate reconcile with the register', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await signIn(page, 'sam@example.com');
+    await page.selectOption('#desktop-scope-select', 'org-report');
+
+    const month = TODAY.slice(0, 7);
+    const headers = { authorization: `Bearer ${await apiToken(page)}` };
+    const base = '/api/organizations/org-report/finance';
+    for (const budget of [{ category: 'Supplies', amount: '100.00' }, { category: 'Travel', amount: '500.00' }]) {
+      expect((await page.request.post(`${base}/budgets`, { headers, data: { month, ...budget } })).status()).toBe(201);
+    }
+    for (const expense of [
+      { amount: '60.10', category: 'supplies', description: 'Paper' },
+      { amount: '60.20', category: 'Supplies', description: 'Ink' },
+      { amount: '120.00', category: 'Travel', description: 'Bus fare' },
+      { amount: '33.33', category: 'Snacks', description: 'Team snacks' },
+    ]) {
+      await seedExpense(page, 'org-report', { occurredOn: TODAY, ...expense });
+    }
+    const serverReport = await (await page.request.get(`${base}/report`, { headers })).json();
+
+    await page.locator('#nav-btn-finance').click();
+    const stat = id => page.locator(`[data-finance-stat="${id}"]`);
+    await expect(stat('budget')).toContainText('PHP 600.00');
+    await expect(stat('actual')).toContainText('PHP 273.63');
+    await expect(stat('actual')).toContainText('Includes PHP 33.33 without a budget');
+    await expect(stat('remaining')).toContainText('Remaining');
+    await expect(stat('remaining')).toContainText('PHP 326.37');
+
+    // The estimate is the server's value, labeled as an estimate with its calculation.
+    const estimate = serverReport.forecast.estimate;
+    const [pesos, centavos] = estimate.split('.');
+    await expect(stat('forecast')).toContainText(`PHP ${Number(pesos).toLocaleString('en-US')}.${centavos}`);
+    await expect(stat('forecast')).toContainText('Estimate, not actual');
+    await expect(page.locator('#finance-forecast-basis')).toContainText('days in the month');
+
+    // Chart: one labeled bar per category, with status in words.
+    const bars = page.locator('.finance-bars li');
+    await expect(bars).toHaveCount(3);
+    await expect(bars.nth(0)).toContainText('Snacks');
+    await expect(bars.nth(0)).toContainText('PHP 33.33 spent, no budget set');
+    await expect(bars.nth(1)).toContainText('PHP 120.30 of PHP 100.00 · Over budget by PHP 20.30');
+    await expect(bars.nth(2)).toContainText('PHP 120.00 of PHP 500.00 · Remaining PHP 380.00');
+
+    // Table equivalent of the chart, with the same figures.
+    const budgetTable = page.locator('table[aria-label^="Budgets for"]');
+    await expect(budgetTable.locator('tbody tr')).toHaveCount(3);
+    await expect(budgetTable.locator('tbody tr').nth(0)).toContainText('No budget set');
+    await expect(budgetTable.locator('tbody tr').nth(1)).toContainText('Over budget');
+    await expect(budgetTable.locator('tbody tr').nth(1)).toContainText('-PHP 20.30');
+    await expect(budgetTable.locator('tbody tr').nth(2)).toContainText('Within budget');
+    await expect(budgetTable.locator('tfoot')).toContainText('PHP 273.63');
+    await expect(page.locator('[role="region"][aria-label="Budget table, scrollable"]')).toHaveAttribute('tabindex', '0');
+
+    // The register for the same month reconciles to the report.
+    await expect(page.locator('#finance-expense-total')).toContainText('4 expense(s)');
+    await expect(page.locator('#finance-expense-total')).toContainText('PHP 273.63');
+
+    // Trend: chart with printed values and a matching table of six months.
+    const trend = page.locator('svg.finance-trend');
+    await expect(trend).toHaveAttribute('role', 'img');
+    await expect(trend.locator('circle')).toHaveCount(6);
+    await expect(trend).toContainText('273.63');
+    const trendTable = page.locator('table[aria-label="Monthly actual spending"]');
+    await expect(trendTable.locator('tbody tr')).toHaveCount(6);
+    await expect(trendTable.locator('tbody tr').last()).toContainText(month);
+    await expect(trendTable.locator('tbody tr').last()).toContainText('PHP 273.63');
+
+    await page.screenshot({ path: `${screenshotsDir}/plan2-p4-finance-report-1440.png`, fullPage: true });
+
+    // Setting a budget for the unbudgeted category starts from that category.
+    await page.getByRole('button', { name: 'Set budget for Snacks' }).click();
+    const budgetDialog = page.locator('#budget-form-modal');
+    await expect(budgetDialog.locator('#budget-category')).toHaveValue('Snacks');
+    await budgetDialog.locator('#budget-amount').fill('33.33');
+    await budgetDialog.locator('#btn-save-budget').click();
+    await expect(budgetDialog).toHaveCount(0);
+    await expect(budgetTable.locator('tbody tr').nth(0)).toContainText('Budget fully used');
+    await expect(stat('budget')).toContainText('PHP 633.33');
+
+    // A past month has no estimate and no invented figures.
+    await page.locator('#finance-month').fill('2025-01');
+    await expect(stat('forecast')).toContainText('Not available');
+    await expect(stat('actual')).toContainText('PHP 0.00');
+    await expect(page.locator('#finance-body')).toContainText('No budgets for 2025-01');
   });
 
   test('spreadsheet import: problems block the batch, duplicates need a choice, confirm imports atomically', async ({ page }) => {
@@ -369,7 +462,7 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
     await getTestPool().query(`UPDATE memberships SET status = 'active' WHERE user_id = 'usr-jordan'`);
   });
 
-  test('the owner picks one of three organizations before Finance loads', async ({ page }) => {
+  test('the owner picks one of the configured organizations before Finance loads', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await signIn(page, 'len@example.com');
     await seedExpense(page, 'org-harbor', { amount: '15.00', category: 'Scope', description: 'Harbor only' });
@@ -377,7 +470,7 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
     await page.locator('#nav-btn-finance').click();
     await expect(page.locator('#finance-body')).toHaveCount(0);
     await expect(page.locator('#finance-org-select option')).toHaveText([
-      'Select an organization…', 'AqOne', 'Dev Guild', 'Harbor Robotics Club',
+      'Select an organization…', 'AqOne', 'Dev Guild', 'Harbor Robotics Club', 'Report Fixture Team',
     ]);
 
     await page.locator('#finance-org-select').selectOption('org-harbor');

@@ -13,6 +13,7 @@ import {
 } from '../finance/service.js';
 import { previewImport, confirmImport } from '../finance/import.js';
 import { exportExpenses, importTemplate } from '../finance/export.js';
+import { budgetReport } from '../finance/analytics.js';
 import { CSV_MIME, XLSX_MIME, MAX_UPLOAD_BYTES } from '../finance/spreadsheet.js';
 
 const UPLOAD_TYPES = [CSV_MIME, XLSX_MIME];
@@ -195,6 +196,17 @@ export async function financeRoutes(fastify, options) {
       },
     },
   }, async (request, reply) => sendWorkbook(reply, await exportExpenses(request.params.orgId, request.query, request.user, pool)));
+
+  fastify.get(`${base}/report`, {
+    preHandler,
+    schema: {
+      params: orgParams,
+      querystring: {
+        type: 'object',
+        properties: { month: { type: 'string' }, trendMonths: { type: 'string' } },
+      },
+    },
+  }, async (request) => budgetReport(request.params.orgId, request.query, request.user, pool));
 
   fastify.get(`${base}/categories`, {
     preHandler,

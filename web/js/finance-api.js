@@ -86,6 +86,7 @@ export function createFinanceApi(state, orgId) {
     updateExpense: (id, change) => sendJson('PATCH', `/expenses/${encodeURIComponent(id)}`, change),
     voidExpense: (id, version) => sendJson('POST', `/expenses/${encodeURIComponent(id)}/void`, { version }),
     listCategories: () => getJson('/categories'),
+    getReport: (month) => getJson('/report', { month }),
     listActivity: (params) => getJson('/activity', params),
     previewImport: (file) => sendFile('/imports/preview', file),
     confirmImport: (file, duplicates) => sendFile('/imports/confirm', file, { duplicates }),

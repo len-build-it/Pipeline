@@ -1,7 +1,7 @@
 # Implementation plan: Configurable team finance and spending transparency
 
 Created: 2026-10-03T21:54:00+08:00
-Updated: 2026-10-03T23:19:00+08:00
+Updated: 2026-10-03T23:28:00+08:00
 Revision: 3
 Status: Approved, in progress
 Feature spec and revision: [FEAT-006 revision 2](../features/FEAT-006-configurable-finance.md), Approved
@@ -110,28 +110,28 @@ State: Complete
 ## Phase 4: Add explainable budget and cost analytics
 
 Requirements: FEAT-006/REQ-009, REQ-010, REQ-012, REQ-013
-State: Approved, not started
+State: Complete
 
 ### Tasks
 
-- [ ] Add organization- and month-scoped budget-versus-actual totals, remaining/over-budget amounts, category comparison, and monthly historical trend using exact money arithmetic.
-- [ ] Calculate the month-end run rate once on the server for the current Asia/Manila month as month-to-date actual centavos multiplied by days in the month and divided by elapsed calendar days including today, rounded half up to the centavo with exact integer arithmetic; label it as an estimate and omit it when there is no actual data.
-- [ ] Use a compact bullet or bar chart for budget/target comparison and a trend line for monthly spending, with visible labels, keyboard-accessible details, and matching tables; rely on existing CSS/SVG/native capabilities and add no chart library.
-- [ ] Make web totals match the expense register for the same organization and filters, and return every total and the forecast from the API so no client recalculates money.
-- [ ] Add tests for month boundaries, leap years, empty periods, negative remaining budget, PHP formatting, category totals, forecast math including half-centavo rounding, and organization isolation.
+- [x] Add organization- and month-scoped budget-versus-actual totals, remaining/over-budget amounts, category comparison, and monthly historical trend using exact money arithmetic.
+- [x] Calculate the month-end run rate once on the server for the current Asia/Manila month as month-to-date actual centavos multiplied by days in the month and divided by elapsed calendar days including today, rounded half up to the centavo with exact integer arithmetic; label it as an estimate and omit it when there is no actual data.
+- [x] Use a compact bullet or bar chart for budget/target comparison and a trend line for monthly spending, with visible labels, keyboard-accessible details, and matching tables; rely on existing CSS/SVG/native capabilities and add no chart library.
+- [x] Make web totals match the expense register for the same organization and filters, and return every total and the forecast from the API so no client recalculates money.
+- [x] Add tests for month boundaries, leap years, empty periods, negative remaining budget, PHP formatting, category totals, forecast math including half-centavo rounding, and organization isolation.
 
 ### Verification
 
-- [ ] Run `npm run check`, `npm run test:finance`, `npm run test:ui`, and `npm test`; expect all checks to pass.
-- [ ] Verify every chart has visible numeric labels, keyboard-accessible details, and an equivalent data table.
-- [ ] Compare report totals against independently summed fixture rows for at least three organizations and multiple months.
-- [ ] Run `npm run test:performance`; preserve the established dashboard p95 target and record analytics timings separately without claiming production performance.
+- [x] Run `npm run check`, `npm run test:finance`, `npm run test:ui`, and `npm test`; expect all checks to pass.
+- [x] Verify every chart has visible numeric labels, keyboard-accessible details, and an equivalent data table.
+- [x] Compare report totals against independently summed fixture rows for at least three organizations and multiple months.
+- [x] Run `npm run test:performance`; preserve the established dashboard p95 target and record analytics timings separately without claiming production performance.
 
 ### Review and checkpoint
 
-- [ ] Review formulas and labels with hand-calculated examples; ensure no projected amount is presented as actual spending.
-- [ ] Update evidence, plan state, and `HANDOFF.md`; stage only reviewed phase paths and inspect the staged diff.
-- [ ] Commit as `feat(finance): add transparent budget analytics` and verify the commit hash.
+- [x] Review formulas and labels with hand-calculated examples; ensure no projected amount is presented as actual spending.
+- [x] Update evidence, plan state, and `HANDOFF.md`; stage only reviewed phase paths and inspect the staged diff.
+- [x] Commit as `feat(finance): add transparent budget analytics` and verify the commit hash.
 
 ## Phase 5: Add Android finance workflows
 

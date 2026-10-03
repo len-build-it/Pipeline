@@ -87,6 +87,7 @@ describe('PLAN-002 Phase 2: budgets and expenses (FEAT-006/REQ-002 through REQ-0
         ['POST', `${ORG_1}/expenses/${org1Expense.id}/void`, { version: org1Expense.version }],
         ['GET', `${ORG_1}/categories`],
         ['GET', `${ORG_1}/activity`],
+        ['GET', `${ORG_1}/report`],
       ];
       for (const [method, path, payload] of attempts) {
         const res = await api('jordan', method, path, payload);

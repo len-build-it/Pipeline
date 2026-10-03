@@ -911,3 +911,101 @@ body {
     min-width: 0;
   }
 }
+
+/* Finance budget report (FEAT-006/REQ-009, REQ-010) */
+.finance-subtitle {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  margin: var(--spacing-6) 0 var(--spacing-3);
+}
+
+.finance-stat-value {
+  font-size: var(--font-size-xl);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.finance-bars {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.finance-bar-label {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  margin-bottom: 4px;
+}
+
+.finance-bar-track {
+  position: relative;
+  height: 14px;
+  background-color: #E2E8F0;
+  border-radius: var(--radius-sm);
+}
+
+.finance-bar-fill {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+
+/* Status is also stated in text; the pattern keeps over-budget bars distinct without color. */
+.finance-bar-row[data-status="over"] .finance-bar-fill {
+  background-color: var(--color-danger);
+  background-image: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255, 255, 255, 0.45) 6px 9px);
+}
+
+.finance-bar-row[data-status="unbudgeted"] .finance-bar-fill {
+  background-color: var(--color-text-muted);
+}
+
+.finance-bar-marker {
+  position: absolute;
+  top: -4px;
+  width: 3px;
+  height: 22px;
+  margin-left: -1.5px;
+  background-color: var(--color-text);
+}
+
+.finance-trend {
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  display: block;
+  margin-bottom: var(--spacing-3);
+}
+
+.finance-trend-axis {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.finance-trend-line {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2.5;
+}
+
+.finance-trend-point {
+  fill: var(--color-surface);
+  stroke: var(--color-primary);
+  stroke-width: 2.5;
+}
+
+.finance-trend-value {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--color-text);
+}
+
+.finance-trend-month {
+  font-size: 12px;
+  fill: var(--color-text-muted);
+}

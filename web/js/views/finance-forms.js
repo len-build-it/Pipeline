@@ -156,10 +156,10 @@ export function openExpenseForm({ api, categories, today, expense = null, onSave
 }
 
 /**
- * Opens the budget dialog. A new budget needs month, category, and amount;
+ * Opens the budget dialog. A new budget needs month, category (optionally prefilled), and amount;
  * an existing budget keeps its month and category and changes only the amount.
  */
-export function openBudgetForm({ api, categories, month, budget = null, onSaved }) {
+export function openBudgetForm({ api, categories, month, budget = null, category = '', onSaved }) {
   const isEdit = budget !== null;
 
   const modal = openModal({
@@ -175,7 +175,7 @@ export function openBudgetForm({ api, categories, month, budget = null, onSaved 
           </div>
           <div class="form-group">
             <label for="budget-category" class="form-label">Category *</label>
-            <input type="text" id="budget-category" class="form-input" required maxlength="60" list="budget-category-options" autocomplete="off" value="${escapeHtml(budget?.category ?? '')}" ${isEdit ? 'disabled' : 'data-autofocus'} />
+            <input type="text" id="budget-category" class="form-input" required maxlength="60" list="budget-category-options" autocomplete="off" value="${escapeHtml(budget?.category ?? category)}" ${isEdit ? 'disabled' : 'data-autofocus'} />
             ${categoryDatalist('budget-category-options', categories)}
           </div>
         </div>

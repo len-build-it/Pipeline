@@ -1,9 +1,9 @@
 # Verification ledger for the organization management MVP
 
 Created: 2026-09-16T21:49:38+08:00
-Updated: 2026-10-03T23:19:00+08:00
-Revision: 11
-Status: PLAN-001 Phase 1 through Phase 8 complete; PLAN-002 Phase 1 through Phase 3 complete, Phase 4 through Phase 6 pending.
+Updated: 2026-10-03T23:28:00+08:00
+Revision: 12
+Status: PLAN-001 Phase 1 through Phase 8 complete; PLAN-002 Phase 1 through Phase 4 complete, Phase 5 through Phase 6 pending.
 
 ## Planning checks
 
@@ -447,3 +447,41 @@ For XLSX the workbook is first loaded under a hard 20 MiB cap on inflated bytes,
 The observable result and the bounded work are the same; the mechanism differs because of ISS-006.
 
 Limitations: demo mode has no finance data by design; the import preview lists every problem and duplicate row but at most 200 ready rows; export has no row limit; only Microsoft Edge was exercised.
+
+### PLAN-002 Phase 4 results (2026-10-03T23:28:00+08:00)
+
+Requirements: FEAT-006/REQ-009, REQ-010, REQ-012, REQ-013.
+
+| Check or scenario | Actual result | Limits |
+| --- | --- | --- |
+| `npm run check` | Passed, 60 JavaScript files. | Syntax and reference check only. |
+| `npm run test:finance` | Passed 122/122, including 16 analytics tests. | Local test database with three organizations. |
+| `npm test` | Passed: auth 26/26, members 22/22, tasks 33/33, announcements 25/25, finance 122/122. | Local test database. |
+| `npm run test:ui` | Passed 10/10 in Microsoft Edge. | Demo server. |
+| `npm run test:e2e` | Passed 12/12 in Microsoft Edge, including the budget report journey. | Local server and PostgreSQL. |
+| `npm run test:performance` | Passed: dashboard p95 124.86 ms against the unchanged 2000 ms target. | 20 warm loads, 100 ms simulated latency, in-process requests. |
+
+Finance report timings, recorded separately and with no target: 200 expenses in 10 categories for one organization, 20 samples with 100 ms simulated latency, min 123.35 ms, average 124.70 ms, p95 126.41 ms, max 126.95 ms.
+These are local in-process timings and say nothing about production performance.
+
+Hand-calculated examples checked by the tests:
+
+- Run rate: 1,000.00 in 10 of 31 days gives 3,100.00; 100.00 in 3 of 31 days gives 1,033.33; 200.00 in 3 of 31 days gives 2,066.67 (rounds up); 1 centavo in 2 of 31 days is 15.5 and rounds up to 16 centavos; 3 centavos in 2 of 29 days is 43.5 and rounds up to 44; 1 centavo in 3 of 28 days is 9.33 and stays 9.
+- Leap year: February 2028 has 29 days; 3.00 on day 2 estimates 43.50; on day 29 the estimate equals the actual; on 1 March the February report has no estimate.
+- Budget versus actual for one month: Supplies budget 100.00 with 60.10 and 60.20 spent under different letter case gives actual 120.30, remaining -20.30, status over; Travel 500.00 with 120.00 gives remaining 380.00; Venue 250.00 with 250.00 gives remaining 0.00, status at; Snacks with no budget is listed as unbudgeted; totals are budget 925.50, actual 523.63, remaining 401.87.
+- Expenses outside the month, void expenses, and another organization's expenses are excluded.
+
+Reconciliation actually checked: the report's actual total equals the expense register total for the same organization and month, equals an independent integer sum of the listed rows, and each category line equals the register filtered to that category.
+The monthly trend was checked across four months and two organizations, with empty months reported as 0.00.
+
+Web report actually exercised in the browser: four totals including the labeled month-end estimate, which equals the value returned by the API; one labeled bar per category with the status in words; a matching table with the same figures and a totals row; a six-month trend chart with printed values and a matching table; the register total equal to the report actual; a past month showing no estimate.
+Screenshot: `docs/evidence/screenshots/plan2-p4-finance-report-1440.png`, in which the estimate 2,827.51 equals 273.63 × 31 ÷ 3.
+
+Review notes: the estimate is labeled "Estimate, not actual" with its calculation printed below; it appears only for the current Manila month once spending exists; clients draw bar and point positions from the amounts but never calculate a displayed amount; no chart library or other dependency was added.
+
+Failures observed and fixed:
+
+- ISS-009: the new timing step first failed with a syntax error from a broken string literal, then with HTTP 429 when 200 fixture expenses were created through the API. Attempt 1 fixed the literal; attempt 2 inserted the fixture rows directly in the test database, since the step measures reading the report. Result: passed.
+- ISS-010: the owner journey expected three organizations after the report journey added a fourth inside its own body. Attempt 1 moved the extra organization into the suite setup and listed all four. Result: 12/12 passed.
+
+Limitations: Android does not show the report yet (Phase 5); the trend label for a zero month can touch the line next to a large month; only Microsoft Edge was exercised.

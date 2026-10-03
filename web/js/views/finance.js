@@ -1,12 +1,13 @@
 /**
- * Finance workspace: monthly budgets, the expense register, spreadsheet transfer, and change history.
- * Requirements: FEAT-006/REQ-002 through REQ-009, REQ-012; PROD-005/UI-REQ-010 through UI-REQ-012
+ * Finance workspace: the budget report, the expense register, spreadsheet transfer, and change history.
+ * Requirements: FEAT-006/REQ-002 through REQ-010, REQ-012; PROD-005/UI-REQ-010 through UI-REQ-012
  */
 
 import { escapeHtml, orgLabel, formatPhp, formatManilaTime, manilaToday } from '../format.js';
 import { createFinanceApi, saveDownload } from '../finance-api.js';
 import { openExpenseForm, openBudgetForm, openHistory, historyTableHtml } from './finance-forms.js';
 import { openImport } from './finance-import.js';
+import { reportSectionHtml } from './finance-report.js';
 
 const PAGE_SIZE = 50;
 const RECENT_HISTORY_SIZE = 20;
@@ -140,14 +141,15 @@ function createFinancePage(container, state, orgId) {
     if (data === null) body.innerHTML = '<p class="form-help-text" aria-busy="true">Loading finance records…</p>';
 
     try {
-      const [budgets, expenses, categories, activity] = await Promise.all([
+      const [report, budgets, expenses, categories, activity] = await Promise.all([
+        api.getReport(month),
         api.listBudgets(month),
         api.listExpenses({ ...filters, page, limit: PAGE_SIZE }),
         api.listCategories(),
         api.listActivity({ limit: RECENT_HISTORY_SIZE }),
       ]);
       if (!container.isConnected) return false;
-      data = { budgets: budgets.budgets, expenses, categories: categories.categories, events: activity.events };
+      data = { report, budgets: budgets.budgets, expenses, categories: categories.categories, events: activity.events };
       headerButtons.forEach(button => { button.disabled = false; });
       showStatus('', '');
       renderBody();
@@ -163,40 +165,6 @@ function createFinancePage(container, state, orgId) {
   }
 
   // --- Sections ---
-
-  function budgetsHtml() {
-    const rows = data.budgets.map(budget => `
-      <tr>
-        <td>${escapeHtml(budget.category)}</td>
-        <td class="finance-amount">${escapeHtml(formatPhp(budget.amount))}</td>
-        <td>${escapeHtml(budget.updatedByName)}, ${escapeHtml(formatManilaTime(budget.updatedAt))}</td>
-        <td>
-          <button class="btn btn-secondary btn-sm" data-edit-budget="${escapeHtml(budget.id)}" aria-label="Change budget for ${escapeHtml(budget.category)}">Change</button>
-          <button class="btn btn-secondary btn-sm" data-history="${escapeHtml(budget.id)}" data-history-title="Budget history: ${escapeHtml(budget.category)} ${escapeHtml(budget.month)}" aria-label="History of budget for ${escapeHtml(budget.category)}">History</button>
-        </td>
-      </tr>
-    `).join('');
-
-    return `
-      <section class="section-panel" aria-labelledby="finance-budgets-title">
-        <div class="section-panel-header">
-          <h2 class="section-panel-title" id="finance-budgets-title">Budgets</h2>
-          <div class="form-group" style="margin:0;">
-            <label for="finance-month" class="form-label">Budget month</label>
-            <input type="month" id="finance-month" class="filter-input" value="${escapeHtml(month)}" />
-          </div>
-        </div>
-        ${data.budgets.length === 0
-          ? stateBox(`No budgets for ${month}`, 'Set a budget per category to compare it with actual spending.')
-          : `<div class="table-responsive">
-              <table class="data-table" aria-label="Budgets for ${escapeHtml(month)}">
-                <thead><tr><th scope="col">Category</th><th scope="col" class="finance-amount">Budget</th><th scope="col">Last changed</th><th scope="col">Actions</th></tr></thead>
-                <tbody>${rows}</tbody>
-              </table>
-            </div>`}
-      </section>
-    `;
-  }
 
   function expenseRowHtml(expense) {
     const label = `${expense.description}, ${formatPhp(expense.amount)}`;
@@ -291,7 +259,7 @@ function createFinancePage(container, state, orgId) {
   }
 
   function renderBody() {
-    body.innerHTML = budgetsHtml() + expensesHtml() + historyHtml();
+    body.innerHTML = reportSectionHtml(data.report, data.budgets) + expensesHtml() + historyHtml();
     bindBody();
   }
 
@@ -347,6 +315,9 @@ function createFinancePage(container, state, orgId) {
     body.querySelectorAll('[data-edit-budget]').forEach(button => button.addEventListener('click', () => {
       const budget = data.budgets.find(b => b.id === button.dataset.editBudget);
       openBudgetForm({ api, categories: data.categories, month, budget, onSaved: () => afterChange('Budget updated.') });
+    }));
+    body.querySelectorAll('[data-new-budget]').forEach(button => button.addEventListener('click', () => {
+      openBudgetForm({ api, categories: data.categories, month, category: button.dataset.newBudget, onSaved: () => afterChange('Budget set.') });
     }));
     body.querySelectorAll('[data-history]').forEach(button => button.addEventListener('click', () => {
       openHistory({ api, entityId: button.dataset.history, title: button.dataset.historyTitle });
