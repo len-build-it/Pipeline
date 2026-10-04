@@ -1,10 +1,10 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T22:44:06+08:00
-State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 is implemented and PLAN-002 revision 3 is complete; all six approved Lagoon redesign phases are committed and locally verified; physical-device and production checks remain pending.
-Feature: FEAT-006 approved; implemented under PLAN-002 revision 3; all six phases complete.
-Intended executor: Claude Code (Opus 5.5), selected by Len in chat on 2026-10-03 with "Execute".
+Updated: 2026-10-04T23:13:14+08:00
+State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are drafts awaiting approval.
+Feature: FEAT-007 security hardening from audit candidate leads; no implementation is approved or started.
+Intended executor: Not selected for PLAN-004.
 
 ## Read first
 
@@ -14,6 +14,7 @@ Intended executor: Claude Code (Opus 5.5), selected by Len in chat on 2026-10-03
 - [Access](docs/features/FEAT-001-access-dashboard.md), [members](docs/features/FEAT-002-member-management.md), [tasks](docs/features/FEAT-003-task-management.md), [announcements](docs/features/FEAT-004-announcements.md), and [mobile](docs/features/FEAT-005-mobile-offline.md).
 - [The completed MVP implementation checklist](docs/plans/FEAT-001-implementation.md) and [verification ledger](docs/evidence/MVP-verification.md).
 - [Finance feature](docs/features/FEAT-006-configurable-finance.md) and [its implementation plan](docs/plans/FEAT-006-implementation.md).
+- [Security hardening feature](docs/features/FEAT-007-security-hardening.md) and [its implementation plan](docs/plans/FEAT-007-implementation.md), both awaiting approval.
 - [UI/UX design handoff brief](docs/product/UI_UX_HANDOFF_BRIEF.md), an informational summary for design work that does not replace or revise the approved specifications.
 - [Lagoon UI redesign implementation handoff](docs/product/UI_REDESIGN_LAGOON_HANDOFF.md), a supporting design reference for the approved PROD-005 revision 4 and PLAN-003 revision 1 implementation.
 
@@ -259,4 +260,16 @@ The external audit path `C:\Users\User\security-audit-skill\Pipeline\run-1` cont
 
 Automatic safety review rejected recursive removal of that path because it is outside the authorized project folder; no more specific reason text was surfaced, and no further cleanup attempt was made.
 
-The next action is to resume with a runtime that supports race-safe no-follow and nonblocking validation, complete the two deferred source units, run the required critic passes, independently validate every surviving candidate, verify final records, and update the evidence before making a clean-coverage claim.
+The next action is for Len to review and approve FEAT-007 revision 1 and PLAN-004 revision 1 or request edits; the exact approval has not been recorded.
+
+The session setup check npx len-toolkit start succeeded, installed zero files, and reported the existing .gitignore difference; that difference was preserved.
+
+PLAN-004 maps the ten unvalidated candidate leads to synthetic regression checks and conditional remediations across five phases.
+
+No application code, tests, builds, database commands, browsers, emulators, or production services were run while drafting FEAT-007 and PLAN-004.
+
+The draft proposes a 5,000-expense per-workbook export cap and task-history pages of 50 records by default and 100 maximum; these behavior limits require approval with the feature spec.
+
+The plan uses the existing architecture and toolchain and adds no dependency.
+
+The external production secret, deployment seed history, Android dependency provenance, and demo-server boundary remain outside local implementation evidence and must not be described as verified.
