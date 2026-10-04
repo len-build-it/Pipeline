@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/synthetic_data.dart';
 import '../models/models.dart';
 import '../theme.dart';
+import '../widgets/adaptive_action_fab.dart';
 
 class TasksScreen extends StatefulWidget {
   final SyntheticDataRepository repo;
@@ -24,6 +25,7 @@ class _TasksScreenState extends State<TasksScreen> {
   @override
   Widget build(BuildContext context) {
     final isLead = widget.repo.isLeadInScope(widget.repo.currentScope);
+    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
     var tasks = widget.repo.getScopedTasks(includeArchived: _showArchived);
 
     if (_search.trim().isNotEmpty) {
@@ -48,16 +50,21 @@ class _TasksScreenState extends State<TasksScreen> {
     }
 
     return Scaffold(
-      backgroundColor: widget.repo.isOffline ? AppColors.backgroundOffline : AppColors.background,
+      backgroundColor: widget.repo.isOffline
+          ? AppColors.backgroundOffline
+          : widget.repo.currentScope == 'all'
+              ? AppColors.backgroundCombined
+              : AppColors.background,
       floatingActionButton: isLead && !_showArchived
-          ? FloatingActionButton.extended(
+          ? AdaptiveActionFab(
               heroTag: 'fab-tasks',
-              key: const Key('btn-fab-task'),
+              buttonKey: const Key('btn-fab-task'),
+              label: 'New task',
+              icon: const Icon(Icons.add_task),
               onPressed: () => _showCreateTaskDialog(context),
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              icon: const Icon(Icons.add_task),
-              label: const Text('New task'),
+              shape: const StadiumBorder(),
             )
           : null,
       body: Column(
@@ -77,54 +84,18 @@ class _TasksScreenState extends State<TasksScreen> {
                   onChanged: (val) => setState(() => _search = val),
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _statusFilter,
-                        isDense: true,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Status',
-                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'all', child: Text('All statuses')),
-                          DropdownMenuItem(value: 'Backlog', child: Text('Backlog')),
-                          DropdownMenuItem(value: 'In progress', child: Text('In progress')),
-                          DropdownMenuItem(value: 'Blocked', child: Text('Blocked')),
-                          DropdownMenuItem(value: 'Done', child: Text('Done')),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) setState(() => _statusFilter = val);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _priorityFilter,
-                        isDense: true,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Priority',
-                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'all', child: Text('All priorities')),
-                          DropdownMenuItem(value: 'Low', child: Text('Low')),
-                          DropdownMenuItem(value: 'Medium', child: Text('Medium')),
-                          DropdownMenuItem(value: 'High', child: Text('High')),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) {
-                            setState(() => _priorityFilter = val);
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+                if (largeText) ...[
+                  _statusFilterField(),
+                  const SizedBox(height: 8),
+                  _priorityFilterField(),
+                ] else
+                  Row(
+                    children: [
+                      Expanded(child: _statusFilterField()),
+                      const SizedBox(width: 8),
+                      Expanded(child: _priorityFilterField()),
+                    ],
+                  ),
                 const SizedBox(height: 4),
                 Wrap(
                   spacing: 8,
@@ -146,6 +117,27 @@ class _TasksScreenState extends State<TasksScreen> {
             ),
           ),
 
+          if (widget.repo.isOffline)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: AppColors.neutralBg, borderRadius: BorderRadius.circular(20)),
+              child: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.lock_outline, color: AppColors.neutral),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Cached tasks are read-only. New tasks, status changes, and comments need a connection.',
+                      style: TextStyle(color: AppColors.neutral, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // Tasks List
           Expanded(
             child: tasks.isEmpty
@@ -159,7 +151,7 @@ class _TasksScreenState extends State<TasksScreen> {
                     ),
                   )
                 : ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, isLead && !_showArchived ? 104 : 16),
                     itemCount: tasks.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
@@ -182,21 +174,19 @@ class _TasksScreenState extends State<TasksScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        t.title,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 15,
-                                          decoration: t.archived ? TextDecoration.lineThrough : null,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    _buildStatusBadge(t.status),
-                                  ],
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [_buildStatusBadge(t.status), _buildPriorityTag(t.priority)],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  t.title,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                    decoration: t.archived ? TextDecoration.lineThrough : null,
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 Wrap(
@@ -208,9 +198,7 @@ class _TasksScreenState extends State<TasksScreen> {
                                       widget.repo.orgName(t.orgId),
                                       style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                                     ),
-                                    const Text(' • ', style: TextStyle(color: AppColors.textMuted)),
-                                    _buildPriorityTag(t.priority),
-                                    const Text(' • ', style: TextStyle(color: AppColors.textMuted)),
+                                    const Text(' | ', style: TextStyle(color: AppColors.textMuted)),
                                     Text(
                                       t.assigneeName,
                                       style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
@@ -262,24 +250,65 @@ class _TasksScreenState extends State<TasksScreen> {
         fg = const Color(0xFF334155);
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
       child: Text(
         status,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: fg),
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: fg),
       ),
     );
   }
 
   Widget _buildPriorityTag(String priority) {
-    Color color = AppColors.textMuted;
-    if (priority == 'High') color = AppColors.danger;
-    if (priority == 'Medium') color = AppColors.warning;
-    return Text(
-      priority,
-      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+    final bg = priority == 'High'
+        ? AppColors.dangerBg
+        : priority == 'Medium'
+            ? AppColors.warningBg
+            : AppColors.neutralBg;
+    final fg = priority == 'High'
+        ? AppColors.danger
+        : priority == 'Medium'
+            ? AppColors.warning
+            : AppColors.neutral;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
+      child: Text(priority, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: fg)),
     );
   }
+
+  Widget _statusFilterField() => DropdownButtonFormField<String>(
+    initialValue: _statusFilter,
+    isDense: true,
+    isExpanded: true,
+    decoration: const InputDecoration(labelText: 'Status'),
+    items: const [
+      DropdownMenuItem(value: 'all', child: Text('All statuses')),
+      DropdownMenuItem(value: 'Backlog', child: Text('Backlog')),
+      DropdownMenuItem(value: 'In progress', child: Text('In progress')),
+      DropdownMenuItem(value: 'Blocked', child: Text('Blocked')),
+      DropdownMenuItem(value: 'Done', child: Text('Done')),
+    ],
+    onChanged: (val) {
+      if (val != null) setState(() => _statusFilter = val);
+    },
+  );
+
+  Widget _priorityFilterField() => DropdownButtonFormField<String>(
+    initialValue: _priorityFilter,
+    isDense: true,
+    isExpanded: true,
+    decoration: const InputDecoration(labelText: 'Priority'),
+    items: const [
+      DropdownMenuItem(value: 'all', child: Text('All priorities')),
+      DropdownMenuItem(value: 'Low', child: Text('Low')),
+      DropdownMenuItem(value: 'Medium', child: Text('Medium')),
+      DropdownMenuItem(value: 'High', child: Text('High')),
+    ],
+    onChanged: (val) {
+      if (val != null) setState(() => _priorityFilter = val);
+    },
+  );
 
   void _showCreateTaskDialog(BuildContext context) {
     final titleController = TextEditingController();
@@ -409,7 +438,11 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     final canComment = !widget.task.archived;
 
     return Scaffold(
-      backgroundColor: widget.repo.isOffline ? AppColors.backgroundOffline : AppColors.background,
+      backgroundColor: widget.repo.isOffline
+          ? AppColors.backgroundOffline
+          : widget.repo.currentScope == 'all'
+              ? AppColors.backgroundCombined
+              : AppColors.background,
       appBar: AppBar(
         title: Text(widget.task.title),
       ),
@@ -483,6 +516,19 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             ),
 
             const SizedBox(height: 16),
+
+            if (widget.repo.isOffline) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: AppColors.neutralBg, borderRadius: BorderRadius.circular(20)),
+                child: const Text(
+                  'Cached task details are read-only. Reconnect before changing status or posting comments.',
+                  style: TextStyle(color: AppColors.neutral, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
 
             // Status Update Control
             if (canUpdateStatus)

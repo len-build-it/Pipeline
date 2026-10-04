@@ -42,13 +42,30 @@ class _HomeShellState extends State<HomeShell> {
       listenable: widget.repo,
       builder: (context, _) {
         final availableScopes = widget.repo.availableScopes;
+        final textScaler = MediaQuery.textScalerOf(context);
+        final largeText = textScaler.scale(1) > 1.3;
+        final offlineMessage = widget.repo is AppRepository && (widget.repo as AppRepository).cacheAge != null
+            ? 'Offline: Showing cached reads (${(widget.repo as AppRepository).cacheAge}). Mutations disabled.'
+            : 'Offline: Showing cached reads. Mutations disabled.';
+        const offlineTextStyle = TextStyle(color: AppColors.warning, fontSize: 12, height: 1.3, fontWeight: FontWeight.w700);
+        final offlineTextPainter = TextPainter(
+          text: TextSpan(text: offlineMessage, style: offlineTextStyle),
+          textDirection: Directionality.of(context),
+          textScaler: textScaler,
+        )..layout(maxWidth: (MediaQuery.sizeOf(context).width - 56).clamp(120.0, double.infinity).toDouble());
+        final offlineBannerHeight = largeText
+            ? (offlineTextPainter.height + 60).clamp(104.0, double.infinity).toDouble()
+            : (textScaler.scale(12) * 3 + 8).clamp(56.0, double.infinity).toDouble();
 
         return Scaffold(
-          backgroundColor: widget.repo.isOffline ? AppColors.backgroundOffline : AppColors.background,
+          backgroundColor: widget.repo.isOffline
+              ? AppColors.backgroundOffline
+              : widget.repo.currentScope == 'all'
+                  ? AppColors.backgroundCombined
+                  : AppColors.background,
           appBar: AppBar(
-            title: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
+            title: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.58),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -65,11 +82,12 @@ class _HomeShellState extends State<HomeShell> {
                         value: widget.repo.currentScope,
                         dropdownColor: AppColors.surface,
                         borderRadius: BorderRadius.circular(16),
+                        isExpanded: true,
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.text),
                         items: availableScopes.map((s) {
                           return DropdownMenuItem(
                             value: s.id,
-                            child: Text(s.name),
+                            child: Text(s.name, overflow: TextOverflow.ellipsis),
                           );
                         }).toList(),
                         onChanged: (newScope) {
@@ -202,40 +220,43 @@ class _HomeShellState extends State<HomeShell> {
             ],
             bottom: widget.repo.isOffline
                 ? PreferredSize(
-                    preferredSize: Size.fromHeight(
-                      (MediaQuery.textScalerOf(context).scale(12) * 3 + 8).clamp(56.0, double.infinity).toDouble(),
-                    ),
+                    preferredSize: Size.fromHeight(offlineBannerHeight),
                     child: Container(
                       color: AppColors.warningBg,
                       width: double.infinity,
                       padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 8, 4),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.wifi_off, size: 18, color: AppColors.warning),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              widget.repo is AppRepository && (widget.repo as AppRepository).cacheAge != null
-                                  ? 'Offline: Showing cached reads (${(widget.repo as AppRepository).cacheAge}). Mutations disabled.'
-                                  : 'Offline: Showing cached reads. Mutations disabled.',
-                              style: const TextStyle(color: AppColors.warning, fontSize: 12, height: 1.3, fontWeight: FontWeight.w700),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                      child: largeText
+                          ? Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.wifi_off, size: 18, color: AppColors.warning),
+                                    const SizedBox(width: 8),
+                                    Expanded(child: Text(offlineMessage, style: offlineTextStyle)),
+                                  ],
+                                ),
+                                Align(alignment: AlignmentDirectional.centerEnd, child: _retryButton()),
+                              ],
+                            )
+                          : Row(
+                              children: [
+                                const Icon(Icons.wifi_off, size: 18, color: AppColors.warning),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    offlineMessage,
+                                    style: offlineTextStyle,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                _retryButton(),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          TextButton(
-                            key: const Key('btn-retry-sync'),
-                            onPressed: _retryConnection,
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.warning,
-                              minimumSize: const Size(48, 48),
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                            ),
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
                     ),
                   )
                 : null,
@@ -413,4 +434,15 @@ class _HomeShellState extends State<HomeShell> {
       ),
     );
   }
+
+  Widget _retryButton() => TextButton(
+        key: const Key('btn-retry-sync'),
+        onPressed: _retryConnection,
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.warning,
+          minimumSize: const Size(48, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+        ),
+        child: const Text('Retry'),
+      );
 }

@@ -1,9 +1,9 @@
 # Implementation plan: Lagoon UI redesign
 
 Created: 2026-10-04T16:08:31+08:00
-Updated: 2026-10-04T19:23:12+08:00
+Updated: 2026-10-04T20:31:10+08:00
 Revision: 1
-Status: Approved; Phases 1 through 3 complete at commits `2e60838`, `8caa32e`, and `58a8d71`; Phase 4 implementation and checks complete, checkpoint pending.
+Status: Approved; Phases 1 through 4 complete at commits `2e60838`, `8caa32e`, `58a8d71`, and `e64c8c9`; Phase 5 implementation and checks passed, with its checkpoint commit pending; Phase 6 verification passed, with its evidence and checkpoint commit pending.
 Feature spec and revision: [PROD-005 revision 4](../product/UI_UX_DESIGN.md), approved by Len together with this plan.
 Approved baseline and architecture revisions: PROD-001 revision 3, PROD-002 revision 3, PROD-003 revision 3, PROD-004 revision 4, and PROD-005 revision 4; FEAT-001 revision 3, FEAT-002 revision 2, FEAT-003 revision 2, FEAT-004 revision 3, FEAT-005 revision 2, and FEAT-006 revision 2 remain unchanged.
 Len's chat approval: Approved on 2026-10-04T16:19:21+08:00: "Approve PROD-005 revision 4 and PLAN-003 revision 1".
@@ -136,7 +136,7 @@ The isolated PostgreSQL test cluster remained bound to `127.0.0.1:5433`; the ser
 
 Requirements: PROD-005 revision 4 Android and visual token rules; UI-REQ-001, UI-REQ-004, UI-REQ-006, UI-REQ-007, UI-REQ-008, and UI-REQ-009.
 
-State: Implementation and checks complete; checkpoint pending.
+State: Complete; implementation and checks passed; committed as `feat(mobile): apply lagoon android shell` (`e64c8c98b6acffda2c830bf32a0ec17a077d4756`).
 
 ### Tasks
 
@@ -161,33 +161,40 @@ The Retry action is covered by a widget test; a direct emulator tap was not veri
 - [x] Review Android shell semantics, tap targets, text scaling, offline messaging, and unrelated changes.
 - [x] Update plan and current handoff with actual checks and limitations.
 - [x] Stage only reviewed Phase 4 paths and inspect the staged diff.
-- [ ] Commit as `feat(mobile): apply lagoon android shell` and verify Git reports success.
+- [x] Commit as `feat(mobile): apply lagoon android shell` and verify Git reports success.
 
 ## Phase 5: Android screens and forms
 
 Requirements: PROD-005 revision 4 Android, summary tile, list, table, and chart rules; UI-REQ-001 through UI-REQ-011.
 
-State: Not started.
+State: Implementation and verification passed on 2026-10-04; the Phase 5 checkpoint commit is pending.
 
 ### Tasks
 
-- [ ] Restyle Overview, Members, Tasks, Announcements, Finance, and finance forms using existing screen modules and small local widgets.
-- [ ] Keep lists and forms straight-edged, preserve status labels, and use blobs only for approved decoration and marker shapes.
-- [ ] Keep the four-item bottom navigation, Finance card, 48-logical-pixel targets, and 200 percent text-scaling support.
-- [ ] Preserve current Finance authorization and online-only behavior; do not change Android member, task, or announcement write routes.
+- [x] Restyle Overview, Members, Tasks, Announcements, Finance, and finance forms using existing screen modules and small local widgets.
+- [x] Keep lists and forms straight-edged, preserve status labels, and use blobs only for approved decoration and marker shapes.
+- [x] Keep the four-item bottom navigation, Finance card, 48-logical-pixel targets, and 200 percent text-scaling support.
+- [x] Preserve current Finance authorization and online-only behavior; do not change Android member, task, or announcement write routes.
 
 ### Verification
 
-- [ ] Run `flutter analyze` and `flutter test` from `mobile/` and expect zero analyzer issues and all existing tests to pass.
-- [ ] Inspect Overview, Members, Tasks, Announcements, Finance, and failed expense save on the available emulator at default and 200 percent text scale.
-- [ ] Inspect the offline Tasks state and confirm cached age, Retry, disabled-write explanation, neutral background, and removal of decorative blobs remain clear.
-- [ ] Save available emulator screenshots in `docs/evidence/screenshots/ui-redesign/` and record emulator model, API level, and text scale.
+- [x] Run `flutter analyze` and `flutter test` from `mobile/`; analyzer reported no issues and 54 tests passed with one existing live API test skipped because `FINANCE_LIVE_API` was unset.
+- [x] Inspect Overview, Members, Tasks, Announcements, Finance, and failed expense save on the available emulator at default and 200 percent text scale.
+- [x] Inspect the offline Tasks state with an authenticated cache; verify its age, Retry, disabled-write explanation, neutral background, and removal of decorative blobs at default and 200 percent text scale.
+- [x] Save emulator screenshots in `docs/evidence/screenshots/ui-redesign/` and record emulator model, API level, and text scale in [UI redesign verification](../evidence/UI-redesign-verification.md).
+
+On 2026-10-04, the API 37 Medium_Phone emulator was used at 1080 by 2400 pixels, 420 dpi, and 1.0 and 2.0 system font scales.
+The final `flutter analyze`, `flutter test`, and `flutter build apk --debug` run started at 2026-10-04T20:30:40+08:00; analyze passed at 20:30:44, tests passed at 20:31:00 with 54 passes and one existing live API skip, and the debug build passed at 20:31:10.
+The authenticated offline cache screenshot showed the real cache age as `Just now`; after the isolated API restarted, Retry refreshed `/api/auth/me`, Members, Tasks, and Announcements successfully and cleared the banner.
+The 200 percent review exposed long extended actions covering list content, so a local adaptive action uses a labeled extended target at normal scale and a labeled icon target with a tooltip at large scale.
+The offline banner wraps at large scale and keeps Retry available; the Finance save failure kept the entered values and displayed the existing offline recovery message.
+No API, database schema, permission, validation, or dependency changes were made in this phase.
 
 ### Review and checkpoint
 
-- [ ] Review screen semantics, form recovery, touch targets, text scaling, existing workflows, and unrelated changes.
-- [ ] Update plan and current handoff with actual checks and limitations.
-- [ ] Stage only reviewed Phase 5 paths and inspect the staged diff.
+- [x] Review screen semantics, form recovery, touch targets, text scaling, existing workflows, and unrelated changes.
+- [x] Update plan and current handoff with actual checks and limitations.
+- [x] Stage only reviewed Phase 5 paths and inspect the staged diff.
 - [ ] Commit as `feat(mobile): restyle lagoon android screens` and verify Git reports success.
 
 ## Phase 6: Integrated verification, evidence, and handoff

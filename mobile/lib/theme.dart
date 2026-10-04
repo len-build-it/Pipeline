@@ -214,9 +214,7 @@ ThemeData buildAppTheme() {
     dialogTheme: const DialogThemeData(
       backgroundColor: AppColors.surface,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(24)),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32), bottom: Radius.circular(24))),
     ),
     snackBarTheme: const SnackBarThemeData(
       backgroundColor: AppColors.text,
