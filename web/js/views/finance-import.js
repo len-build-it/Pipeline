@@ -62,7 +62,7 @@ function previewHtml(preview) {
       Total of valid rows: ${escapeHtml(formatPhp(preview.totalAmount))}.</p>
     ${blocked}${empty}${ignored}${duplicateChoice}
     ${preview.rowCount > 0 ? `
-      <div class="table-responsive finance-preview-table">
+      <div class="table-responsive finance-preview-table" tabindex="0" role="region" aria-label="Import preview table, scrollable">
         <table class="data-table" aria-label="Import preview, one line per spreadsheet row">
           <thead>
             <tr>

@@ -33,9 +33,9 @@ function remainingText(remaining) {
     : `Remaining ${formatPhp(remaining)}`;
 }
 
-function statCard(id, title, value, note) {
+function statCard(id, title, value, note, tint) {
   return `
-    <article class="stat-card" data-finance-stat="${id}">
+    <article class="stat-card stat-card-support ${tint}" data-finance-stat="${id}">
       <div class="stat-card-title">${escapeHtml(title)}</div>
       <div class="stat-card-value finance-stat-value">${escapeHtml(value)}</div>
       <div class="stat-card-sub">${escapeHtml(note)}</div>
@@ -45,15 +45,38 @@ function statCard(id, title, value, note) {
 
 function totalsHtml(report) {
   const { totals, forecast } = report;
-  const isOver = totals.remaining.startsWith('-');
+  const hasBudget = totals.status !== 'unbudgeted';
+  const isOver = totals.status === 'over';
+  const spentPercent = hasBudget ? Math.round((Number(totals.actual) / Number(totals.budget)) * 100) : 0;
+  const remainingValue = hasBudget ? formatPhp(withoutSign(totals.remaining)) : 'No budget set';
+  const progressText = hasBudget
+    ? `${formatPhp(totals.actual)} spent of ${formatPhp(totals.budget)} budget, ${spentPercent}% used${isOver ? ', over budget' : ''}.`
+    : `No budget is set. ${formatPhp(totals.actual)} spent this month.`;
+  const progressWidth = hasBudget ? drawingPercent(totals.actual, totals.budget) : 0;
+  const title = isOver ? 'Over budget by' : 'Remaining';
+  const note = hasBudget ? 'Available after this month’s spending' : 'Record a budget to track remaining funds';
+
   return `
-    <div class="grid-cards" aria-label="Budget totals for ${escapeHtml(report.month)}">
-      ${statCard('budget', 'Budget', formatPhp(totals.budget), `All categories, ${report.month}`)}
-      ${statCard('actual', 'Actual spending', formatPhp(totals.actual), `Includes ${formatPhp(totals.unbudgetedActual)} without a budget`)}
-      ${statCard('remaining', isOver ? 'Over budget by' : 'Remaining', formatPhp(withoutSign(totals.remaining)), 'Budget minus actual spending')}
+    <div class="grid-cards finance-summary-grid" aria-label="Budget totals for ${escapeHtml(report.month)}">
+      <article class="stat-card stat-card-hero finance-remaining-hero" data-status="${escapeHtml(totals.status)}" data-finance-stat="remaining">
+        <div class="stat-card-title">${escapeHtml(title)}</div>
+        <div class="stat-card-value finance-stat-value">${escapeHtml(remainingValue)}</div>
+        <div class="stat-card-sub">${escapeHtml(note)}</div>
+        <div class="finance-remaining-budget" data-finance-stat="budget">
+          <span>Budget</span><strong>${escapeHtml(formatPhp(totals.budget))}</strong>
+        </div>
+        ${hasBudget
+          ? `<div class="finance-remaining-track" role="progressbar" aria-label="Spending against budget" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100, Math.max(0, spentPercent))}" aria-valuetext="${escapeHtml(progressText)}">
+              <div class="finance-remaining-fill" style="width:${progressWidth.toFixed(2)}%"></div>
+            </div>`
+          : '<div class="finance-remaining-track is-unbudgeted" aria-hidden="true"><div class="finance-remaining-fill"></div></div>'}
+        <div class="finance-remaining-detail">${escapeHtml(progressText)}</div>
+        ${isOver ? '<span class="badge badge-blocked finance-over-budget-chip">Over budget</span>' : ''}
+      </article>
+      ${statCard('actual', 'Actual spending', formatPhp(totals.actual), `Includes ${formatPhp(totals.unbudgetedActual)} without a budget`, 'stat-card-support-aqua')}
       ${forecast
-        ? statCard('forecast', 'Month-end estimate', formatPhp(forecast.estimate), `Estimate, not actual: ${forecast.elapsedDays} of ${forecast.daysInMonth} days elapsed`)
-        : statCard('forecast', 'Month-end estimate', 'Not available', 'Shown for the current month once spending is recorded')}
+        ? statCard('forecast', 'Month-end estimate', formatPhp(forecast.estimate), `Estimate, not actual: ${forecast.elapsedDays} of ${forecast.daysInMonth} days elapsed`, 'stat-card-support-lime')
+        : statCard('forecast', 'Month-end estimate', 'Not available', 'Shown for the current month once spending is recorded', 'stat-card-support-lime')}
     </div>
     ${forecast ? `<p class="form-help-text" id="finance-forecast-basis">How the estimate is calculated: ${escapeHtml(forecast.basis)}</p>` : ''}
   `;
@@ -63,12 +86,16 @@ function totalsHtml(report) {
 function comparisonChartHtml(categories) {
   const rows = categories.map(line => {
     const scale = line.budget !== null && Number(line.budget) > Number(line.actual) ? line.budget : line.actual;
+    const percentage = line.budget === null ? '' : ` · ${Math.round((Number(line.actual) / Number(line.budget)) * 100)}% of budget`;
     const figures = line.budget === null
       ? `${formatPhp(line.actual)} spent, no budget set`
-      : `${formatPhp(line.actual)} of ${formatPhp(line.budget)} · ${remainingText(line.remaining)}`;
+      : `${formatPhp(line.actual)} of ${formatPhp(line.budget)} · ${remainingText(line.remaining)}${percentage}`;
     return `
       <li class="finance-bar-row" data-status="${line.status}">
-        <div class="finance-bar-label"><strong>${escapeHtml(line.category)}</strong><span>${escapeHtml(figures)}</span></div>
+        <div class="finance-bar-label">
+          <strong class="finance-bar-category">${escapeHtml(line.category)}${line.status === 'over' ? ' <span class="badge badge-blocked finance-bar-status">Over budget</span>' : ''}</strong>
+          <span class="finance-bar-figures">${escapeHtml(figures)}</span>
+        </div>
         <div class="finance-bar-track" aria-hidden="true">
           <div class="finance-bar-fill" style="width:${drawingPercent(line.actual, scale).toFixed(2)}%"></div>
           ${line.budget === null ? '' : `<div class="finance-bar-marker" style="left:${drawingPercent(line.budget, scale).toFixed(2)}%"></div>`}
@@ -100,7 +127,7 @@ function comparisonTableHtml(report, budgetsById) {
   }).join('');
 
   return `
-    <div class="table-responsive" tabindex="0" role="region" aria-label="Budget table, scrollable">
+    <div class="table-responsive finance-report-table" tabindex="0" role="region" aria-label="Budget table, scrollable">
       <table class="data-table" aria-label="Budgets for ${escapeHtml(report.month)} compared with actual spending">
         <thead>
           <tr>
@@ -123,8 +150,26 @@ function comparisonTableHtml(report, budgetsById) {
   `;
 }
 
-/** A line through the monthly totals, with each value printed beside its point. */
-function trendChartHtml(trend) {
+function linePath(points) {
+  if (points.length === 0) return '';
+  const start = points[0];
+  return points.slice(1).reduce((path, point, index) => {
+    const previous = points[index];
+    const middle = (previous.x + point.x) / 2;
+    return `${path} C ${middle.toFixed(1)} ${previous.y.toFixed(1)}, ${middle.toFixed(1)} ${point.y.toFixed(1)}, ${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+  }, `M ${start.x.toFixed(1)} ${start.y.toFixed(1)}`);
+}
+
+function areaPath(points, baseline) {
+  if (points.length === 0) return '';
+  const first = points[0];
+  const last = points[points.length - 1];
+  return `${linePath(points)} L ${last.x.toFixed(1)} ${baseline} L ${first.x.toFixed(1)} ${baseline} Z`;
+}
+
+/** A smooth line through monthly totals, with a dotted current month and a table equivalent. */
+function trendChartHtml(report) {
+  const trend = report.trend;
   const width = 640;
   const height = 220;
   const left = 50;
@@ -139,24 +184,36 @@ function trendChartHtml(trend) {
     x: left + step * index,
     y: height - bottom - (drawingPercent(point.actual, peak) / 100) * (height - top - bottom),
   }));
-  const path = points.map(point => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');
+  const currentMonth = report.asOf.slice(0, 7);
+  const currentIndex = points.findIndex(point => point.month === currentMonth);
+  const completedPoints = currentIndex < 0 ? points : points.slice(0, currentIndex);
+  const currentSegment = currentIndex > 0 ? points.slice(currentIndex - 1, currentIndex + 1) : [];
+  const caption = currentIndex >= 0
+    ? `Monthly actual spending in PHP. ${currentMonth} is in progress through ${report.asOf}; its total may increase.`
+    : `Monthly actual spending in PHP through ${trend[trend.length - 1]?.month ?? report.month}.`;
 
   return `
-    <svg class="finance-trend" viewBox="0 0 ${width} ${height}" role="img" aria-label="Monthly actual spending trend; the same values are in the table below">
+    <div class="finance-trend-chart">
+      <svg class="finance-trend" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="finance-trend-title" aria-describedby="finance-trend-caption">
+      <title id="finance-trend-title">Monthly actual spending trend</title>
+      <path d="${areaPath(points, height - bottom)}" class="finance-trend-area" aria-hidden="true" />
       <line x1="${left}" y1="${height - bottom}" x2="${width - right}" y2="${height - bottom}" class="finance-trend-axis" />
-      <polyline points="${path}" class="finance-trend-line" />
+      ${completedPoints.length > 1 ? `<path d="${linePath(completedPoints)}" class="finance-trend-line" aria-hidden="true" />` : ''}
+      ${currentSegment.length > 1 ? `<path d="${linePath(currentSegment)}" class="finance-trend-line finance-trend-line-current" data-current-month="${escapeHtml(currentMonth)}" aria-hidden="true" />` : ''}
       ${points.map(point => `
-        <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="4" class="finance-trend-point" />
+        <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="4" data-month="${escapeHtml(point.month)}" class="finance-trend-point${point.month === currentMonth ? ' finance-trend-point-current' : ''}" />
         <text x="${point.x.toFixed(1)}" y="${(point.y - 10).toFixed(1)}" text-anchor="middle" class="finance-trend-value">${escapeHtml(formatPhp(point.actual).replace('PHP ', ''))}</text>
         <text x="${point.x.toFixed(1)}" y="${height - 12}" text-anchor="middle" class="finance-trend-month">${escapeHtml(point.month)}</text>
       `).join('')}
-    </svg>
+      </svg>
+      <p class="form-help-text finance-trend-caption" id="finance-trend-caption">${escapeHtml(caption)} The table below gives each month’s exact total and expense count.</p>
+    </div>
   `;
 }
 
 function trendTableHtml(trend) {
   return `
-    <div class="table-responsive" tabindex="0" role="region" aria-label="Monthly spending table, scrollable">
+    <div class="table-responsive finance-trend-table" tabindex="0" role="region" aria-label="Monthly spending table, scrollable">
       <table class="data-table" aria-label="Monthly actual spending">
         <thead><tr><th scope="col">Month</th><th scope="col" class="finance-amount">Expenses</th><th scope="col" class="finance-amount">Actual spending</th></tr></thead>
         <tbody>
@@ -178,15 +235,15 @@ export function reportSectionHtml(report, budgets) {
   const hasLines = report.categories.length > 0;
 
   return `
-    <section class="section-panel" aria-labelledby="finance-report-title">
-      <div class="section-panel-header">
+    <section class="section-panel finance-report-panel" aria-labelledby="finance-report-title">
+      <div class="section-panel-header finance-report-header">
         <h2 class="section-panel-title" id="finance-report-title">Budget report</h2>
         <div class="form-group" style="margin:0;">
           <label for="finance-month" class="form-label">Report month</label>
-          <input type="month" id="finance-month" class="filter-input" value="${escapeHtml(report.month)}" />
+          <input type="month" id="finance-month" class="filter-input" value="${escapeHtml(report.month)}" aria-describedby="finance-report-period" />
         </div>
       </div>
-      <p class="form-help-text">Actual spending counts non-void expenses dated in ${escapeHtml(report.month)}, in PHP, as of ${escapeHtml(report.asOf)} (Asia/Manila).</p>
+      <p class="form-help-text finance-report-period" id="finance-report-period">Actual spending counts non-void expenses dated in ${escapeHtml(report.month)}, in PHP, as of ${escapeHtml(report.asOf)} (Asia/Manila).</p>
       ${totalsHtml(report)}
       <h3 class="finance-subtitle">Budget compared with actual by category</h3>
       ${hasLines
@@ -196,7 +253,7 @@ export function reportSectionHtml(report, budgets) {
             <p class="state-box-desc">Set a budget per category to compare it with actual spending. Spending without a budget is listed here too.</p>
           </div>`}
       <h3 class="finance-subtitle">Monthly actual spending</h3>
-      ${trendChartHtml(report.trend)}
+      ${trendChartHtml(report)}
       ${trendTableHtml(report.trend)}
     </section>
   `;

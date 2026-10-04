@@ -64,53 +64,102 @@ class OverviewScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: SizedBox(
                 width: double.infinity,
-                child: OutlinedButton.icon(
-                  key: const Key('btn-open-finance'),
-                  onPressed: onOpenFinance,
-                  icon: const Icon(Icons.account_balance_wallet_outlined),
-                  label: const Text('Finance: budgets and expenses'),
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  elevation: 1,
+                  shadowColor: AppColors.primary.withAlpha(36),
+                  child: InkWell(
+                    key: const Key('btn-open-finance'),
+                    onTap: onOpenFinance,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          DecoratedBox(
+                            decoration: const BoxDecoration(
+                              color: AppColors.lime,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.elliptical(26, 20),
+                                topRight: Radius.elliptical(18, 28),
+                                bottomRight: Radius.elliptical(28, 16),
+                                bottomLeft: Radius.elliptical(16, 26),
+                              ),
+                            ),
+                            child: const SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: Icon(Icons.account_balance_wallet_outlined, color: AppColors.onLime),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Text(
+                              'Finance: budgets and expenses',
+                              style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward, color: AppColors.primary),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          // 4 Metric Cards Grid
-          GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: MediaQuery.textScalerOf(context).scale(1.0) > 1.3 ? 1.05 : 1.35,
-            children: [
-              _buildStatCard(
-                context,
-                title: 'Active Members',
-                value: '$activeMembersCount',
-                sub: repo.currentScope == 'all' ? 'Deduplicated' : 'In organization',
-                keyName: 'metric-members',
-              ),
-              _buildStatCard(
-                context,
-                title: 'Open Tasks',
-                value: '$openTasksCount',
-                sub: 'Backlog, progress, blocked',
-                keyName: 'metric-open-tasks',
-              ),
-              _buildStatCard(
-                context,
-                title: 'Overdue Tasks',
-                value: '$overdueTasksCount',
-                sub: 'Due before today ($todayManila)',
-                color: AppColors.danger,
-                keyName: 'metric-overdue-tasks',
-              ),
-              _buildStatCard(
-                context,
-                title: 'Announcements',
-                value: '$recentAnnouncementsCount',
-                sub: 'Published past 7 days',
-                keyName: 'metric-announcements',
-              ),
-            ],
+          _buildStatCard(
+            title: 'Overdue Tasks',
+            value: '$overdueTasksCount',
+            sub: 'Due before today ($todayManila)',
+            color: AppColors.danger,
+            keyName: 'metric-overdue-tasks',
+            hero: true,
+          ),
+          const SizedBox(height: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+              final tileWidth = largeText || constraints.maxWidth < 340
+                  ? constraints.maxWidth
+                  : (constraints.maxWidth - 12) / 2;
+              final combined = repo.currentScope == 'all';
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  SizedBox(
+                    width: tileWidth,
+                    child: _buildStatCard(
+                      title: 'Active Members',
+                      value: '$activeMembersCount',
+                      sub: repo.currentScope == 'all' ? 'Deduplicated' : 'In organization',
+                      keyName: 'metric-members',
+                      fill: combined ? AppColors.combinedTint : AppColors.aquaTint,
+                    ),
+                  ),
+                  SizedBox(
+                    width: tileWidth,
+                    child: _buildStatCard(
+                      title: 'Open Tasks',
+                      value: '$openTasksCount',
+                      sub: 'Backlog, progress, blocked',
+                      keyName: 'metric-open-tasks',
+                      fill: combined ? AppColors.combinedTint : AppColors.mintTint,
+                    ),
+                  ),
+                  SizedBox(
+                    width: tileWidth,
+                    child: _buildStatCard(
+                      title: 'Announcements',
+                      value: '$recentAnnouncementsCount',
+                      sub: 'Published past 7 days',
+                      keyName: 'metric-announcements',
+                      fill: combined ? AppColors.combinedTint : AppColors.limeTint,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 24),
@@ -305,41 +354,46 @@ class OverviewScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(
-    BuildContext context, {
+  Widget _buildStatCard({
     required String title,
     required String value,
     required String sub,
     Color? color,
+    Color fill = AppColors.surface,
+    bool hero = false,
     required String keyName,
   }) {
     return Card(
       key: Key(keyName),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
+      color: fill,
+      elevation: hero ? 2 : 0,
+      shadowColor: AppColors.primary.withAlpha(36),
+      shape: hero
+          ? const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.elliptical(36, 28),
+                topRight: Radius.elliptical(28, 40),
+                bottomRight: Radius.elliptical(40, 28),
+                bottomLeft: Radius.elliptical(28, 36),
+              ),
+            )
+          : null,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: hero ? 132 : 116),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                title,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMuted),
-              ),
+              Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textMuted)),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: color ?? AppColors.text),
+                style: TextStyle(fontSize: hero ? 36 : 26, fontWeight: FontWeight.w800, color: color ?? AppColors.text),
               ),
               const SizedBox(height: 2),
-              Text(
-                sub,
-                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              Text(sub, style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
             ],
           ),
         ),

@@ -25,42 +25,107 @@ class _HomeShellState extends State<HomeShell> {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => FinanceScreen(repo: widget.repo)));
   }
 
+  Future<void> _retryConnection() async {
+    if (widget.repo is AppRepository) {
+      final repo = widget.repo as AppRepository;
+      await repo.refreshCurrentScope();
+      if (!mounted || repo.errorMessage == null) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(repo.errorMessage!)));
+      return;
+    }
+    widget.repo.setOffline(false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: widget.repo,
       builder: (context, _) {
+        final appRepo = widget.repo is AppRepository ? widget.repo as AppRepository : null;
+        if (appRepo?.requiresSignIn == true || appRepo?.requiresAuthorization == true) {
+          final accessRevoked = appRepo?.requiresAuthorization == true;
+          return Scaffold(
+            appBar: AppBar(title: Text(accessRevoked ? 'Account access denied' : 'Session expired')),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.lock_outline, size: 40),
+                    const SizedBox(height: 12),
+                    Text(accessRevoked
+                        ? 'This account no longer has access. Sign in again after access is restored.'
+                        : 'Your session expired. Sign in again to continue.'),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      key: const Key('btn-session-sign-in'),
+                      onPressed: () => _showSignInDialog(context, useDevelopmentDefaults: false),
+                      child: const Text('Sign in'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
         final availableScopes = widget.repo.availableScopes;
+        final textScaler = MediaQuery.textScalerOf(context);
+        final largeText = textScaler.scale(1) > 1.3;
+        final offlineMessage = widget.repo is AppRepository && (widget.repo as AppRepository).cacheAge != null
+            ? 'Offline: Showing cached reads (${(widget.repo as AppRepository).cacheAge}). Mutations disabled.'
+            : 'Offline: Showing cached reads. Mutations disabled.';
+        const offlineTextStyle = TextStyle(color: AppColors.warning, fontSize: 12, height: 1.3, fontWeight: FontWeight.w700);
+        final offlineTextPainter = TextPainter(
+          text: TextSpan(text: offlineMessage, style: offlineTextStyle),
+          textDirection: Directionality.of(context),
+          textScaler: textScaler,
+        )..layout(maxWidth: (MediaQuery.sizeOf(context).width - 56).clamp(120.0, double.infinity).toDouble());
+        final offlineBannerHeight = largeText
+            ? (offlineTextPainter.height + 60).clamp(104.0, double.infinity).toDouble()
+            : (textScaler.scale(12) * 3 + 8).clamp(56.0, double.infinity).toDouble();
 
         return Scaffold(
+          backgroundColor: widget.repo.isOffline
+              ? AppColors.backgroundOffline
+              : widget.repo.currentScope == 'all'
+                  ? AppColors.backgroundCombined
+                  : AppColors.background,
           appBar: AppBar(
-            title: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Row(
+            title: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.58),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Team Manager',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary),
+                    'Organization',
+                    style: TextStyle(fontSize: 11, height: 1.1, fontWeight: FontWeight.w600, color: AppColors.textMuted),
                   ),
-                  const SizedBox(width: 8),
-                  DropdownButton<String>(
-                    key: const Key('dropdown-scope'),
-                    value: widget.repo.currentScope,
-                    underline: const SizedBox(),
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.text),
-                    items: availableScopes.map((s) {
-                      return DropdownMenuItem(
-                        value: s.id,
-                        child: Text(s.name),
-                      );
-                    }).toList(),
-                    onChanged: (newScope) {
-                      if (newScope != null) {
-                        widget.repo.setScope(newScope);
-                      }
-                    },
+                  Semantics(
+                    label: 'Organization scope',
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        key: const Key('dropdown-scope'),
+                        value: widget.repo.currentScope,
+                        dropdownColor: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        isExpanded: true,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.text),
+                        items: availableScopes.map((s) {
+                          return DropdownMenuItem(
+                            value: s.id,
+                            child: Text(s.name, overflow: TextOverflow.ellipsis),
+                          );
+                        }).toList(),
+                        onChanged: (newScope) {
+                          if (newScope != null) {
+                            widget.repo.setScope(newScope);
+                          }
+                        },
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -184,78 +249,105 @@ class _HomeShellState extends State<HomeShell> {
             ],
             bottom: widget.repo.isOffline
                 ? PreferredSize(
-                    preferredSize: const Size.fromHeight(32),
+                    preferredSize: Size.fromHeight(offlineBannerHeight),
                     child: Container(
-                      color: AppColors.warning,
+                      color: AppColors.warningBg,
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.wifi_off, size: 16, color: Colors.white),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              widget.repo is AppRepository && (widget.repo as AppRepository).cacheAge != null
-                                  ? 'Offline: Showing cached reads (${(widget.repo as AppRepository).cacheAge}). Mutations disabled.'
-                                  : 'Offline: Showing cached reads. Mutations disabled.',
-                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
-                              overflow: TextOverflow.ellipsis,
+                      padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 8, 4),
+                      child: largeText
+                          ? Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.wifi_off, size: 18, color: AppColors.warning),
+                                    const SizedBox(width: 8),
+                                    Expanded(child: Text(offlineMessage, style: offlineTextStyle)),
+                                  ],
+                                ),
+                                Align(alignment: AlignmentDirectional.centerEnd, child: _retryButton()),
+                              ],
+                            )
+                          : Row(
+                              children: [
+                                const Icon(Icons.wifi_off, size: 18, color: AppColors.warning),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    offlineMessage,
+                                    style: offlineTextStyle,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                _retryButton(),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
                     ),
                   )
                 : null,
           ),
-          body: IndexedStack(
-            index: _currentIndex,
-            children: [
-              OverviewScreen(
-                repo: widget.repo,
-                onNavigateToTasks: () => setState(() => _currentIndex = 2),
-                onNavigateToAnnouncements: () => setState(() => _currentIndex = 3),
-                onOpenFinance: _openFinance,
-              ),
-              MembersScreen(repo: widget.repo),
-              TasksScreen(repo: widget.repo),
-              AnnouncementsScreen(repo: widget.repo),
-            ],
-          ),
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: (index) => setState(() => _currentIndex = index),
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.dashboard_outlined),
-                selectedIcon: Icon(Icons.dashboard),
-                label: 'Overview',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.people_outline),
-                selectedIcon: Icon(Icons.people),
-                label: 'Members',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.check_box_outlined),
-                selectedIcon: Icon(Icons.check_box),
-                label: 'Tasks',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.campaign_outlined),
-                selectedIcon: Icon(Icons.campaign),
-                label: 'Announcements',
-              ),
-            ],
+          body: appRepo != null && !appRepo.hasAccessToScope
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text('Access to this organization was denied. Choose another organization to continue.'),
+                  ),
+                )
+              : IndexedStack(
+                  index: _currentIndex,
+                  children: [
+                    OverviewScreen(
+                      repo: widget.repo,
+                      onNavigateToTasks: () => setState(() => _currentIndex = 2),
+                      onNavigateToAnnouncements: () => setState(() => _currentIndex = 3),
+                      onOpenFinance: _openFinance,
+                    ),
+                    MembersScreen(repo: widget.repo),
+                    TasksScreen(repo: widget.repo),
+                    AnnouncementsScreen(repo: widget.repo),
+                  ],
+                ),
+          bottomNavigationBar: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (index) => setState(() => _currentIndex = index),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.dashboard_outlined),
+                  selectedIcon: Icon(Icons.dashboard),
+                  label: 'Overview',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.people_outline),
+                  selectedIcon: Icon(Icons.people),
+                  label: 'Members',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.check_box_outlined),
+                  selectedIcon: Icon(Icons.check_box),
+                  label: 'Tasks',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.campaign_outlined),
+                  selectedIcon: Icon(Icons.campaign),
+                  label: 'Announcements',
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  void _showSignInDialog(BuildContext context) {
-    final emailCtrl = TextEditingController(text: 'len@example.com');
-    final passCtrl = TextEditingController(text: 'LocalDevPass123!');
+  void _showSignInDialog(BuildContext context, {bool useDevelopmentDefaults = true}) {
+    final emailCtrl = TextEditingController(text: useDevelopmentDefaults ? 'len@example.com' : '');
+    final passCtrl = TextEditingController(text: useDevelopmentDefaults ? 'LocalDevPass123!' : '');
 
     showDialog(
       context: context,
@@ -378,4 +470,15 @@ class _HomeShellState extends State<HomeShell> {
       ),
     );
   }
+
+  Widget _retryButton() => TextButton(
+        key: const Key('btn-retry-sync'),
+        onPressed: _retryConnection,
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.warning,
+          minimumSize: const Size(48, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+        ),
+        child: const Text('Retry'),
+      );
 }

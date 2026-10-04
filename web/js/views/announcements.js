@@ -14,7 +14,7 @@ export function renderAnnouncements(container, state, actions) {
   let searchQuery = '';
   let showArchived = false;
 
-  function getFilteredAnnouncements() {
+  function getScopedAnnouncements() {
     let list = state.announcements;
 
     if (showArchived) {
@@ -44,6 +44,12 @@ export function renderAnnouncements(container, state, actions) {
       list = list.filter(a => a.targetOrgs.some(t => allowed.includes(t)));
     }
 
+    return list;
+  }
+
+  function getFilteredAnnouncements() {
+    let list = getScopedAnnouncements();
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       list = list.filter(a => a.title.toLowerCase().includes(q) || a.body.toLowerCase().includes(q));
@@ -57,6 +63,13 @@ export function renderAnnouncements(container, state, actions) {
       const dateB = b.publishedAt || b.id;
       return dateB.localeCompare(dateA);
     });
+  }
+
+  function updateSummary() {
+    const list = getScopedAnnouncements();
+    container.querySelector('[data-announcement-metric="total"] .stat-card-value').textContent = list.length;
+    container.querySelector('[data-announcement-metric="published"] .stat-card-value').textContent = list.filter(a => a.status === 'published').length;
+    container.querySelector('[data-announcement-metric="drafts"] .stat-card-value').textContent = list.filter(a => a.status === 'draft').length;
   }
 
   function renderList() {
@@ -79,19 +92,18 @@ export function renderAnnouncements(container, state, actions) {
     }
 
     listContainer.innerHTML = `
-      <div style="display:flex; flex-direction:column; gap:var(--spacing-4);">
+      <p class="page-result-count" aria-live="polite">${list.length} ${list.length === 1 ? 'announcement' : 'announcements'} shown</p>
+      <div class="announcement-record-list">
         ${list.map(a => `
-          <article class="responsive-record-card" style="border-left: 4px solid ${a.status === 'published' ? 'var(--color-primary)' : 'var(--color-warning)'};" id="announcement-card-${a.id}">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:var(--spacing-2);">
+          <article class="responsive-record-card announcement-record-card" id="announcement-card-${a.id}">
+            <div class="announcement-record-heading">
               <div>
-                <div style="display:flex; align-items:center; gap:var(--spacing-2); margin-bottom:4px;">
+                <div class="record-card-chips">
                   <span class="badge badge-${a.status}">${a.status}</span>
-                  <span style="font-size:0.75rem; color:var(--color-text-muted);">
-                    Audience: ${escapeHtml(orgLabels(state, a.targetOrgs))}
-                  </span>
                   ${a.archived ? `<span class="badge badge-archived">Archived</span>` : ''}
+                  <span class="badge badge-neutral">Audience: ${escapeHtml(orgLabels(state, a.targetOrgs))}</span>
                 </div>
-                <h2 style="font-size:var(--font-size-lg); font-weight:700;">${escapeHtml(a.title)}</h2>
+                <button type="button" class="record-title-link btn-view-announcement" data-ann-id="${a.id}">${escapeHtml(a.title)}</button>
               </div>
               <div>
                 <button class="btn btn-secondary btn-sm btn-view-announcement" data-ann-id="${a.id}">Read more</button>
@@ -100,7 +112,7 @@ export function renderAnnouncements(container, state, actions) {
             <p style="font-size:0.8125rem; color:var(--color-text-muted); margin:var(--spacing-1) 0;">
               By <strong>${escapeHtml(a.authorName)}</strong> ${a.publishedAt ? `• Published on ${a.publishedAt.slice(0, 10)}` : '• Draft (Unpublished)'}
             </p>
-            <div style="font-size:var(--font-size-sm); line-height:1.6; margin-top:var(--spacing-2);">
+            <div class="announcement-record-body">
               ${escapeHtml(a.body)}
             </div>
           </article>
@@ -130,11 +142,30 @@ export function renderAnnouncements(container, state, actions) {
     </header>
 
     <div class="content-area">
-      <section class="filter-bar" aria-label="Announcement filters">
-        <input type="search" id="announcement-search" class="filter-input" placeholder="Search announcements by title or content..." aria-label="Search announcements" />
-        <label style="display:flex; align-items:center; gap:var(--spacing-1); font-size:var(--font-size-sm); cursor:pointer;">
+      <section class="grid-cards page-summary-grid" aria-label="Announcement summary">
+        <article class="stat-card stat-card-hero" data-announcement-metric="total">
+          <div class="stat-card-title">Visible announcements</div>
+          <div class="stat-card-value">${getScopedAnnouncements().length}</div>
+          <div class="stat-card-sub">In the selected organization scope</div>
+        </article>
+        <article class="stat-card stat-card-support stat-card-support-aqua" data-announcement-metric="published">
+          <div class="stat-card-title">Published</div>
+          <div class="stat-card-value">${getScopedAnnouncements().filter(a => a.status === 'published').length}</div>
+        </article>
+        <article class="stat-card stat-card-support stat-card-support-lime" data-announcement-metric="drafts">
+          <div class="stat-card-title">Drafts</div>
+          <div class="stat-card-value">${getScopedAnnouncements().filter(a => a.status === 'draft').length}</div>
+        </article>
+      </section>
+
+      <section class="page-tools" aria-label="Announcement search and filters">
+        <div class="search-field">
+          <label for="announcement-search" class="form-label">Search announcements</label>
+          <input type="search" id="announcement-search" class="filter-input" placeholder="Title or message text" />
+        </div>
+        <label class="filter-checkbox">
           <input type="checkbox" id="announcement-archived-checkbox" />
-          Show Archived
+          Show archived
         </label>
       </section>
 
@@ -151,6 +182,7 @@ export function renderAnnouncements(container, state, actions) {
 
   container.querySelector('#announcement-archived-checkbox')?.addEventListener('change', (e) => {
     showArchived = e.target.checked;
+    updateSummary();
     renderList();
   });
 
@@ -301,4 +333,3 @@ export function openAnnouncementDetailModal(annId, state, actions) {
     }
   });
 }
-

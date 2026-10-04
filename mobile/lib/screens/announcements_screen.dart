@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/synthetic_data.dart';
 import '../theme.dart';
+import '../widgets/adaptive_action_fab.dart';
 
 class AnnouncementsScreen extends StatefulWidget {
   final SyntheticDataRepository repo;
@@ -18,6 +19,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
   @override
   Widget build(BuildContext context) {
     final isLead = widget.repo.isLeadInScope(widget.repo.currentScope);
+    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
     var announcements = widget.repo.getScopedAnnouncements(includeArchived: _showArchived);
 
     if (_search.trim().isNotEmpty) {
@@ -28,16 +30,21 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: widget.repo.isOffline
+          ? AppColors.backgroundOffline
+          : widget.repo.currentScope == 'all'
+              ? AppColors.backgroundCombined
+              : AppColors.background,
       floatingActionButton: isLead && !_showArchived
-          ? FloatingActionButton.extended(
+          ? AdaptiveActionFab(
               heroTag: 'fab-announcements',
-              key: const Key('btn-fab-announcement'),
+              buttonKey: const Key('btn-fab-announcement'),
+              label: 'New announcement',
+              icon: const Icon(Icons.campaign),
               onPressed: () => _showComposeDialog(context),
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              icon: const Icon(Icons.campaign),
-              label: const Text('New announcement'),
+              shape: const StadiumBorder(),
             )
           : null,
       body: Column(
@@ -45,26 +52,48 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
           Container(
             color: AppColors.surface,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: const InputDecoration(
-                      hintText: 'Search announcements...',
-                      prefixIcon: Icon(Icons.search, size: 20),
-                      isDense: true,
-                    ),
-                    onChanged: (val) => setState(() => _search = val),
+            child: largeText || MediaQuery.sizeOf(context).width < 400
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        decoration: const InputDecoration(
+                          hintText: 'Search announcements...',
+                          prefixIcon: Icon(Icons.search, size: 20),
+                          isDense: true,
+                        ),
+                        onChanged: (val) => setState(() => _search = val),
+                      ),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: FilterChip(
+                          label: const Text('Archived'),
+                          selected: _showArchived,
+                          onSelected: (val) => setState(() => _showArchived = val),
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          decoration: const InputDecoration(
+                            hintText: 'Search announcements...',
+                            prefixIcon: Icon(Icons.search, size: 20),
+                            isDense: true,
+                          ),
+                          onChanged: (val) => setState(() => _search = val),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilterChip(
+                        label: const Text('Archived'),
+                        selected: _showArchived,
+                        onSelected: (val) => setState(() => _showArchived = val),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                FilterChip(
-                  label: const Text('Archived', style: TextStyle(fontSize: 12)),
-                  selected: _showArchived,
-                  onSelected: (val) => setState(() => _showArchived = val),
-                ),
-              ],
-            ),
           ),
 
           Expanded(
@@ -76,7 +105,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                     ),
                   )
                 : ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, isLead && !_showArchived ? 104 : 16),
                     itemCount: announcements.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
@@ -89,34 +118,35 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: isDraft ? AppColors.warningBg : AppColors.successBg,
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(999),
                                     ),
                                     child: Text(
                                       isDraft ? 'Draft' : 'Published',
                                       style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
                                         color: isDraft ? AppColors.warning : AppColors.success,
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
                                   Text(
                                     'Audience: ${widget.repo.orgNames(a.targetOrgs)}',
-                                    style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                                    style: Theme.of(context).textTheme.bodySmall,
                                   ),
                                   if (a.archived) ...[
-                                    const SizedBox(width: 8),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(4)),
-                                      child: const Text('Archived', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(color: AppColors.neutralBg, borderRadius: BorderRadius.circular(999)),
+                                      child: const Text('Archived', style: TextStyle(fontSize: 12, color: AppColors.neutral)),
                                     ),
                                   ],
                                 ],
@@ -189,8 +219,12 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                         controller: titleController,
                         decoration: const InputDecoration(labelText: 'Title *'),
                         validator: (val) {
-                          if (val == null || val.trim().isEmpty) return 'Title is required';
-                          if (val.trim().length > 160) return 'Max 160 characters';
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Title is required';
+                          }
+                          if (val.trim().length > 160) {
+                            return 'Max 160 characters';
+                          }
                           return null;
                         },
                       ),
@@ -220,7 +254,9 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                         decoration: const InputDecoration(labelText: 'Body *'),
                         maxLines: 4,
                         validator: (val) {
-                          if (val == null || val.trim().isEmpty) return 'Body is required';
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Body is required';
+                          }
                           return null;
                         },
                       ),

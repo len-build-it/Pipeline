@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import '../data/app_repository.dart';
 import '../data/finance_controller.dart';
@@ -6,6 +8,7 @@ import '../models/finance_models.dart';
 import '../models/models.dart';
 import '../services/finance_api.dart';
 import '../theme.dart';
+import '../widgets/adaptive_action_fab.dart';
 import 'finance_forms.dart';
 
 /// Today's calendar date in Asia/Manila (UTC+8, no daylight saving) as YYYY-MM-DD.
@@ -154,15 +157,15 @@ class _FinanceScreenState extends State<FinanceScreen> {
           : ListenableBuilder(
               listenable: controller,
               builder: (context, _) => controller.hasData
-                  ? FloatingActionButton.extended(
+                  ? AdaptiveActionFab(
                       heroTag: 'fab-finance',
-                      key: const Key('finance-record-expense'),
+                      buttonKey: const Key('finance-record-expense'),
+                      label: 'Record expense',
+                      icon: const Icon(Icons.add),
                       onPressed: () => _openDialog(
                         ExpenseFormDialog(controller: controller, today: manilaToday()),
                         'Expense recorded.',
                       ),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Record expense'),
                     )
                   : const SizedBox.shrink(),
             ),
@@ -199,24 +202,27 @@ class _FinanceScreenState extends State<FinanceScreen> {
   }
 
   Widget _workspace(FinanceController controller) {
-    return RefreshIndicator(
-      onRefresh: controller.load,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-        children: [
-          _organizationCard(),
-          _monthSelector(controller),
-          if (controller.isLoading) const LinearProgressIndicator(semanticsLabel: 'Loading finance records'),
-          if (controller.problem != FinanceProblem.none) _problemNotice(controller),
-          if (controller.hasData) ...[
-            _totals(controller.report!),
-            _categoryComparison(controller),
-            _trend(controller.report!),
-            _expenses(controller),
-            _recentChanges(controller),
+    return ColoredBox(
+      color: controller.problem == FinanceProblem.offline ? AppColors.backgroundOffline : AppColors.background,
+      child: RefreshIndicator(
+        onRefresh: controller.load,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+          children: [
+            _organizationCard(),
+            _monthSelector(controller),
+            if (controller.isLoading) const LinearProgressIndicator(semanticsLabel: 'Loading finance records'),
+            if (controller.problem != FinanceProblem.none) _problemNotice(controller),
+            if (controller.hasData) ...[
+              _totals(controller.report!),
+              _categoryComparison(controller),
+              _trend(controller.report!),
+              _expenses(controller),
+              _recentChanges(controller),
+            ],
+            const _SpreadsheetNote(),
           ],
-          const _SpreadsheetNote(),
-        ],
+        ),
       ),
     );
   }
@@ -274,29 +280,86 @@ class _FinanceScreenState extends State<FinanceScreen> {
   Widget _totals(FinanceReport report) {
     final isOver = report.remaining.startsWith('-');
     final forecast = report.forecast;
+    final budget = double.tryParse(report.budget) ?? 0;
+    final actual = double.tryParse(report.actual) ?? 0;
+    final hasBudget = budget > 0;
+    final fraction = hasBudget ? (actual / budget).clamp(0.0, 1.0) : 0.0;
     return _Section(
       title: 'Budget report',
       children: [
-        Text('Non-void expenses dated in ${report.month}, in PHP, as of ${report.asOf} (Asia/Manila).'),
-        _Figure(statKey: 'budget', label: 'Budget', value: formatPhp(report.budget)),
-        _Figure(
-          statKey: 'actual',
-          label: 'Actual spending',
-          value: formatPhp(report.actual),
-          note: 'Includes ${formatPhp(report.unbudgetedActual)} without a budget',
+        Text('Non-void expenses in PHP for ${report.month}, as of ${report.asOf} (Asia/Manila).'),
+        const SizedBox(height: 12),
+        Card(
+          key: const Key('finance-stat-remaining'),
+          color: AppColors.surface,
+          elevation: 2,
+          shadowColor: AppColors.primary.withAlpha(42),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.elliptical(36, 28),
+              topRight: Radius.elliptical(28, 40),
+              bottomRight: Radius.elliptical(40, 28),
+              bottomLeft: Radius.elliptical(28, 36),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(isOver ? 'Over budget by' : 'Remaining', style: const TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.w700)),
+                Text(
+                  formatPhp(isOver ? report.remaining.substring(1) : report.remaining),
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: isOver ? AppColors.danger : AppColors.text),
+                ),
+                const SizedBox(height: 8),
+                if (hasBudget) ...[
+                  _progressTrack(fraction, over: isOver),
+                  const SizedBox(height: 8),
+                  Text('Actual ${formatPhp(report.actual)} of ${formatPhp(report.budget)} budget.'),
+                ] else
+                  const Text('No budget set for this period.'),
+                Padding(
+                  key: const Key('finance-stat-budget'),
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text('Budget ${formatPhp(report.budget)}'),
+                ),
+              ],
+            ),
+          ),
         ),
-        _Figure(
-          statKey: 'remaining',
-          label: isOver ? 'Over budget by' : 'Remaining',
-          value: formatPhp(isOver ? report.remaining.substring(1) : report.remaining),
-        ),
-        _Figure(
-          statKey: 'forecast',
-          label: 'Month-end estimate',
-          value: forecast == null ? 'Not available' : formatPhp(forecast.estimate),
-          note: forecast == null
-              ? 'Shown for the current month once spending is recorded'
-              : 'Estimate, not actual: ${forecast.elapsedDays} of ${forecast.daysInMonth} days elapsed. ${forecast.basis}',
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+            final width = largeText || constraints.maxWidth < 340 ? constraints.maxWidth : (constraints.maxWidth - 12) / 2;
+            return Wrap(
+              spacing: 12,
+              children: [
+                SizedBox(
+                  width: width,
+                  child: _Figure(
+                    statKey: 'actual',
+                    label: 'Actual spending',
+                    value: formatPhp(report.actual),
+                    note: 'Includes ${formatPhp(report.unbudgetedActual)} without a budget',
+                    fill: AppColors.aquaTint,
+                  ),
+                ),
+                SizedBox(
+                  width: width,
+                  child: _Figure(
+                    statKey: 'forecast',
+                    label: 'Month-end estimate',
+                    value: forecast == null ? 'Not available' : formatPhp(forecast.estimate),
+                    note: forecast == null
+                        ? 'Shown for the current month once spending is recorded'
+                        : 'Estimate, not actual: ${forecast.elapsedDays} of ${forecast.daysInMonth} days elapsed. ${forecast.basis}',
+                    fill: AppColors.limeTint,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -321,6 +384,9 @@ class _FinanceScreenState extends State<FinanceScreen> {
 
   Widget _categoryLine(FinanceController controller, CategoryLine line) {
     final hasBudget = line.budget != null;
+    final budget = hasBudget ? double.tryParse(line.budget!) ?? 0 : 0;
+    final actual = double.tryParse(line.actual) ?? 0;
+    final percent = budget > 0 ? actual / budget * 100 : null;
     final figures = hasBudget
         ? '${formatPhp(line.actual)} of ${formatPhp(line.budget!)} · ${_remainingText(line.remaining)}'
         : '${formatPhp(line.actual)} spent · No budget set';
@@ -335,15 +401,9 @@ class _FinanceScreenState extends State<FinanceScreen> {
           Text(line.category, style: const TextStyle(fontWeight: FontWeight.w700)),
           Text(figures),
           Text('Status: ${_statusLabels[line.status] ?? line.status}'),
+          if (percent != null) Text('${percent.toStringAsFixed(0)}% of budget used.'),
           const SizedBox(height: 4),
-          ExcludeSemantics(
-            child: LinearProgressIndicator(
-              value: _drawingFraction(line.actual, scale),
-              minHeight: 10,
-              color: line.status == 'over' ? AppColors.danger : AppColors.primary,
-              backgroundColor: AppColors.border,
-            ),
-          ),
+          if (hasBudget) _progressTrack(_drawingFraction(line.actual, scale), over: line.status == 'over'),
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
@@ -360,31 +420,124 @@ class _FinanceScreenState extends State<FinanceScreen> {
   }
 
   Widget _trend(FinanceReport report) {
-    final peak = report.trend.fold<String>('0', (max, point) {
-      return (double.tryParse(point.actual) ?? 0) > (double.tryParse(max) ?? 0) ? point.actual : max;
-    });
+    final pointWidth = MediaQuery.textScalerOf(context).scale(1) > 1.3 ? 224.0 : 136.0;
+    final chartHeight = MediaQuery.textScalerOf(context).scale(1) > 1.3 ? 320.0 : 240.0;
+    final chartWidth = (report.trend.length * pointWidth).clamp(320.0, double.infinity).toDouble();
+    final values = report.trend.map((point) => double.tryParse(point.actual) ?? 0).toList();
+    final currentMonth = manilaToday().substring(0, 7);
     return _Section(
       title: 'Monthly actual spending',
       children: [
-        for (final point in report.trend)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${point.month}: ${formatPhp(point.actual)} · ${point.expenseCount} expense(s)'),
-                const SizedBox(height: 4),
-                ExcludeSemantics(
-                  child: LinearProgressIndicator(
-                    value: _drawingFraction(point.actual, peak),
-                    minHeight: 8,
-                    backgroundColor: AppColors.border,
-                  ),
-                ),
+        Text(report.month == currentMonth ? 'The selected month is in progress.' : 'Monthly totals for the selected report.'),
+        if (report.trend.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: chartWidth,
+              height: chartHeight,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final maxValue = values.fold<double>(0, (max, value) => value > max ? value : max);
+                  final step = report.trend.length <= 1
+                      ? 0.0
+                      : (constraints.maxWidth - pointWidth) / (report.trend.length - 1);
+                  double pointY(int index) => maxValue <= 0
+                      ? 108
+                      : 68 + (1 - values[index] / maxValue) * 88;
+                  return Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: _TrendLinePainter(
+                            values: values,
+                            maxValue: maxValue,
+                            pointWidth: pointWidth,
+                            currentIndex: report.trend.indexWhere((point) => point.month == currentMonth),
+                          ),
+                        ),
+                      ),
+                      for (var index = 0; index < report.trend.length; index++)
+                        Positioned(
+                          left: report.trend.length <= 1 ? 0 : step * index,
+                          top: (pointY(index) - 66).clamp(4.0, 90.0),
+                          width: pointWidth,
+                          child: Text(
+                    '${formatPhp(report.trend[index].actual)} · ${report.trend[index].expenseCount} expense(s)',
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.visible,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      for (var index = 0; index < report.trend.length; index++)
+                        Positioned(
+                          left: report.trend.length <= 1 ? 0 : step * index,
+                          top: chartHeight - 56,
+                          width: pointWidth,
+                          child: Text(
+                            '${report.trend[index].month}\n${report.trend[index].expenseCount} expenses',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              columns: const [
+                DataColumn(label: Text('Month · actual')),
+                DataColumn(label: Text('Expenses')),
+              ],
+              rows: [
+                for (final point in report.trend)
+                  DataRow(cells: [
+                    DataCell(Text('${point.month}: ${formatPhp(point.actual)}')),
+                    DataCell(Text('${point.expenseCount} expense(s)')),
+                  ]),
               ],
             ),
           ),
+        ],
       ],
+    );
+  }
+
+  Widget _progressTrack(double fraction, {required bool over}) {
+    return Container(
+      height: 18,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border, width: 1.5),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: over
+          ? const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  tileMode: TileMode.repeated,
+                  colors: [AppColors.danger, AppColors.danger, AppColors.dangerBg, AppColors.dangerBg],
+                  stops: [0, 0.38, 0.38, 0.72],
+                ),
+              ),
+            )
+          : Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: FractionallySizedBox(
+                widthFactor: fraction,
+                heightFactor: 1,
+                child: const ColoredBox(color: AppColors.primary),
+              ),
+            ),
     );
   }
 
@@ -406,44 +559,65 @@ class _FinanceScreenState extends State<FinanceScreen> {
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         if (page.expenses.isEmpty) const Padding(padding: EdgeInsets.only(top: 8), child: Text('No expenses in this month.')),
-        for (final expense in page.expenses) _expenseTile(controller, expense),
+        for (var index = 0; index < page.expenses.length; index++) ...[
+          if (index > 0) const Divider(height: 1, color: AppColors.divider),
+          _expenseTile(controller, page.expenses[index]),
+        ],
       ],
     );
   }
 
   Widget _expenseTile(FinanceController controller, Expense expense) {
     final struck = TextStyle(decoration: expense.voided ? TextDecoration.lineThrough : null);
-    final details = [expense.occurredOn, expense.category, ?expense.vendor, ?expense.reference].join(' · ');
+    final details = [expense.occurredOn, expense.category, ?expense.vendor, ?expense.reference].join(' ? ');
+    final changedAt = expense.updatedAt.isEmpty ? null : expense.updatedAt.replaceFirst('T', ' ').split('.').first;
 
-    return ListTile(
+    return Padding(
       key: Key('expense-${expense.id}'),
-      contentPadding: EdgeInsets.zero,
-      isThreeLine: true,
-      title: Text(expense.voided ? '${expense.description} (Void)' : expense.description, style: struck),
-      subtitle: Text(
-        '${formatPhp(expense.amount)}\n$details\nLast changed by ${expense.updatedByName}',
-        style: struck,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  expense.voided ? '${expense.description} (Void)' : expense.description,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(decoration: struck.decoration),
+                ),
+              ),
+              if (!expense.voided)
+                PopupMenuButton<String>(
+                  key: Key('expense-actions-${expense.id}'),
+                  tooltip: 'Actions for ${expense.description}',
+                  onSelected: (action) {
+                    if (action == 'edit') {
+                      _openDialog(
+                        ExpenseFormDialog(controller: controller, today: manilaToday(), expense: expense),
+                        'Expense updated.',
+                      );
+                    } else {
+                      _voidExpense(expense);
+                    }
+                  },
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    PopupMenuItem(value: 'void', child: Text('Void')),
+                  ],
+                ),
+            ],
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Text(formatPhp(expense.amount), style: const TextStyle(fontWeight: FontWeight.w800)),
+          ),
+          Text(details, style: const TextStyle(color: AppColors.textMuted)),
+          Text(
+            'Last changed by ${expense.updatedByName}${changedAt == null ? '' : ' on $changedAt UTC'}',
+            style: const TextStyle(color: AppColors.textMuted),
+          ),
+        ],
       ),
-      trailing: expense.voided
-          ? null
-          : PopupMenuButton<String>(
-              key: Key('expense-actions-${expense.id}'),
-              tooltip: 'Actions for ${expense.description}',
-              onSelected: (action) {
-                if (action == 'edit') {
-                  _openDialog(
-                    ExpenseFormDialog(controller: controller, today: manilaToday(), expense: expense),
-                    'Expense updated.',
-                  );
-                } else {
-                  _voidExpense(expense);
-                }
-              },
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edit')),
-                PopupMenuItem(value: 'void', child: Text('Void')),
-              ],
-            ),
     );
   }
 
@@ -499,26 +673,125 @@ class _Figure extends StatelessWidget {
   final String label;
   final String value;
   final String? note;
+  final Color fill;
 
-  const _Figure({required this.statKey, required this.label, required this.value, this.note});
+  const _Figure({required this.statKey, required this.label, required this.value, this.note, this.fill = AppColors.aquaTint});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Card(
       key: Key('finance-stat-$statKey'),
-      padding: const EdgeInsets.only(top: 12),
-      child: MergeSemantics(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.w600)),
-            Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-            if (note != null) Text(note!, style: const TextStyle(color: AppColors.textMuted)),
-          ],
+      color: fill,
+      margin: const EdgeInsets.only(top: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: MergeSemantics(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+              Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              if (note != null) Text(note!, style: const TextStyle(color: AppColors.textMuted)),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _TrendLinePainter extends CustomPainter {
+  final List<double> values;
+  final double maxValue;
+  final double pointWidth;
+  final int currentIndex;
+
+  const _TrendLinePainter({required this.values, required this.maxValue, required this.pointWidth, required this.currentIndex});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.isEmpty) return;
+    final step = values.length <= 1 ? 0.0 : (size.width - pointWidth) / (values.length - 1);
+    final points = [
+      for (var index = 0; index < values.length; index++)
+        Offset(
+          pointWidth / 2 + step * index,
+          maxValue <= 0 ? 108 : 68 + (1 - values[index] / maxValue) * 88,
+        ),
+    ];
+    final baseline = 172.0;
+    final line = Path()..moveTo(points.first.dx, points.first.dy);
+    for (var index = 1; index < points.length; index++) {
+      final midpoint = (points[index - 1].dx + points[index].dx) / 2;
+      line.quadraticBezierTo(points[index - 1].dx, points[index - 1].dy, midpoint, (points[index - 1].dy + points[index].dy) / 2);
+      if (index == points.length - 1) line.lineTo(points[index].dx, points[index].dy);
+    }
+
+    final area = Path.from(line)
+      ..lineTo(points.last.dx, baseline)
+      ..lineTo(points.first.dx, baseline)
+      ..close();
+    canvas.drawPath(area, Paint()..color = AppColors.aquaTint.withAlpha(190));
+    canvas.drawPath(
+      line,
+      Paint()
+        ..color = AppColors.primary
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+
+    if (currentIndex > 0 && currentIndex < points.length) {
+      final from = points[currentIndex - 1];
+      final to = points[currentIndex];
+      final erase = Paint()
+        ..color = AppColors.aquaTint.withAlpha(190)
+        ..strokeWidth = 5
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(from, to, erase);
+      final dx = to.dx - from.dx;
+      final dy = to.dy - from.dy;
+      final distance = math.sqrt(dx * dx + dy * dy);
+      final dashPaint = Paint()
+        ..color = AppColors.primary
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round;
+      for (var offset = 0.0; offset < distance; offset += 8) {
+        final end = math.min(offset + 4, distance).toDouble();
+        canvas.drawLine(
+          Offset(from.dx + dx * offset / distance, from.dy + dy * offset / distance),
+          Offset(from.dx + dx * end / distance, from.dy + dy * end / distance),
+          dashPaint,
+        );
+      }
+    }
+
+    final gridPaint = Paint()
+      ..color = AppColors.divider
+      ..strokeWidth = 1;
+    canvas.drawLine(Offset(0, baseline), Offset(size.width, baseline), gridPaint);
+    for (var index = 0; index < points.length; index++) {
+      final isCurrent = index == currentIndex;
+      canvas.drawCircle(points[index], 6, Paint()..color = isCurrent ? Colors.white : AppColors.primary);
+      canvas.drawCircle(
+        points[index],
+        6,
+        Paint()
+          ..color = AppColors.primary
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _TrendLinePainter oldDelegate) =>
+      oldDelegate.maxValue != maxValue ||
+      oldDelegate.pointWidth != pointWidth ||
+      oldDelegate.currentIndex != currentIndex ||
+      oldDelegate.values.length != values.length ||
+      oldDelegate.values.asMap().entries.any((entry) => values[entry.key] != entry.value);
 }
 
 class _Notice extends StatelessWidget {

@@ -2,8 +2,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPool, withTransaction } from './client.js';
 import { hashPassword } from '../server/auth/crypto.js';
+import { assertSeedAllowed } from './seed-policy.js';
 
 export async function seedDatabase({ customUrl = null } = {}) {
+  assertSeedAllowed(process.env.NODE_ENV);
   const pool = createPool(customUrl);
 
   try {

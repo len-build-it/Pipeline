@@ -7,6 +7,7 @@ import { manilaDate } from '../finance/finance-helper.js';
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const screenshotsDir = resolve(rootDir, 'docs/evidence/screenshots');
+const redesignScreenshotsDir = resolve(rootDir, 'docs/evidence/screenshots/ui-redesign');
 const CSV_HEADER = 'Date,Amount,Category,Description,Vendor,Reference';
 const TODAY = manilaDate(0);
 const YESTERDAY = manilaDate(-1);
@@ -31,6 +32,7 @@ async function openFinance(page) {
   await expect(page.locator('#finance-filter-form')).toBeVisible();
   await page.locator('#finance-from').fill('2020-01-01');
   await page.locator('#finance-filter-form button[type="submit"]').click();
+  await expect(page.locator('#finance-body')).toHaveAttribute('aria-busy', 'false');
   await expect(page.locator('#finance-from')).toHaveValue('2020-01-01');
 }
 
@@ -295,6 +297,8 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
     await expect(stat('actual')).toContainText('Includes PHP 33.33 without a budget');
     await expect(stat('remaining')).toContainText('Remaining');
     await expect(stat('remaining')).toContainText('PHP 326.37');
+    await expect(stat('remaining')).toHaveClass(/finance-remaining-hero/);
+    await expect(page.locator('.finance-remaining-track[role="progressbar"]')).toHaveAttribute('aria-valuetext', /PHP 273\.63 spent of PHP 600\.00 budget/);
 
     // The estimate is the server's value, labeled as an estimate with its calculation.
     const estimate = serverReport.forecast.estimate;
@@ -305,6 +309,8 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
 
     // Chart: one labeled bar per category, with status in words.
     const bars = page.locator('.finance-bars li');
+    await expect(bars.filter({ hasText: 'Supplies' })).toContainText('120% of budget');
+    await expect(bars.filter({ hasText: 'Supplies' }).locator('.finance-bar-status')).toHaveText('Over budget');
     await expect(bars).toHaveCount(3);
     await expect(bars.nth(0)).toContainText('Snacks');
     await expect(bars.nth(0)).toContainText('PHP 33.33 spent, no budget set');
@@ -319,7 +325,10 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
     await expect(budgetTable.locator('tbody tr').nth(1)).toContainText('-PHP 20.30');
     await expect(budgetTable.locator('tbody tr').nth(2)).toContainText('Within budget');
     await expect(budgetTable.locator('tfoot')).toContainText('PHP 273.63');
-    await expect(page.locator('[role="region"][aria-label="Budget table, scrollable"]')).toHaveAttribute('tabindex', '0');
+    const budgetRegion = page.locator('[role="region"][aria-label="Budget table, scrollable"]');
+    await expect(budgetRegion).toHaveAttribute('tabindex', '0');
+    await budgetRegion.focus();
+    await expect(budgetRegion).toBeFocused();
 
     // The register for the same month reconciles to the report.
     await expect(page.locator('#finance-expense-total')).toContainText('4 expense(s)');
@@ -330,10 +339,49 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
     await expect(trend).toHaveAttribute('role', 'img');
     await expect(trend.locator('circle')).toHaveCount(6);
     await expect(trend).toContainText('273.63');
+    await expect(page.locator('.finance-trend-area')).toBeVisible();
+    await expect(page.locator('.finance-trend-line-current')).toHaveAttribute('data-current-month', month);
+    await expect(page.locator('.finance-trend-point-current')).toHaveAttribute('data-month', month);
+    await expect(page.locator('#finance-trend-caption')).toContainText(`${month} is in progress through`);
     const trendTable = page.locator('table[aria-label="Monthly actual spending"]');
     await expect(trendTable.locator('tbody tr')).toHaveCount(6);
     await expect(trendTable.locator('tbody tr').last()).toContainText(month);
     await expect(trendTable.locator('tbody tr').last()).toContainText('PHP 273.63');
+    const trendRegion = page.locator('.finance-trend-table');
+    await expect(trendRegion).toHaveAttribute('tabindex', '0');
+    await trendRegion.focus();
+    await expect(trendRegion).toBeFocused();
+
+    const registerRegion = page.locator('.finance-register-table');
+    await expect(registerRegion).toHaveAttribute('tabindex', '0');
+    await registerRegion.focus();
+    await expect(registerRegion).toBeFocused();
+
+    await page.screenshot({ path: `${redesignScreenshotsDir}/p3-finance-report-1440.png`, fullPage: true });
+
+    const reportBudgets = await (await page.request.get(`${base}/budgets?month=${month}`, { headers })).json();
+    const travelBudget = reportBudgets.budgets.find(budget => budget.category === 'Travel');
+    const loweredBudget = await page.request.patch(`${base}/budgets/${travelBudget.id}`, {
+      headers,
+      data: { amount: '100.00', version: travelBudget.version },
+    });
+    expect(loweredBudget.status()).toBe(200);
+    await page.locator('#nav-btn-overview').click();
+    await page.locator('#nav-btn-finance').click();
+    await expect(page.locator('#finance-body')).toHaveAttribute('aria-busy', 'false');
+    await expect(stat('remaining')).toContainText('Over budget by');
+    await expect(stat('remaining')).toContainText('PHP 73.63');
+    await expect(stat('remaining')).toHaveAttribute('data-status', 'over');
+    await expect(page.locator('.finance-over-budget-chip')).toHaveText('Over budget');
+    await page.screenshot({ path: `${redesignScreenshotsDir}/p3-finance-over-budget-1440.png`, fullPage: true });
+
+    const latestBudgets = await (await page.request.get(`${base}/budgets?month=${month}`, { headers })).json();
+    const latestTravelBudget = latestBudgets.budgets.find(budget => budget.category === 'Travel');
+    const restoredBudget = await page.request.patch(`${base}/budgets/${latestTravelBudget.id}`, {
+      headers,
+      data: { amount: '500.00', version: latestTravelBudget.version },
+    });
+    expect(restoredBudget.status()).toBe(200);
 
     await page.screenshot({ path: `${screenshotsDir}/plan2-p4-finance-report-1440.png`, fullPage: true });
 
@@ -395,6 +443,18 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
     await expect(dialog.locator('tr[data-import-status="duplicate"]')).toContainText('already recorded');
     await expect(dialog.locator('#import-duplicate-choice')).toBeVisible();
     await expect(confirmButton).toBeDisabled();
+    const previewRegion = dialog.locator('.finance-preview-table');
+    await expect(previewRegion).toHaveAttribute('tabindex', '0');
+    await previewRegion.focus();
+    await expect(previewRegion).toBeFocused();
+
+    for (const [width, height, label] of [[375, 667, 'phone'], [768, 1024, 'tablet'], [1024, 768, 'small-desktop'], [1440, 900, 'desktop']]) {
+      await page.setViewportSize({ width, height });
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+      expect(overflow, `Import preview page overflow at ${width}px`).toBe(false);
+      await page.screenshot({ path: `${redesignScreenshotsDir}/p3-import-${label}-${width}.png` });
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
 
     await dialog.getByLabel('Skip the possible duplicates').check();
     await expect(confirmButton).toBeEnabled();
@@ -445,6 +505,7 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
 
     await page.locator('#finance-category').selectOption('Export');
     await page.locator('#finance-filter-form button[type="submit"]').click();
+    await expect(page.locator('#finance-body')).toHaveAttribute('aria-busy', 'false');
     await expect(page.locator('#finance-expense-total')).toContainText('PHP 10.10');
 
     const [download] = await Promise.all([
@@ -658,16 +719,24 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
     else await page.selectOption('#desktop-scope-select', 'org-1');
     await seedExpense(page, 'org-1', { amount: '123456789.99', category: 'A long category name for layout checks', description: 'Layout fixture with a fairly long description that must not widen the page', vendor: 'Vendor name', reference: 'REF-LAYOUT-0001' });
 
-    for (const width of [375, 768, 1024, 1440]) {
-      await page.setViewportSize({ width, height: 900 });
+    for (const { width, height, name } of [
+      { width: 375, height: 667, name: 'phone' },
+      { width: 768, height: 1024, name: 'tablet' },
+      { width: 1024, height: 768, name: 'small-desktop' },
+      { width: 1440, height: 900, name: 'desktop' },
+    ]) {
+      await page.setViewportSize({ width, height });
       await page.locator(width <= 768 ? '#mob-nav-finance' : '#nav-btn-finance').click();
       await expect(page.locator('#finance-filter-form')).toBeVisible();
       await page.locator('#finance-from').fill('2020-01-01');
       await page.locator('#finance-filter-form button[type="submit"]').click();
+      await expect(page.locator('#finance-body')).toHaveAttribute('aria-busy', 'false');
       await expect(register(page)).toBeVisible();
 
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
       expect(overflow, `Horizontal page scroll at ${width}px`).toBe(false);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({ path: `${redesignScreenshotsDir}/p3-finance-${name}-${width}.png` });
 
       // Dialogs fit the viewport as well.
       await page.locator('#btn-record-expense').click();

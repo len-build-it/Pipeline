@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/synthetic_data.dart';
 import '../models/models.dart';
 import '../theme.dart';
+import '../widgets/adaptive_action_fab.dart';
 
 class MembersScreen extends StatefulWidget {
   final SyntheticDataRepository repo;
@@ -20,6 +21,7 @@ class _MembersScreenState extends State<MembersScreen> {
   @override
   Widget build(BuildContext context) {
     final isLead = widget.repo.isLeadInScope(widget.repo.currentScope);
+    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
     var members = widget.repo.getScopedMembers();
 
     if (_search.trim().isNotEmpty) {
@@ -38,16 +40,21 @@ class _MembersScreenState extends State<MembersScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: widget.repo.isOffline
+          ? AppColors.backgroundOffline
+          : widget.repo.currentScope == 'all'
+              ? AppColors.backgroundCombined
+              : AppColors.background,
       floatingActionButton: isLead
-          ? FloatingActionButton.extended(
+          ? AdaptiveActionFab(
               heroTag: 'fab-members',
-              key: const Key('btn-fab-invite'),
+              buttonKey: const Key('btn-fab-invite'),
+              label: 'Invite member',
+              icon: const Icon(Icons.person_add_alt),
               onPressed: () => _showInviteDialog(context),
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              icon: const Icon(Icons.person_add_alt),
-              label: const Text('Invite member'),
+              shape: const StadiumBorder(),
             )
           : null,
       body: Column(
@@ -71,49 +78,18 @@ class _MembersScreenState extends State<MembersScreen> {
                   },
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _roleFilter,
-                        isDense: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Role',
-                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'all', child: Text('All roles')),
-                          DropdownMenuItem(value: 'Owner', child: Text('Owner')),
-                          DropdownMenuItem(value: 'Lead', child: Text('Lead')),
-                          DropdownMenuItem(value: 'Member', child: Text('Member')),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) setState(() => _roleFilter = val);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _statusFilter,
-                        isDense: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Status',
-                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'all', child: Text('All statuses')),
-                          DropdownMenuItem(value: 'active', child: Text('Active')),
-                          DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                          DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) setState(() => _statusFilter = val);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+                if (largeText) ...[
+                  _roleFilterField(),
+                  const SizedBox(height: 8),
+                  _statusFilterField(),
+                ] else
+                  Row(
+                    children: [
+                      Expanded(child: _roleFilterField()),
+                      const SizedBox(width: 8),
+                      Expanded(child: _statusFilterField()),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -131,45 +107,31 @@ class _MembersScreenState extends State<MembersScreen> {
                     ),
                   )
                 : ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, isLead ? 104 : 16),
                     itemCount: members.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final m = members[index];
                       return Card(
+                        clipBehavior: Clip.antiAlias,
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                          leading: CircleAvatar(
-                            backgroundColor: m.avatarColor,
-                            foregroundColor: Colors.white,
-                            child: Text(
-                              m.displayName.length >= 2 ? m.displayName.substring(0, 2).toUpperCase() : m.displayName,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
-                          ),
-                          title: Text(
-                            m.displayName,
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          minVerticalPadding: 12,
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [_buildRoleBadge(m.role), _buildStatusBadge(m.status)],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(m.displayName, style: Theme.of(context).textTheme.titleMedium),
+                            ],
                           ),
                           subtitle: Text(
                             '${widget.repo.orgName(m.orgId)} • ${m.email}',
                             style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-                          ),
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              _buildRoleBadge(m.role),
-                              const SizedBox(height: 4),
-                              Text(
-                                m.status,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: m.status == 'active' ? AppColors.success : AppColors.textMuted,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
                           ),
                           onTap: () {
                             Navigator.push(
@@ -190,24 +152,64 @@ class _MembersScreenState extends State<MembersScreen> {
   }
 
   Widget _buildRoleBadge(String role) {
-    Color bg = const Color(0xFFE2E8F0);
-    Color fg = const Color(0xFF334155);
-    if (role == 'Owner') {
-      bg = const Color(0xFFEDE9FE);
-      fg = const Color(0xFF6D28D9);
-    } else if (role == 'Lead') {
-      bg = AppColors.infoBg;
-      fg = AppColors.info;
-    }
+    final isLead = role == 'Owner' || role == 'Lead';
+    final bg = isLead ? AppColors.infoBg : AppColors.neutralBg;
+    final fg = isLead ? AppColors.info : AppColors.neutral;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
-      child: Text(
-        role,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: fg),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
+      child: Text(role, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: fg)),
     );
   }
+
+  Widget _buildStatusBadge(String status) {
+    final normalized = status.toLowerCase();
+    final bg = normalized == 'active'
+        ? AppColors.successBg
+        : normalized == 'pending'
+            ? AppColors.warningBg
+            : AppColors.neutralBg;
+    final fg = normalized == 'active'
+        ? AppColors.success
+        : normalized == 'pending'
+            ? AppColors.warning
+            : AppColors.neutral;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
+      child: Text(status, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: fg)),
+    );
+  }
+
+  Widget _roleFilterField() => DropdownButtonFormField<String>(
+    initialValue: _roleFilter,
+    isDense: true,
+    decoration: const InputDecoration(labelText: 'Role'),
+    items: const [
+      DropdownMenuItem(value: 'all', child: Text('All roles')),
+      DropdownMenuItem(value: 'Owner', child: Text('Owner')),
+      DropdownMenuItem(value: 'Lead', child: Text('Lead')),
+      DropdownMenuItem(value: 'Member', child: Text('Member')),
+    ],
+    onChanged: (val) {
+      if (val != null) setState(() => _roleFilter = val);
+    },
+  );
+
+  Widget _statusFilterField() => DropdownButtonFormField<String>(
+    initialValue: _statusFilter,
+    isDense: true,
+    decoration: const InputDecoration(labelText: 'Status'),
+    items: const [
+      DropdownMenuItem(value: 'all', child: Text('All statuses')),
+      DropdownMenuItem(value: 'active', child: Text('Active')),
+      DropdownMenuItem(value: 'pending', child: Text('Pending')),
+      DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
+    ],
+    onChanged: (val) {
+      if (val != null) setState(() => _statusFilter = val);
+    },
+  );
 
   void _showInviteDialog(BuildContext context) {
     final emailController = TextEditingController();
@@ -334,6 +336,11 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     final canDeactivate = isLead && !isSelf && widget.member.role != 'Owner';
 
     return Scaffold(
+      backgroundColor: widget.repo.isOffline
+          ? AppColors.backgroundOffline
+          : widget.repo.currentScope == 'all'
+              ? AppColors.backgroundCombined
+              : AppColors.background,
       appBar: AppBar(
         title: Text(widget.member.displayName),
       ),

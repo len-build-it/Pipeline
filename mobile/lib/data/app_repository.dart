@@ -14,6 +14,9 @@ class AppRepository extends SyntheticDataRepository {
   bool _isStale = false;
   bool _hasAccessToScope = true;
   bool _hasSession = false;
+  bool _requiresSignIn = false;
+  bool _requiresAuthorization = false;
+  final Set<String> _deniedScopes = {};
 
   AppRepository({
     ApiClient? apiClient,
@@ -28,6 +31,8 @@ class AppRepository extends SyntheticDataRepository {
   String? get cacheAge => _cacheAge;
   bool get isStale => _isStale;
   bool get hasAccessToScope => _hasAccessToScope;
+  bool get requiresSignIn => _requiresSignIn;
+  bool get requiresAuthorization => _requiresAuthorization;
 
   /// True once a member has signed in to the API in this app run.
   bool get hasSession => _hasSession;
@@ -64,10 +69,13 @@ class AppRepository extends SyntheticDataRepository {
       }
 
       _hasSession = true;
+      _requiresSignIn = false;
+      _requiresAuthorization = false;
+      _deniedScopes.clear();
       switchPersona(user);
       await refreshCurrentScope();
-      _errorMessage = null;
-      return true;
+      if (!_requiresSignIn && !_requiresAuthorization) _errorMessage = null;
+      return !_requiresSignIn && !_requiresAuthorization;
     } on ApiException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
@@ -117,10 +125,13 @@ class AppRepository extends SyntheticDataRepository {
       _storeOrganizationsFrom(res);
 
       _hasSession = true;
+      _requiresSignIn = false;
+      _requiresAuthorization = false;
+      _deniedScopes.clear();
       switchPersona(user);
       await refreshCurrentScope();
-      _errorMessage = null;
-      return true;
+      if (!_requiresSignIn && !_requiresAuthorization) _errorMessage = null;
+      return !_requiresSignIn && !_requiresAuthorization;
     } on ApiException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
@@ -143,6 +154,9 @@ class AppRepository extends SyntheticDataRepository {
 
     _setLoading(true);
     _errorMessage = null;
+    var readingScope = currentScope;
+    var readingOrganizationData = false;
+    var readingCombinedAnnouncements = false;
 
     try {
       final requestedScope = currentScope;
@@ -158,11 +172,14 @@ class AppRepository extends SyntheticDataRepository {
           (m) => m.orgId == requestedScope && m.status == 'active',
         );
         if (!freshUser.isGlobalOwner && !hasMembership) {
-          _hasAccessToScope = false;
-          // Purge cached records for this revoked scope (REQ-008)
-          await cacheService.clearScope(accountId: freshUser.id, scope: requestedScope);
+          _denyOrganization(requestedScope);
+          await cacheService.clearOrganization(
+            accountId: freshUser.id,
+            organizationId: requestedScope,
+          );
           _errorMessage = 'Access denied: Active membership required for this organization.';
           switchPersona(freshUser);
+          _hasAccessToScope = !_deniedScopes.contains(currentScope);
           notifyListeners();
           return;
         }
@@ -176,17 +193,21 @@ class AppRepository extends SyntheticDataRepository {
       final membersJson = <dynamic>[];
       final tasksJson = <dynamic>[];
       for (final orgId in scopedOrgIds) {
+        readingScope = orgId;
+        readingOrganizationData = true;
         membersJson.addAll((await apiClient.getMembers(orgId, limit: 25))['members'] as List<dynamic>? ?? const []);
         tasksJson.addAll((await apiClient.getTasks(orgId, limit: 25))['tasks'] as List<dynamic>? ?? const []);
       }
+      readingScope = currentScope == 'all' ? '' : currentScope;
+      readingOrganizationData = currentScope != 'all';
+      readingCombinedAnnouncements = currentScope == 'all';
       final annRes = await apiClient.getAnnouncements(currentScope, limit: 25);
 
-      final membersList = membersJson.map((m) => MemberRecord.fromJson(m as Map<String, dynamic>)).toList();
-      final tasksList = tasksJson.map((t) => TaskItem.fromJson(t as Map<String, dynamic>)).toList();
-      final annList = (annRes['announcements'] as List<dynamic>?)
+      final membersList = _excludeDeniedMembers(membersJson.map((m) => MemberRecord.fromJson(m as Map<String, dynamic>)).toList());
+      final tasksList = _excludeDeniedTasks(tasksJson.map((t) => TaskItem.fromJson(t as Map<String, dynamic>)).toList());
+      final annList = _excludeDeniedAnnouncements((annRes['announcements'] as List<dynamic>?)
               ?.map((a) => AnnouncementItem.fromJson(a as Map<String, dynamic>))
-              .toList() ??
-          [];
+              .toList() ?? []);
 
       // Replace local state
       _updateScopedData(membersList, tasksList, annList);
@@ -224,15 +245,39 @@ class AppRepository extends SyntheticDataRepository {
       // Offline fallback: load cached read snapshots (REQ-002, REQ-008)
       await _loadFromCacheFallback();
     } on AuthorizationException catch (e) {
-      // 403 clears the affected organization without showing stale data (REQ-008)
-      _hasAccessToScope = false;
-      await cacheService.clearScope(accountId: currentUser.id, scope: currentScope);
+      // Gate a selected organization and remove its memory data before awaiting cache storage.
+      if (readingOrganizationData && readingScope.isNotEmpty && readingScope != 'all') {
+        _denyOrganization(readingScope);
+        await cacheService.clearOrganization(accountId: currentUser.id, organizationId: readingScope);
+      } else if (readingCombinedAnnouncements) {
+        // A combined announcement denial does not identify one affected organization.
+        setAnnouncements([]);
+        await cacheService.clearSnapshot(accountId: currentUser.id, scope: 'all', destination: 'announcements');
+      } else {
+        // A 403 from account validation applies to the complete account, not this organization.
+        final accountId = currentUser.id;
+        _requiresAuthorization = true;
+        _hasSession = false;
+        clearProtectedData();
+        try {
+          await cacheService.clearAccount(accountId);
+        } finally {
+          await apiClient.clearTokens();
+        }
+      }
       _errorMessage = 'Permission denied (403): ${e.message}';
       setOffline(false);
     } on AuthenticationException catch (_) {
-      // 401 after one refresh attempt clears protected cache and requires sign-in (REQ-008)
-      await cacheService.clearAll();
-      await apiClient.clearTokens();
+      // A final 401 arrives after the API client's refresh and single retry fail.
+      final accountId = currentUser.id;
+      _requiresSignIn = true;
+      _hasSession = false;
+      clearProtectedData();
+      try {
+        await cacheService.clearAccount(accountId);
+      } finally {
+        await apiClient.clearTokens();
+      }
       _errorMessage = 'Session expired (401). Please sign in again.';
       setOffline(false);
     } catch (e) {
@@ -266,6 +311,44 @@ class AppRepository extends SyntheticDataRepository {
     final rows = _organizationRows(authResponse);
     if (rows.isNotEmpty) setOrganizations(rows.map(Org.fromJson).toList());
   }
+
+  @override
+  void setScope(String scope) {
+    _hasAccessToScope = !_deniedScopes.contains(scope);
+    super.setScope(scope);
+  }
+
+  void _denyOrganization(String organizationId) {
+    _deniedScopes.add(organizationId);
+    if (currentScope == organizationId) _hasAccessToScope = false;
+    clearOrganizationRecords(organizationId);
+  }
+
+  List<MemberRecord> _excludeDeniedMembers(List<MemberRecord> records) =>
+      records.where((record) => !_deniedScopes.contains(record.orgId)).toList();
+
+  List<TaskItem> _excludeDeniedTasks(List<TaskItem> records) =>
+      records.where((record) => !_deniedScopes.contains(record.orgId)).toList();
+
+  List<AnnouncementItem> _excludeDeniedAnnouncements(List<AnnouncementItem> records) => records
+      .map((announcement) {
+        final targets = announcement.targetOrgs.where((id) => !_deniedScopes.contains(id)).toList();
+        if (targets.isEmpty) return null;
+        if (targets.length == announcement.targetOrgs.length) return announcement;
+        return AnnouncementItem(
+          id: announcement.id,
+          title: announcement.title,
+          body: announcement.body,
+          authorId: announcement.authorId,
+          authorName: announcement.authorName,
+          targetOrgs: targets,
+          status: announcement.status,
+          publishedAt: announcement.publishedAt,
+          archived: announcement.archived,
+        );
+      })
+      .whereType<AnnouncementItem>()
+      .toList();
 
   Future<void> _loadFromCacheFallback() async {
     final accountId = currentUser.id;
@@ -313,7 +396,11 @@ class AppRepository extends SyntheticDataRepository {
               .toList()
           : <AnnouncementItem>[];
 
-      _updateScopedData(mList, tList, aList);
+      _updateScopedData(
+        _excludeDeniedMembers(mList),
+        _excludeDeniedTasks(tList),
+        _excludeDeniedAnnouncements(aList),
+      );
 
       final representativeSnap = tasksSnap ?? membersSnap ?? annSnap;
       setOffline(true);
@@ -342,15 +429,15 @@ class AppRepository extends SyntheticDataRepository {
     } else {
       // Update records for currentScope while preserving other organizations
       final otherMembers = allMembers.where((m) => m.orgId != currentScope).toList();
-      setMembers([...otherMembers, ...membersList]);
+      setMembers(_excludeDeniedMembers([...otherMembers, ...membersList]));
 
       final otherTasks = allTasks.where((t) => t.orgId != currentScope).toList();
-      setTasks([...otherTasks, ...tasksList]);
+      setTasks(_excludeDeniedTasks([...otherTasks, ...tasksList]));
 
       final otherAnn = allAnnouncements
           .where((a) => !a.targetOrgs.contains(currentScope))
           .toList();
-      setAnnouncements([...otherAnn, ...annList]);
+      setAnnouncements(_excludeDeniedAnnouncements([...otherAnn, ...annList]));
     }
   }
 

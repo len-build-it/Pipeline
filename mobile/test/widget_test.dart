@@ -117,6 +117,19 @@ void main() {
     expect(repo.getScopedMembers().any((m) => m.email == 'offline_test@example.com'), isFalse);
   });
 
+  testWidgets('Offline banner Retry returns the local demo to online state', (WidgetTester tester) async {
+    final repo = SyntheticDataRepository()..setOffline(true);
+    await tester.pumpWidget(TeamManagerApp(initialRepo: repo));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('btn-retry-sync')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('btn-retry-sync')));
+    await tester.pumpAndSettle();
+
+    expect(repo.isOffline, isFalse);
+    expect(find.byKey(const Key('btn-retry-sync')), findsNothing);
+  });
+
   testWidgets('200 percent text scaling does not cause unhandled layout crash', (WidgetTester tester) async {
     final repo = SyntheticDataRepository();
 

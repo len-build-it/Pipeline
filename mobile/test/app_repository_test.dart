@@ -319,8 +319,9 @@ void main() {
       repo.setScope('org-1');
       await repo.refreshCurrentScope();
 
-      // Access denied and org-1 cache purged
-      expect(repo.hasAccessToScope, isFalse);
+      // The scope moves to the user's active organization and org-1 cache is purged.
+      expect(repo.currentScope, equals('org-2'));
+      expect(repo.hasAccessToScope, isTrue);
       final snapAfter = await cache.getSnapshot(
         accountId: 'usr-jordan',
         scope: 'org-1',

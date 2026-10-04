@@ -151,14 +151,15 @@ export async function listExpenses(db, orgId, filters, { limit, offset }) {
   return res.rows;
 }
 
-/** Every matching expense, oldest first, for export. */
-export async function listAllExpenses(db, orgId, filters) {
+/** At most the requested number of matching expenses, oldest first, for a bounded export. */
+export async function listExpensesForExport(db, orgId, filters, limit) {
   const { where, params } = expenseFilter(orgId, filters);
   const res = await db.query(
     `SELECT ${EXPENSE_COLUMNS} ${EXPENSE_JOINS}
      WHERE ${where}
-     ORDER BY e.occurred_on ASC, e.created_at ASC, e.id ASC`,
-    params
+     ORDER BY e.occurred_on ASC, e.created_at ASC, e.id ASC
+     LIMIT $${params.length + 1}`,
+    [...params, limit]
   );
   return res.rows;
 }

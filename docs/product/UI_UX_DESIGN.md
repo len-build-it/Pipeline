@@ -1,15 +1,17 @@
 # UI UX system design: Configurable Team Manager
 
 Created: 2026-09-16T21:37:27+08:00
-Updated: 2026-10-03T22:31:00+08:00
-Revision: 3
-Status: Approved
+Updated: 2026-10-04T16:20:57+08:00
+Revision: 4
+Status: Approved.
+Approval: Len approved this exact PROD-005 revision 4 in chat on 2026-10-04T16:19:21+08:00: "Approve PROD-005 revision 4 and PLAN-003 revision 1".
+Supersedes approved revision 3, which was approved by Len in chat on 2026-10-03T22:31:00+08:00.
 
 ## Purpose and design stance
 
 This document defines the shared UI and UX direction for the web dashboard and Flutter Android app.
 
-The product is an internal management tool for a small organization, so the interface should prioritize orientation, fast scanning, and safe actions over visual novelty.
+The product is an internal management tool for a small organization, so the interface should prioritize orientation, fast scanning, and safe actions while feeling fresh and uncluttered through summary-first pages.
 
 The primary design promise is that a lead can answer three questions quickly: what needs attention, who owns it, and what action is available next.
 
@@ -25,9 +27,7 @@ The users are a small team with one owner, organization leads, and members.
 
 No existing brand kit, logo, color palette, or design system was provided.
 
-The UI/UX guidance search returned a relevant minimal Swiss style but returned marketing-oriented page patterns, so no marketing pattern is adopted.
-
-The visual recommendations below are therefore proposed product defaults and must not be treated as existing brand facts.
+The Lagoon direction and tokens are a product design choice, not an existing brand kit or brand asset.
 
 ## Information architecture and navigation
 
@@ -45,7 +45,7 @@ The desktop layout uses a persistent left navigation rail with the product name,
 
 The main content area has one page title, an optional short description, a primary action, and the content needed for the selected task.
 
-The navigation rail collapses at tablet width but must not hide the current destination or organization scope.
+At widths below 768px, the navigation rail becomes a top bar with a Menu button and the organization switcher; the current destination and organization scope remain clear.
 
 Keyboard users receive a skip-to-content link, logical tab order, and visible focus indicators.
 
@@ -63,7 +63,7 @@ The selected destination, current organization, and offline state remain visible
 
 The design is mobile-first and must remain usable at 375px, 768px, 1024px, and 1440px widths.
 
-At phone width, tables become stacked records with the most important fields first and filters move into a labeled sheet.
+At phone width, record lists become stacked panels and filters move behind one clearly labeled control or sheet. Finance, import-preview, and owner combined-view tables retain semantic table markup and may scroll horizontally inside their own white panel; the page itself must not scroll horizontally.
 
 At tablet width, content uses a single column with two-column cards only when each card remains readable.
 
@@ -75,42 +75,96 @@ Dialogs on desktop become full-screen or bottom sheets on mobile when the form w
 
 ## Visual system
 
-The proposed visual direction is calm, high-contrast, grid-based, and content-first.
+The proposed Lagoon direction is fresh, high-contrast, and summary-first, with an organic shell and straight-edged data surfaces.
 
-The MVP uses a system sans-serif font stack so the interface remains fast, native-feeling, and dependency-light.
+The page should feel vibrant without making operational information feel crowded.
 
-The MVP launches in light mode; dark mode is deferred until the light theme and contrast checks are stable.
+Biomorphic blobs and clay-like surfaces decorate the shell, navigation, summary tiles, primary actions, avatars, and sheets; lists, tables, forms, error summaries, and charts stay straight-edged and aligned.
+
+The MVP uses a system sans-serif font stack and launches in light mode; dark mode remains deferred.
+
+Keep existing token names where present and add the new semantic tokens below in `web/css/styles.css` and `mobile/lib/theme.dart`.
+
+`color.border` remains the token name for control boundaries, while the new `color.divider` token is used for subtle row separators.
 
 | Token | Proposed value | Use |
 | --- | --- | --- |
-| color.background | #F8FAFC | Page background. |
-| color.surface | #FFFFFF | Cards, tables, forms, and sheets. |
-| color.text | #0F172A | Primary text. |
-| color.textMuted | #475569 | Supporting text. |
-| color.border | #CBD5E1 | Dividers and control boundaries. |
-| color.primary | #0F766E | Primary actions and current navigation. |
-| color.primaryText | #FFFFFF | Text on primary actions. |
-| color.accent | #D97706 | Attention and secondary emphasis. |
-| color.success | #15803D | Completed or healthy states. |
-| color.warning | #B45309 | Due soon, pending, or stale states. |
-| color.danger | #B91C1C | Destructive or blocked states. |
-| color.info | #1D4ED8 | Informational states. |
+| color.background | #E6FAF7 | Page background for one organization. |
+| color.backgroundCombined | #EEF2FF | Page background in the owner combined view only. |
+| color.backgroundOffline | #EEF2F3 | Android page background while showing cached data. |
+| color.surface | #FFFFFF | Panels, navigation, forms, and sheets. |
+| color.text | #0B2A2E | Primary text. |
+| color.textMuted | #3F5B60 | Supporting text. |
+| color.divider | #D9EEF0 | Row dividers inside panels. |
+| color.border | #5B7B80 | Input, select, and progress-track boundaries. |
+| color.primary | #0E7490 | Primary buttons, links on fills, progress fill, and chart line. |
+| color.primaryHover | #155E75 | Link text and secondary-button text on white, and primary hover state. |
+| color.primaryText | #FFFFFF | Text on primary. |
+| color.accent | #22D3EE | Existing token name retained as an alias of aqua; decorative use only. |
+| color.aqua | #22D3EE | Wordmark blob only. |
+| color.aquaSoft | #A5F3FC | Background blobs and avatar fills. |
+| color.aquaTint | #CFFAFE | Clay tile fill and informational callouts. |
+| color.mintTint | #D1FAE5 | Clay tile fill. |
+| color.lime | #BEF264 | Selected navigation marker, current step, and Android floating action. |
+| color.limeSoft | #D9F99D | Background blobs and avatar fills. |
+| color.limeTint | #ECFCCB | Clay tile fill. |
+| color.onLime | #1A2E05 | Text and icons on lime. |
+| color.combinedSoft | #C7D2FE | Background blob in the combined view. |
+| color.combinedTint | #E0E7FF | Clay tile fill in the combined view. |
+| color.danger / color.dangerBg | #991B1B / #FEE2E2 | Overdue, blocked, over budget, errors, and destructive actions. |
+| color.warning / color.warningBg | #92400E / #FEF3C7 | Due soon, pending, drafts, possible duplicates, and offline. |
+| color.info / color.infoBg | #1E40AF / #DBEAFE | In progress, informational states, and focus ring. |
+| color.success / color.successBg | #166534 / #DCFCE7 | Done, active, within budget, and saved. |
+| color.neutral / color.neutralBg | #334155 / #E2E8F0 | Backlog, inactive, voided, and disabled. |
 
-Color is always paired with a text label, icon, or position so status is not communicated by color alone.
+Lime never carries status meaning, and every success state has a text label.
 
-The spacing scale uses 8px increments, with 16px as the default control gap and 24px as the default section gap.
+Status colors are always paired with a text label, icon, or position so status is not communicated by color alone.
 
-Body text starts at 16px with approximately 1.5 line height, and headings use a clear size and weight hierarchy rather than all-caps labels.
+The spacing scale keeps 8px increments, with 16px as the default control gap and 24px as the default section gap.
 
-Use built-in Material icons in Flutter and text labels on the web, with matching action names; additional icon dependencies are unnecessary for the MVP.
+| Shape token | Proposed value | Use |
+| --- | --- | --- |
+| radius-control | 14px on web and 16px on Android | Inputs and selects. |
+| radius-callout | 20px | Alerts and inset groups. |
+| radius-panel | 28px on desktop and 24px on phone and Android | Panels and clay tiles. |
+| radius-pill | 999px | Buttons and chips. |
+| radius-rail | 0 36px 36px 0 | Web navigation rail. |
+| blob-a | 58% 42% 63% 37% / 45% 55% 45% 55% | Large background blob, avatars, and wordmark mark. |
+| blob-b | 40% 60% 45% 55% / 60% 40% 60% 40% | Small background blob. |
+| blob-marker | 26px 18px 28px 16px / 20px 28px 16px 26px | Selected navigation item, current step, and Android floating action. |
+| blob-hero | 36px 28px 40px 28px / 28px 40px 28px 36px | Hero tile only. |
 
-Motion is subtle, limited to feedback and spatial continuity, and disabled or reduced when the user requests reduced motion.
+Form fields, table cells, and error summaries never use a blob radius.
+
+| Elevation token | Proposed value | Use |
+| --- | --- | --- |
+| shadow-panel | 0 8px 24px rgba(11,42,46,.08) | White panels. |
+| shadow-clay | 0 10px 22px rgba(14,116,144,.18), inset 0 2px 0 rgba(255,255,255,.75), inset 0 -5px 10px rgba(14,116,144,.10) | Clay tiles. |
+| shadow-primary | 0 6px 14px rgba(14,116,144,.35), inset 0 2px 0 rgba(255,255,255,.3) | Primary buttons. |
+| shadow-lime | 0 6px 12px rgba(101,163,13,.3), inset 0 2px 0 rgba(255,255,255,.6) | Lime marker and floating action. |
+
+Page titles are 38px weight 800 on desktop and 28 to 30px on phone and Android.
+
+Section headings are 22px weight 800 on desktop and 18px on Android.
+
+Hero numbers are 52 to 64px weight 800, and tile numbers are 28 to 44px weight 800.
+
+Body text stays at 16px with 1.5 line height, supporting text is 14px, and money uses tabular figures.
+
+Use built-in Material icons in Flutter and text labels on the web; additional icon dependencies are unnecessary for the MVP.
+
+Every foreground and fill pairing must be measured during implementation against WCAG 2.2 AA, and control boundaries and focus rings must reach at least 3:1 contrast.
+
+Motion stays limited to existing feedback and spatial continuity, blobs do not animate, and reduced-motion settings are honored on both clients.
 
 ## Core screens and interaction rules
 
 ### Overview
 
-The page begins with the selected organization scope and four summary metrics: active members, open tasks, overdue tasks, and recent announcements.
+The page begins with the selected organization scope and four summary metrics: overdue tasks, active members, open tasks, and recent announcements.
+
+Overdue tasks is the hero tile; the other three metrics remain available as smaller tiles.
 
 The next section shows the most actionable tasks, followed by recent announcements.
 
@@ -120,11 +174,11 @@ The dashboard does not show decorative charts in the MVP; counts and short lists
 
 ### Members
 
-Members opens with search, a small set of filters, and an obvious Invite member action for authorized users.
+Members opens with visible search, role and status filters behind one labeled Filters control, and an obvious Invite member action for authorized users.
 
 Each record shows name, role, status, organization, and a secondary detail action.
 
-Desktop may use a detail panel, while mobile uses a full member detail screen.
+Selecting a member opens the detail panel on desktop; the panel has a Close control. Mobile keeps the full member detail screen.
 
 Role and deactivation changes require confirmation and explain the consequence before the final action.
 
@@ -132,11 +186,15 @@ Role and deactivation changes require confirmation and explain the consequence b
 
 Tasks defaults to a scannable list with status, priority, assignee, due date, and organization visible without opening every record.
 
+Search remains visible, and status, priority, assignee, label, overdue, and archive filters sit behind one labeled Filters control; active filters remain visible as chips.
+
+Do not add the proposed task-status summary tiles because the existing task API paginates results and does not return complete per-status counts for an organization.
+
 Filters are status, priority, assignee, label, and overdue state.
 
 Task creation uses a short form with advanced fields revealed after the required title and organization fields are complete.
 
-The task detail view groups description, status and ownership, comments, and activity history in that order.
+Selecting a task opens its detail panel on desktop; the panel has a Close control. Mobile retains its full task detail view. The detail view groups description, status and ownership, comments, and activity history in that order.
 
 The MVP uses a list-first task experience; a Kanban board is deferred until list usage shows a real need.
 
@@ -150,13 +208,103 @@ Drafts are visually distinct from published messages and are never shown to unau
 
 ### Finance
 
-Finance opens with the selected organization and month visible, then shows budget versus actual, remaining or over-budget amounts, category comparison, and monthly spending trend.
+Finance opens with the selected organization and month visible, then shows a hero Remaining tile with a progress track, smaller Actual and Estimate tiles, the category comparison, monthly spending trend, and register.
 
 Budget and expense lists show PHP amounts, dates, categories, and the member who recorded or changed the entry. All active members can use the same finance actions.
 
 Budget comparisons use a compact bullet or bar chart and monthly spending uses a trend line; both always show numeric values and have a corresponding table. Filters are labeled and work by keyboard, touch, and screen reader.
 
 Spreadsheet upload and export are web workflows. Android identifies this clearly while keeping budget and expense workflows available in the app.
+
+## Component rules
+
+### Web shell
+
+The desktop navigation rail is a white surface with a 0 36px 36px 0 radius and a soft shadow.
+
+It holds a text wordmark with a small decorative aqua blob mark, the labeled organization select, the five destinations, and an account block on a tinted inset.
+
+The selected destination uses the lime blob marker, weight 800, and retains `aria-current="page"`.
+
+The main area has one large aqua blob behind the top-right of the header and one small lime blob beside it.
+
+Background blobs are decorative and hidden from assistive technology, sit behind content, and never sit behind a table or form.
+
+Below 768px the rail becomes a top bar with a Menu button and the organization select.
+
+### Buttons, inputs, and chips
+
+Buttons are pills at least 44px tall on web and 48px tall on Android.
+
+Primary buttons are teal with white text and the primary shadow; secondary buttons are white with a 2px teal border and teal text.
+
+Disabled buttons use the neutral fill, have no shadow, and keep a visible explanation next to them.
+
+Inputs keep a persistent visible label above them, a 1.5px control border, and the control radius.
+
+A field with an error gets a 2px danger border and an error line that starts with "Error:".
+
+Chips are borderless pills using a status background and its matching status text color, and always contain a text label.
+
+The focus ring is a 3px info-colored outline with a 2px offset on every interactive element.
+
+### Summary tiles
+
+Each page with summary numbers opens with a tile row.
+
+The first tile is the hero: white, blob-hero radius, clay shadow, largest number, and one primary action where useful.
+
+Remaining tiles are clay tiles filled with aqua-tint, mint-tint, or lime-tint.
+
+A tile whose number is a problem count shows that number in the danger color and names the problem in words.
+
+### Lists and tables
+
+List rows sit inside one white panel, with a bold linked title, one muted line of secondary fields, and status chips aligned right or in their own column.
+
+Rows use one divider line with no vertical lines or zebra striping; a selected row uses an aqua-tint background and retains `aria-current`.
+
+At phone width, each list record becomes its own small panel with chips first, then title, then the muted line.
+
+Finance tables, the import preview, and the owner combined overview retain semantic table markup with header cells.
+
+Tables sit in white panels, use divider-only row lines, right-align money, and scroll horizontally inside their panel when narrow; the page itself never scrolls horizontally.
+
+### Charts
+
+The budget comparison is a row-level progress track inside the category table, so the table provides its text equivalent.
+
+Tracks are 16px tall with a control border and teal fill.
+
+An over-budget track is fully filled with a red diagonal hatch and also shows the percentage, over amount, and an "Over budget" chip in text.
+
+The monthly trend is a smooth teal line over an aqua-tint area with a value label on every point and a table beside it.
+
+The in-progress month uses a dotted segment and an open point, explained in the caption.
+
+### Scope distinction
+
+The owner combined view uses the combined page background, blobs, and tile tints.
+
+It shows a "Combined view" chip above the title and names the organization on every task and announcement row.
+
+Scope remains identifiable from the title and organization control without relying on tint.
+
+### Android
+
+Keep the existing four bottom destinations: Overview, Members, Tasks, and Announcements; Finance stays reachable from a labeled filled card on Overview.
+
+The bottom bar is a white surface with rounded top corners; the selected destination has the lime blob marker behind its icon and a weight 800 label.
+
+The app bar is transparent over the page background and shows the "Organization" caption and organization name as the switcher.
+
+Forms sit on a white sheet with 32px top corners.
+
+The floating "Record expense" action uses the lime blob-marker shape with on-lime text.
+
+Offline state uses a warning-colored banner with an icon, saved time, and Retry; it switches the page background to the offline color and removes decorative blobs.
+
+All Android targets remain at least 48 logical pixels, and layouts remain usable at 200 percent text scaling.
 
 ## Feedback and state rules
 
@@ -209,10 +357,12 @@ Screen reader order follows the visual reading order, and headings are sequentia
 
 ## Open questions and approval
 
-Use the product name as a text wordmark and the specified light palette; custom logos and dark mode are outside the initial execution scope.
+Use the product name as a text wordmark with a small decorative blob mark and the specified light palette; custom logos and dark mode are outside the initial execution scope.
 
 Use the platform matrix in [CONSTRAINTS.md](CONSTRAINTS.md) and the icon defaults above.
 
 The retained System Design DOCX could not be rendered because the required bundled LibreOffice executable is unavailable in this environment, so no template-based DOCX is being presented as verified.
 
-Revision 3 was approved by Len in chat on 2026-10-03T22:31:00+08:00: "Yes I approve of the revisions".
+Revision 4 was approved by Len in chat on 2026-10-04T16:19:21+08:00: "Approve PROD-005 revision 4 and PLAN-003 revision 1".
+
+Revision 3 is preserved at [UI_UX_DESIGN_REVISION_3.md](../archive/UI_UX_DESIGN_REVISION_3.md).

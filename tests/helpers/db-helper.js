@@ -1,6 +1,7 @@
 import { createPool } from '../../db/client.js';
 import { runMigrations } from '../../db/migrate.js';
 import { seedDatabase } from '../../db/seed.js';
+import { assertTestDatabaseTarget } from '../../db/test-target.js';
 import { buildApp } from '../../server/app.js';
 
 export const TEST_DB_URL = process.env.TEST_DATABASE_URL || 'postgres://postgres@127.0.0.1:5433/pipeline_test';
@@ -9,12 +10,20 @@ let testPool = null;
 
 export function getTestPool() {
   if (!testPool) {
+    assertTestDatabaseTarget(
+      TEST_DB_URL,
+      process.env.DATABASE_URL || 'postgres://postgres@127.0.0.1:5433/pipeline_dev',
+    );
     testPool = createPool(TEST_DB_URL);
   }
   return testPool;
 }
 
 export async function setupTestDatabase() {
+  assertTestDatabaseTarget(
+    TEST_DB_URL,
+    process.env.DATABASE_URL || 'postgres://postgres@127.0.0.1:5433/pipeline_dev',
+  );
   await runMigrations({ isTest: true, customUrl: TEST_DB_URL });
   const pool = getTestPool();
   await pool.query('TRUNCATE activity_events, expenses, budgets, import_batches, task_comments, tasks, invitations, memberships, sessions, users, organizations CASCADE;');

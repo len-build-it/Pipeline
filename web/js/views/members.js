@@ -16,7 +16,7 @@ export function renderMembers(container, state, actions) {
   let roleFilter = 'all';
   let statusFilter = 'all';
 
-  function getFilteredMembers() {
+  function getScopedMembers() {
     let list = state.members;
     if (currentScope !== 'all') {
       list = list.filter(m => m.orgId === currentScope);
@@ -24,6 +24,12 @@ export function renderMembers(container, state, actions) {
       const allowed = currentUser.memberships.map(m => m.orgId);
       list = list.filter(m => allowed.includes(m.orgId));
     }
+
+    return list;
+  }
+
+  function getFilteredMembers() {
+    let list = getScopedMembers();
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
@@ -41,10 +47,36 @@ export function renderMembers(container, state, actions) {
     return list;
   }
 
+  function renderActiveFilters() {
+    const chips = [];
+    if (roleFilter !== 'all') {
+      chips.push(`<span class="active-filter-chip">Role: ${escapeHtml(roleFilter)}<button type="button" data-clear-filter="role" aria-label="Remove role filter">&times;</button></span>`);
+    }
+    if (statusFilter !== 'all') {
+      const label = statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+      chips.push(`<span class="active-filter-chip">Status: ${escapeHtml(label)}<button type="button" data-clear-filter="status" aria-label="Remove status filter">&times;</button></span>`);
+    }
+    container.querySelector('#member-active-filters').innerHTML = chips.join('');
+  }
+
+  function resetFilters() {
+    searchQuery = '';
+    roleFilter = 'all';
+    statusFilter = 'all';
+    container.querySelector('#member-search').value = '';
+    container.querySelector('#member-role-filter').value = 'all';
+    container.querySelector('#member-status-filter').value = 'all';
+    container.querySelector('#member-filter-disclosure').open = false;
+    updateFilterCount();
+    renderList();
+  }
+
   function renderList() {
     const list = getFilteredMembers();
     const tableContainer = container.querySelector('#members-list-container');
     if (!tableContainer) return;
+
+    renderActiveFilters();
 
     if (list.length === 0) {
       tableContainer.innerHTML = `
@@ -54,20 +86,13 @@ export function renderMembers(container, state, actions) {
           <button class="btn btn-secondary btn-sm" id="btn-clear-member-filters">Clear filters</button>
         </div>
       `;
-      tableContainer.querySelector('#btn-clear-member-filters')?.addEventListener('click', () => {
-        searchQuery = '';
-        roleFilter = 'all';
-        statusFilter = 'all';
-        container.querySelector('#member-search').value = '';
-        container.querySelector('#member-role-filter').value = 'all';
-        container.querySelector('#member-status-filter').value = 'all';
-        renderList();
-      });
+      tableContainer.querySelector('#btn-clear-member-filters')?.addEventListener('click', resetFilters);
       return;
     }
 
     tableContainer.innerHTML = `
-      <div class="table-responsive">
+      <p class="page-result-count" id="member-results-count" aria-live="polite">${list.length} ${list.length === 1 ? 'membership' : 'memberships'}</p>
+      <div class="table-responsive record-table-view">
         <table class="data-table" aria-label="Organization members directory">
           <thead>
             <tr>
@@ -89,7 +114,7 @@ export function renderMembers(container, state, actions) {
                       ${escapeHtml(m.displayName.slice(0, 2).toUpperCase())}
                     </div>
                     <div>
-                      <strong>${escapeHtml(m.displayName)}</strong>
+                      <button type="button" class="record-title-link btn-member-detail" data-member-id="${escapeHtml(m.id)}">${escapeHtml(m.displayName)}</button>
                       <div style="font-size:0.75rem; color:var(--color-text-muted);">${escapeHtml(m.email)}</div>
                     </div>
                   </div>
@@ -98,9 +123,9 @@ export function renderMembers(container, state, actions) {
                 <td><span class="badge badge-${m.role.toLowerCase()}">${m.role}</span></td>
                 <td><span class="badge badge-${m.status.toLowerCase()}">${m.status}</span></td>
                 <td>
-                  <div style="display:flex; flex-wrap:wrap; gap:4px; max-width:260px;">
-                    ${(m.skills || []).map(s => `<span style="font-size:0.7rem; background:#F1F5F9; border-radius:3px; padding:1px 4px;">${escapeHtml(s)}</span>`).join('')}
-                    ${(m.interests || []).map(i => `<span style="font-size:0.7rem; background:#FEF3C7; color:#92400E; border-radius:3px; padding:1px 4px;">${escapeHtml(i)}</span>`).join('')}
+                  <div class="member-skill-list" style="max-width:260px;">
+                    ${(m.skills || []).map(s => `<span class="badge">${escapeHtml(s)}</span>`).join('')}
+                    ${(m.interests || []).map(i => `<span class="badge badge-medium">${escapeHtml(i)}</span>`).join('')}
                   </div>
                 </td>
                 <td>${m.joinedAt ? m.joinedAt.slice(0, 10) : 'Pending'}</td>
@@ -111,6 +136,26 @@ export function renderMembers(container, state, actions) {
             `).join('')}
           </tbody>
         </table>
+      </div>
+      <div class="mobile-record-list" aria-label="Organization member records">
+        ${list.map(m => `
+          <article class="responsive-record-card" id="member-card-${escapeHtml(m.id)}">
+            <div class="record-card-chips">
+              <span class="badge badge-${escapeHtml(m.role.toLowerCase())}">${escapeHtml(m.role)}</span>
+              <span class="badge badge-${escapeHtml(m.status.toLowerCase())}">${escapeHtml(m.status)}</span>
+            </div>
+            <button type="button" class="record-title-link btn-member-detail" data-member-id="${escapeHtml(m.id)}">${escapeHtml(m.displayName)}</button>
+            <p class="record-card-subline">${escapeHtml(m.email)} · ${escapeHtml(orgLabel(state, m.orgId))}</p>
+            <div class="record-card-meta">
+              <span>Joined: ${m.joinedAt ? escapeHtml(m.joinedAt.slice(0, 10)) : 'Pending'}</span>
+            </div>
+            <div class="member-skill-list">
+              ${(m.skills || []).map(s => `<span class="badge">${escapeHtml(s)}</span>`).join('')}
+              ${(m.interests || []).map(i => `<span class="badge badge-medium">${escapeHtml(i)}</span>`).join('')}
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm btn-member-detail" data-member-id="${escapeHtml(m.id)}">Details</button>
+          </article>
+        `).join('')}
       </div>
     `;
 
@@ -136,28 +181,64 @@ export function renderMembers(container, state, actions) {
     </header>
 
     <div class="content-area">
-      <!-- Search & Filters -->
-      <section class="filter-bar" aria-label="Member filters">
-        <input type="search" id="member-search" class="filter-input" placeholder="Search by name or email..." aria-label="Search members" />
-        <select id="member-role-filter" class="filter-select" aria-label="Filter by role">
-          <option value="all">All Roles</option>
-          <option value="Owner">Owner</option>
-          <option value="Lead">Lead</option>
-          <option value="Member">Member</option>
-        </select>
-        <select id="member-status-filter" class="filter-select" aria-label="Filter by status">
-          <option value="all">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="pending">Pending</option>
-          <option value="inactive">Inactive</option>
-        </select>
+      <section class="grid-cards page-summary-grid" aria-label="Membership summary">
+        <article class="stat-card stat-card-hero" data-member-metric="total">
+          <div class="stat-card-title">Membership records</div>
+          <div class="stat-card-value">${getScopedMembers().length}</div>
+          <div class="stat-card-sub">In the selected organization scope</div>
+        </article>
+        <article class="stat-card stat-card-support stat-card-support-aqua" data-member-metric="active">
+          <div class="stat-card-title">Active memberships</div>
+          <div class="stat-card-value">${getScopedMembers().filter(m => m.status === 'active').length}</div>
+        </article>
+        <article class="stat-card stat-card-support stat-card-support-lime" data-member-metric="pending">
+          <div class="stat-card-title">Pending invitations</div>
+          <div class="stat-card-value">${getScopedMembers().filter(m => m.status === 'pending').length}</div>
+        </article>
       </section>
+
+      <section class="page-tools" aria-label="Member search and filters">
+        <div class="search-field">
+          <label for="member-search" class="form-label">Search members</label>
+          <input type="search" id="member-search" class="filter-input" placeholder="Name or email" />
+        </div>
+        <details class="filter-disclosure" id="member-filter-disclosure">
+          <summary>Filters<span class="filter-count" id="member-filter-count"></span></summary>
+          <div class="filter-disclosure-content">
+            <div class="filter-select-wrap">
+              <label for="member-role-filter" class="form-label">Role</label>
+              <select id="member-role-filter" class="filter-select">
+                <option value="all">All roles</option>
+                <option value="Owner">Owner</option>
+                <option value="Lead">Lead</option>
+                <option value="Member">Member</option>
+              </select>
+            </div>
+            <div class="filter-select-wrap">
+              <label for="member-status-filter" class="form-label">Status</label>
+              <select id="member-status-filter" class="filter-select">
+                <option value="all">All statuses</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <div id="member-active-filters" class="active-filter-chips" aria-label="Active member filters" aria-live="polite"></div>
 
       <section class="section-panel">
         <div id="members-list-container"></div>
       </section>
     </div>
   `;
+
+  function updateFilterCount() {
+    const count = Number(roleFilter !== 'all') + Number(statusFilter !== 'all');
+    container.querySelector('#member-filter-count').textContent = count ? `${count}` : '';
+  }
 
   // Filter events
   container.querySelector('#member-search')?.addEventListener('input', (e) => {
@@ -167,11 +248,27 @@ export function renderMembers(container, state, actions) {
 
   container.querySelector('#member-role-filter')?.addEventListener('change', (e) => {
     roleFilter = e.target.value;
+    updateFilterCount();
     renderList();
   });
 
   container.querySelector('#member-status-filter')?.addEventListener('change', (e) => {
     statusFilter = e.target.value;
+    updateFilterCount();
+    renderList();
+  });
+
+  container.querySelector('#member-active-filters')?.addEventListener('click', (e) => {
+    const filter = e.target.closest('[data-clear-filter]')?.dataset.clearFilter;
+    if (!filter) return;
+    if (filter === 'role') {
+      roleFilter = 'all';
+      container.querySelector('#member-role-filter').value = 'all';
+    } else {
+      statusFilter = 'all';
+      container.querySelector('#member-status-filter').value = 'all';
+    }
+    updateFilterCount();
     renderList();
   });
 
@@ -182,6 +279,7 @@ export function renderMembers(container, state, actions) {
     });
   }
 
+  updateFilterCount();
   renderList();
 }
 
@@ -207,7 +305,7 @@ export function openMemberDetailModal(memberId, state, actions) {
   const canDeactivate = isLead && !isSelf && member.role !== 'Owner';
 
   const modalHtml = `
-    <div class="modal-backdrop" id="member-detail-modal" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
+    <div class="modal-backdrop detail-panel-backdrop" id="member-detail-modal" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
       <div class="modal-dialog">
         <header class="modal-header">
           <div style="display:flex; align-items:center; gap:var(--spacing-3);">
@@ -219,7 +317,7 @@ export function openMemberDetailModal(memberId, state, actions) {
               <span style="font-size:0.8125rem; color:var(--color-text-muted);">${escapeHtml(member.email)}</span>
             </div>
           </div>
-          <button class="modal-close-btn" id="btn-close-member-modal" aria-label="Close dialog">&times;</button>
+          <button class="btn btn-secondary btn-sm" id="btn-close-member-modal" aria-label="Close dialog">Close</button>
         </header>
 
         <div class="modal-body">
@@ -282,15 +380,23 @@ export function openMemberDetailModal(memberId, state, actions) {
     </div>
   `;
 
+  const invokingElement = document.activeElement;
+  const selectedRecord = invokingElement?.closest('tr, .responsive-record-card');
+  selectedRecord?.classList.add('is-selected');
+  selectedRecord?.setAttribute('aria-current', 'true');
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   const modal = document.getElementById('member-detail-modal');
 
   function closeModal() {
     modal.remove();
+    selectedRecord?.classList.remove('is-selected');
+    selectedRecord?.removeAttribute('aria-current');
+    if (invokingElement?.isConnected) invokingElement.focus();
   }
 
   modal.querySelector('#btn-close-member-modal').addEventListener('click', closeModal);
   modal.querySelector('#btn-done-member-modal').addEventListener('click', closeModal);
+  modal.querySelector('#btn-close-member-modal').focus();
 
   // Save notes
   if (canAccessNotes) {
@@ -413,4 +519,3 @@ export function openMemberDetailModal(memberId, state, actions) {
     });
   }
 }
-

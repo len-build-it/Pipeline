@@ -7,7 +7,7 @@ import { createInitialState, FIXTURE_USERS } from './fixtures.js';
 import { escapeHtml, orgLabel } from './format.js';
 import { renderOverview } from './views/overview.js';
 import { renderMembers } from './views/members.js';
-import { renderTasks } from './views/tasks.js';
+import { renderTasks, openTaskDetailModal } from './views/tasks.js';
 import { renderAnnouncements } from './views/announcements.js';
 import { renderSignIn, renderInviteAccept } from './views/auth.js';
 import { renderFinance } from './views/finance.js';
@@ -18,6 +18,7 @@ class App {
     this.currentView = 'overview';
     this.appRoot = document.getElementById('app-root');
     this.lastFocusedElement = null;
+    this.scopeChangeSequence = 0;
   }
 
   init() {
@@ -30,6 +31,8 @@ class App {
   }
 
   async setScope(orgId) {
+    const scopeChangeSequence = ++this.scopeChangeSequence;
+    const renderedRoot = this.appRoot.firstElementChild;
     this.state.currentScope = orgId;
     if (this.state.isRealAuth && this.state.token) {
       try {
@@ -51,6 +54,9 @@ class App {
         // Keep the records already shown when the network request fails.
       }
     }
+    if (scopeChangeSequence !== this.scopeChangeSequence) return;
+    // A scope request started on another page must not replace Finance after the member has begun using it.
+    if (this.currentView === 'finance' && this.appRoot.firstElementChild !== renderedRoot) return;
     this.render();
   }
 
@@ -83,6 +89,7 @@ class App {
         priority: t.priority,
         dueDate: t.dueDate,
         labels: t.labels || [],
+        commentCount: t.commentCount ?? 0,
         version: t.version,
         archived: Boolean(t.archivedAt),
         archivedAt: t.archivedAt,
@@ -207,25 +214,29 @@ class App {
             <option value="sam" ${currentUser.id === 'usr-sam' ? 'selected' : ''}>Sam Taylor (Member)</option>
             <option value="jordan" ${currentUser.id === 'usr-jordan' ? 'selected' : ''}>Jordan Lee (Lead)</option>
           </select>
-          <button class="btn btn-secondary btn-sm" id="btn-reset-demo-data" style="font-size:0.75rem; padding:2px 8px; min-height:28px;">Reset data</button>
+          <button class="btn btn-secondary btn-sm" id="btn-reset-demo-data" style="font-size:0.75rem; padding:2px 8px;">Reset data</button>
         </div>
       </aside>
 
       <!-- Mobile Top Bar -->
       <header class="mobile-top-bar">
-        <div class="brand-wordmark" style="margin-bottom:0; font-size:1.1rem;">Team Manager</div>
+        <div>
+          <div class="brand-wordmark" style="margin-bottom:0; font-size:1.1rem;"><span class="brand-mark" aria-hidden="true"></span>Team Manager</div>
+          <span class="mobile-current-view">${this.currentView.charAt(0).toUpperCase() + this.currentView.slice(1)}</span>
+        </div>
         <select id="mobile-scope-select" class="scope-select" style="width:auto; padding:4px 8px;" aria-label="Select organization scope">
           ${availableScopes.map(s => `
             <option value="${s.id}" ${currentScope === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>
           `).join('')}
         </select>
+        <button class="btn btn-secondary btn-sm mobile-menu-button" id="mobile-menu-button" type="button" aria-controls="primary-nav" aria-expanded="false">Menu</button>
       </header>
 
       <div class="app-container">
         <!-- Persistent Desktop Left Navigation Rail -->
-        <nav class="nav-rail" aria-label="Primary Navigation">
+        <nav class="nav-rail" id="primary-nav" aria-label="Primary Navigation">
           <div class="nav-header">
-            <div class="brand-wordmark">Team Manager</div>
+            <div class="brand-wordmark"><span class="brand-mark" aria-hidden="true"></span>Team Manager</div>
             <div class="scope-container">
               <label for="desktop-scope-select" class="scope-label">Organization Scope</label>
               <select id="desktop-scope-select" class="scope-select" aria-label="Organization scope selection">
@@ -238,27 +249,27 @@ class App {
 
           <ul class="nav-destinations">
             <li class="nav-item">
-              <button class="${this.currentView === 'overview' ? 'active' : ''}" id="nav-btn-overview">
+              <button class="${this.currentView === 'overview' ? 'active' : ''}" id="nav-btn-overview" ${this.currentView === 'overview' ? 'aria-current="page"' : ''}>
                 Overview
               </button>
             </li>
             <li class="nav-item">
-              <button class="${this.currentView === 'members' ? 'active' : ''}" id="nav-btn-members">
+              <button class="${this.currentView === 'members' ? 'active' : ''}" id="nav-btn-members" ${this.currentView === 'members' ? 'aria-current="page"' : ''}>
                 Members
               </button>
             </li>
             <li class="nav-item">
-              <button class="${this.currentView === 'tasks' ? 'active' : ''}" id="nav-btn-tasks">
+              <button class="${this.currentView === 'tasks' ? 'active' : ''}" id="nav-btn-tasks" ${this.currentView === 'tasks' ? 'aria-current="page"' : ''}>
                 Tasks
               </button>
             </li>
             <li class="nav-item">
-              <button class="${this.currentView === 'announcements' ? 'active' : ''}" id="nav-btn-announcements">
+              <button class="${this.currentView === 'announcements' ? 'active' : ''}" id="nav-btn-announcements" ${this.currentView === 'announcements' ? 'aria-current="page"' : ''}>
                 Announcements
               </button>
             </li>
             <li class="nav-item">
-              <button class="${this.currentView === 'finance' ? 'active' : ''}" id="nav-btn-finance">
+              <button class="${this.currentView === 'finance' ? 'active' : ''}" id="nav-btn-finance" ${this.currentView === 'finance' ? 'aria-current="page"' : ''}>
                 Finance
               </button>
             </li>
@@ -267,15 +278,15 @@ class App {
           <div class="nav-footer">
             <div class="user-profile-badge">
               <div class="avatar-badge" style="background-color: ${currentUser.avatarColor || '#0F766E'};">
-                ${currentUser.displayName.slice(0, 2).toUpperCase()}
+                ${escapeHtml(currentUser.displayName.slice(0, 2).toUpperCase())}
               </div>
               <div class="user-info">
-                <span class="user-name">${currentUser.displayName}</span>
+                <span class="user-name">${escapeHtml(currentUser.displayName)}</span>
                 <span class="user-role-tag">${isOwner ? 'Global Owner' : 'Member'}</span>
               </div>
             </div>
-            <button class="btn btn-secondary btn-sm" id="btn-open-profile" style="padding:2px 8px; min-height:32px;" title="Edit profile">Profile</button>
-            <button class="btn btn-secondary btn-sm" id="btn-sign-out" style="padding:2px 8px; min-height:32px;" title="Sign out">Exit</button>
+            <button class="btn btn-secondary btn-sm" id="btn-open-profile" style="padding:2px 8px;" title="Edit profile">Profile</button>
+            <button class="btn btn-secondary btn-sm" id="btn-sign-out" style="padding:2px 8px;" title="Sign out">Exit</button>
           </div>
         </nav>
 
@@ -289,27 +300,27 @@ class App {
       <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
         <ul class="mobile-bottom-nav-list">
           <li>
-            <button class="${this.currentView === 'overview' ? 'active' : ''}" id="mob-nav-overview">
+            <button class="${this.currentView === 'overview' ? 'active' : ''}" id="mob-nav-overview" ${this.currentView === 'overview' ? 'aria-current="page"' : ''}>
               Overview
             </button>
           </li>
           <li>
-            <button class="${this.currentView === 'members' ? 'active' : ''}" id="mob-nav-members">
+            <button class="${this.currentView === 'members' ? 'active' : ''}" id="mob-nav-members" ${this.currentView === 'members' ? 'aria-current="page"' : ''}>
               Members
             </button>
           </li>
           <li>
-            <button class="${this.currentView === 'tasks' ? 'active' : ''}" id="mob-nav-tasks">
+            <button class="${this.currentView === 'tasks' ? 'active' : ''}" id="mob-nav-tasks" ${this.currentView === 'tasks' ? 'aria-current="page"' : ''}>
               Tasks
             </button>
           </li>
           <li>
-            <button class="${this.currentView === 'announcements' ? 'active' : ''}" id="mob-nav-announcements">
+            <button class="${this.currentView === 'announcements' ? 'active' : ''}" id="mob-nav-announcements" ${this.currentView === 'announcements' ? 'aria-current="page"' : ''}>
               Announce&shy;ments
             </button>
           </li>
           <li>
-            <button class="${this.currentView === 'finance' ? 'active' : ''}" id="mob-nav-finance">
+            <button class="${this.currentView === 'finance' ? 'active' : ''}" id="mob-nav-finance" ${this.currentView === 'finance' ? 'aria-current="page"' : ''}>
               Finance
             </button>
           </li>
@@ -346,6 +357,32 @@ class App {
   }
 
   bindShellEvents() {
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const primaryNav = document.getElementById('primary-nav');
+    const closeMobileMenu = (returnFocus = false) => {
+      if (!primaryNav?.classList.contains('is-open')) return;
+      primaryNav.classList.remove('is-open');
+      mobileMenuButton?.setAttribute('aria-expanded', 'false');
+      if (returnFocus) mobileMenuButton?.focus();
+    };
+
+    mobileMenuButton?.addEventListener('click', () => {
+      const isOpen = primaryNav?.classList.toggle('is-open') ?? false;
+      mobileMenuButton.setAttribute('aria-expanded', String(isOpen));
+      if (isOpen) primaryNav?.querySelector('[aria-current="page"]')?.focus();
+    });
+
+    mobileMenuButton?.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeMobileMenu(true);
+    });
+    primaryNav?.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeMobileMenu(true);
+    });
+    document.querySelector('.app-container')?.addEventListener('click', (event) => {
+      if (!primaryNav?.classList.contains('is-open')) return;
+      if (!primaryNav.contains(event.target)) closeMobileMenu();
+    });
+
     // Navigation items
     document.getElementById('nav-btn-overview')?.addEventListener('click', () => this.navigateTo('overview'));
     document.getElementById('nav-btn-members')?.addEventListener('click', () => this.navigateTo('members'));
@@ -401,7 +438,7 @@ class App {
       setScope: (scope) => this.setScope(scope),
       openInviteModal: () => this.openInviteModal(),
       openTaskCreateModal: () => this.openTaskCreateModal(),
-      openTaskDetailModal: (id) => this.openTaskDetailModal(id),
+      openTaskDetailModal: (id, triggerElement) => openTaskDetailModal(id, this.state, this.getActions(), triggerElement),
       openAnnouncementComposeModal: () => this.openAnnouncementComposeModal(),
       openProfileModal: () => this.openProfileModal()
     };
@@ -627,7 +664,7 @@ class App {
                 <div class="form-group">
                   <label for="task-create-org" class="form-label">Organization *</label>
                   <select id="task-create-org" class="form-select">
-                    ${availableOrgs.map(o => `<option value="${o.id}" ${o.id === defaultOrgId ? 'selected' : ''}>${escapeHtml(o.name)}</option>`).join('')}
+                    ${availableOrgs.map(o => `<option value="${escapeHtml(o.id)}" ${o.id === defaultOrgId ? 'selected' : ''}>${escapeHtml(o.name)}</option>`).join('')}
                   </select>
                 </div>
 
@@ -651,7 +688,7 @@ class App {
                   <label for="task-create-assignee" class="form-label">Assignee (Optional)</label>
                   <select id="task-create-assignee" class="form-select">
                     <option value="">Unassigned</option>
-                    ${orgMembers.map(m => `<option value="${m.userId}">${m.displayName}</option>`).join('')}
+                    ${orgMembers.map(m => `<option value="${escapeHtml(m.userId)}">${escapeHtml(m.displayName)}</option>`).join('')}
                   </select>
                 </div>
 
@@ -1015,7 +1052,7 @@ class App {
             <div class="modal-body">
               <div class="form-group">
                 <label for="profile-name" class="form-label">Display Name *</label>
-                <input type="text" id="profile-name" class="form-input" value="${currentUser.displayName}" required maxlength="100" />
+                <input type="text" id="profile-name" class="form-input" value="${escapeHtml(currentUser.displayName)}" required maxlength="100" />
               </div>
 
               <div class="form-group">

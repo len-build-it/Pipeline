@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { setupTestDatabase, cleanupTestDatabase } from '../tests/helpers/db-helper.js';
+import { assertRestoreTarget } from '../db/test-target.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,6 +59,17 @@ async function financeSnapshot(pool) {
 }
 
 async function main() {
+  assertRestoreTarget({
+    testUrl: process.env.TEST_DATABASE_URL || 'postgres://postgres@127.0.0.1:5433/pipeline_test',
+    developmentUrl: process.env.DATABASE_URL || 'postgres://postgres@127.0.0.1:5433/pipeline_dev',
+    restoreHost: PG_HOST,
+    restorePort: PG_PORT,
+    restoreHostAddress: process.env.PGHOSTADDR,
+    restoreService: process.env.PGSERVICE,
+    sourceDatabase: SOURCE_DB,
+    restoreDatabase: RESTORE_DB,
+  });
+
   console.log('[restore] 1. Preparing source test database...');
   const seededPool = await setupTestDatabase();
   await seedFinanceFixture(seededPool);

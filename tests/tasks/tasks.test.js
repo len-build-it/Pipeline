@@ -618,6 +618,52 @@ describe('Phase 5: Real Task Management (FEAT-003)', () => {
       const data = JSON.parse(res.body);
       assert.ok(!data.comments.some(c => c.id === samCommentId));
     });
+
+    test('Comment history uses bounded deterministic pages and rejects invalid pagination', async () => {
+      const baseTime = '2026-05-01T12:00:00.000Z';
+      try {
+        await pool.query(
+          `INSERT INTO task_comments (id, task_id, author_id, body, created_at)
+           SELECT 'page-cmt-' || lpad(n::text, 4, '0'), $1, $2, 'comment ' || n, $3::timestamptz
+           FROM generate_series(1, 105) AS n`,
+          [commentTaskId, samUserId, baseTime],
+        );
+
+        const path = `/api/organizations/org-1/tasks/${commentTaskId}/comments`;
+        const headers = { authorization: `Bearer ${alexLeadOrg1Token}` };
+        const firstResponse = await app.inject({ method: 'GET', url: path, headers });
+        assert.equal(firstResponse.statusCode, 200);
+        const first = JSON.parse(firstResponse.body);
+        assert.equal(first.comments.length, 50);
+        assert.equal(first.comments[0].id, 'page-cmt-0105');
+        assert.ok(first.nextCursor);
+
+        await pool.query(
+          `INSERT INTO task_comments (id, task_id, author_id, body, created_at)
+           VALUES ('page-cmt-newer', $1, $2, 'newer comment', $3::timestamptz)`,
+          [commentTaskId, samUserId, '2026-05-02T12:00:00.000Z'],
+        );
+
+        const secondResponse = await app.inject({
+          method: 'GET', url: `${path}?limit=100&cursor=${encodeURIComponent(first.nextCursor)}`, headers,
+        });
+        assert.equal(secondResponse.statusCode, 200);
+        const second = JSON.parse(secondResponse.body);
+        assert.equal(second.comments.length, 55);
+        assert.equal(second.comments[0].id, 'page-cmt-0055');
+        assert.equal(second.comments.at(-1).id, 'page-cmt-0001');
+        assert.equal(second.nextCursor, null);
+        assert.equal(new Set([...first.comments, ...second.comments].map(c => c.id)).size, 105);
+
+        const invalidTimestampCursor = Buffer.from(JSON.stringify({ createdAt: '2026-02-31 12:00:00+00', id: 'invalid' })).toString('base64url');
+        for (const query of ['limit=0', 'limit=101', 'limit=abc', 'cursor=not-a-cursor', `cursor=${invalidTimestampCursor}`]) {
+          const invalid = await app.inject({ method: 'GET', url: `${path}?${query}`, headers });
+          assert.equal(invalid.statusCode, 400, query);
+        }
+      } finally {
+        await pool.query(`DELETE FROM task_comments WHERE task_id = $1 AND id LIKE 'page-cmt-%'`, [commentTaskId]);
+      }
+    });
   });
 
   describe('6. Activity History Audit Trail (REQ-008)', () => {
@@ -674,6 +720,64 @@ describe('Phase 5: Real Task Management (FEAT-003)', () => {
       assert.ok(actions.includes('status_change'));
       assert.ok(actions.includes('assignment'));
       assert.ok(actions.includes('comment'));
+    });
+
+    test('Task activity uses bounded deterministic pages and rejects invalid pagination', async () => {
+      try {
+        await pool.query(
+          `INSERT INTO activity_events (id, organization_id, actor_id, entity_type, entity_id, action, created_at)
+           SELECT 'page-act-' || lpad(n::text, 4, '0'), 'org-1', $1, 'task', $2, 'synthetic', NOW() + INTERVAL '1 day'
+           FROM generate_series(1, 105) AS n`,
+          [alexUserId, activityTaskId],
+        );
+
+        const path = `/api/organizations/org-1/tasks/${activityTaskId}/activity`;
+        const headers = { authorization: `Bearer ${alexLeadOrg1Token}` };
+        const firstResponse = await app.inject({ method: 'GET', url: path, headers });
+        assert.equal(firstResponse.statusCode, 200);
+        const first = JSON.parse(firstResponse.body);
+        assert.equal(first.activity.length, 50);
+        assert.equal(first.activity[0].id, 'page-act-0105');
+        assert.ok(first.nextCursor);
+
+        const secondResponse = await app.inject({
+          method: 'GET', url: `${path}?limit=100&cursor=${encodeURIComponent(first.nextCursor)}`, headers,
+        });
+        assert.equal(secondResponse.statusCode, 200);
+        const second = JSON.parse(secondResponse.body);
+        assert.ok(second.activity.length <= 100);
+        assert.equal(second.nextCursor, null);
+        const pagedIds = [...first.activity, ...second.activity]
+          .map(a => a.id)
+          .filter(id => id.startsWith('page-act-'));
+        assert.equal(pagedIds.length, 105);
+        assert.equal(new Set(pagedIds).size, 105);
+        assert.deepEqual(pagedIds, Array.from({ length: 105 }, (_, index) => `page-act-${String(105 - index).padStart(4, '0')}`));
+
+        const invalidTimestampCursor = Buffer.from(JSON.stringify({ createdAt: '2026-02-31 12:00:00+00', id: 'invalid' })).toString('base64url');
+        for (const query of ['limit=0', 'limit=101', 'limit=abc', 'cursor=not-a-cursor', `cursor=${invalidTimestampCursor}`]) {
+          const invalid = await app.inject({ method: 'GET', url: `${path}?${query}`, headers });
+          assert.equal(invalid.statusCode, 400, query);
+        }
+      } finally {
+        await pool.query(`DELETE FROM activity_events WHERE entity_id = $1 AND id LIKE 'page-act-%'`, [activityTaskId]);
+      }
+    });
+
+    test('Task activity cannot be read through a task from another organization', async () => {
+      const foreignResponse = await app.inject({
+        method: 'POST',
+        url: '/api/organizations/org-2/tasks',
+        headers: { authorization: `Bearer ${jordanLeadOrg2Token}` },
+        payload: { title: 'Foreign activity task' },
+      });
+      const foreignTaskId = JSON.parse(foreignResponse.body).id;
+      const res = await app.inject({
+        method: 'GET',
+        url: `/api/organizations/org-1/tasks/${foreignTaskId}/activity`,
+        headers: { authorization: `Bearer ${samMemberOrg1Token}` },
+      });
+      assert.equal(res.statusCode, 404);
     });
   });
 
