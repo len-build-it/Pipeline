@@ -1,8 +1,8 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T00:14:00+08:00
-State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 is implemented and PLAN-002 revision 3 is complete; local software is verified, and physical-device and production checks are pending.
+Updated: 2026-10-04T16:37:15+08:00
+State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 is implemented and PLAN-002 revision 3 is complete; local software is verified, physical-device and production checks are pending, and Lagoon redesign Phase 1 checks passed with its checkpoint commit pending under approved PROD-005 revision 4 and PLAN-003 revision 1.
 Feature: FEAT-006 approved; implemented under PLAN-002 revision 3; all six phases complete.
 Intended executor: Claude Code (Opus 5.5), selected by Len in chat on 2026-10-03 with "Execute".
 
@@ -14,6 +14,8 @@ Intended executor: Claude Code (Opus 5.5), selected by Len in chat on 2026-10-03
 - [Access](docs/features/FEAT-001-access-dashboard.md), [members](docs/features/FEAT-002-member-management.md), [tasks](docs/features/FEAT-003-task-management.md), [announcements](docs/features/FEAT-004-announcements.md), and [mobile](docs/features/FEAT-005-mobile-offline.md).
 - [The completed MVP implementation checklist](docs/plans/FEAT-001-implementation.md) and [verification ledger](docs/evidence/MVP-verification.md).
 - [Finance feature](docs/features/FEAT-006-configurable-finance.md) and [its implementation plan](docs/plans/FEAT-006-implementation.md).
+- [UI/UX design handoff brief](docs/product/UI_UX_HANDOFF_BRIEF.md), an informational summary for design work that does not replace or revise the approved specifications.
+- [Lagoon UI redesign implementation handoff](docs/product/UI_REDESIGN_LAGOON_HANDOFF.md), a supporting design reference for the approved PROD-005 revision 4 and PLAN-003 revision 1 implementation.
 
 Inspect actual Git state and linked document revisions before acting; this handoff does not override specifications.
 
@@ -23,13 +25,14 @@ Len approved the implementation plan and specification package in chat on 2026-0
 
 Execution of PLAN-001 P1 through P8 proceeded continuously without routine phase sign-off and is complete.
 
-| Document | Exact current revision | Actual approval reference |
+| Document | Exact revision | Approval state or reference |
 | --- | --- | --- |
 | PROD-001 Overview | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | PROD-002 Architecture | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00, including the `exceljs@4.4.0` dependency. |
 | PROD-003 Data model | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | PROD-004 Constraints | 4 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | PROD-005 UI and UX | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
+| PROD-005 UI and UX | 4 | Approved by Len in chat on 2026-10-04T16:19:21+08:00. |
 | FEAT-001 Access and dashboard | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | FEAT-002 Members | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
 | FEAT-003 Tasks | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
@@ -38,8 +41,9 @@ Execution of PLAN-001 P1 through P8 proceeded continuously without routine phase
 | FEAT-006 Configurable finance | 2 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | PLAN-001 Coordinated implementation | 1 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
 | PLAN-002 Configurable finance implementation | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
+| PLAN-003 Lagoon UI redesign implementation | 1 | Approved by Len in chat on 2026-10-04T16:19:21+08:00. |
 
-Allowed execution phases: none remain; PLAN-001 P1 through P8 and PLAN-002 Phase 1 through Phase 6 are complete.
+Allowed execution phases: PLAN-001 P1 through P8 and PLAN-002 Phase 1 through Phase 6 are complete; PLAN-003 Phase 1 through Phase 6 are approved, with Phase 1 checks passed and its checkpoint commit pending under PROD-005 revision 4.
 
 PLAN-002 is a separate scope with its own approval: on 2026-10-03T22:31:00+08:00 Len wrote "Yes I approve of the revisions" in reply to a request naming FEAT-006 revision 2, PLAN-002 revision 3, the other draft revisions in this table, and `exceljs@4.4.0`.
 
@@ -57,9 +61,9 @@ Phase 1 through Phase 8 complete; local software MVP verified.
 
 On 2026-10-03 Len approved in chat the council recommendations for FEAT-006 and PLAN-002; they were applied as FEAT-006 revision 2 and PLAN-002 revision 3, which reorders analytics before Android and defines duplicates, forecast rounding, raw-body upload, and stateless preview with revalidating confirm.
 
-The same documentation pass archived the template `mobile/README.md` to [docs/archive/mobile-README.md](docs/archive/mobile-README.md) and corrected stale handoff and index entries; these documentation edits are uncommitted.
+The same documentation pass archived the template `mobile/README.md` to [docs/archive/mobile-README.md](docs/archive/mobile-README.md) and corrected stale handoff and index entries.
 
-The local MVP worktree is at the verified P8 commit. The current branch also contains untracked toolkit setup files from the earlier `npx len-toolkit start`; preserve them and do not stage them as part of PLAN-002.
+Git was clean on branch `codex/organization-manager-mvp` at the start of the 2026-10-04 UI/UX design-brief task. The informational [UI/UX design handoff brief](docs/product/UI_UX_HANDOFF_BRIEF.md) was then created from the approved product specifications; no application source code or approved behavior was changed.
 
 PLAN-002 progress:
 
@@ -132,7 +136,40 @@ PLAN-002, since revision 2, replaces this three-attempt stop at Len's direction 
 
 ## Next action
 
-PLAN-002 is complete and nothing further is authorized.
+PLAN-002 is complete. PLAN-003 revision 1 is the active approved plan for the Lagoon redesign.
+
+The requested informational UI/UX handoff brief is complete at [docs/product/UI_UX_HANDOFF_BRIEF.md](docs/product/UI_UX_HANDOFF_BRIEF.md). No implementation or product-scope change was authorized by that documentation task.
+
+On 2026-10-04T15:15:24+08:00, at Len's request in chat ("Produce design mockups"), Claude Code published 13 static design mockups from that brief as a private claude.ai design canvas titled "Team Manager design mockups".
+The mockups cover the web shell and five destinations, the owner combined overview, the spreadsheet import preview, phone-width web tasks, and four Android screens.
+They use sample data, were not rendered or checked after publishing, and changed no application source code, approved specification, or product behavior.
+The mockups propose one visual deviation for Len's review: a darker control border (#64748B) than the approved `color.border` token, to reach 3:1 contrast on inputs and buttons.
+
+On 2026-10-04T15:56:10+08:00 Len chose a vibrant, biomorphic redesign named Lagoon in chat: "Arhive the existing ones and implement the new design. and lets go with lagoon. After creating the design create a handoff for another AI agent to implement the UI re-design".
+The 13 original mockups were moved to an "Archive - original" page of the same canvas, and 12 Lagoon mockups were published on a "Lagoon redesign" page; none were rendered or checked after publishing.
+The implementation handoff is [docs/product/UI_REDESIGN_LAGOON_HANDOFF.md](docs/product/UI_REDESIGN_LAGOON_HANDOFF.md) (DESIGN-002 revision 1 at that time).
+No application source code or approved specification was changed at that time, and PROD-005 revision 3 remained approved until the revision 4 approval below.
+
+On 2026-10-04T16:15:58+08:00, the approval package was prepared as PROD-005 revision 4 in [docs/product/UI_UX_DESIGN.md](docs/product/UI_UX_DESIGN.md) and PLAN-003 revision 1 in [docs/plans/UI-REDESIGN-implementation.md](docs/plans/UI-REDESIGN-implementation.md).
+Len approved both exact revisions in chat on 2026-10-04T16:19:21+08:00: "Approve PROD-005 revision 4 and PLAN-003 revision 1".
+The Lagoon redesign is authorized under those revisions.
+Inspection of `server/tasks/service.js` found the organization task list defaults to 25 rows, caps one request at 100, and returns no per-status totals, so the draft revision omits the optional Tasks status tiles as DESIGN-002 allows.
+A one-off WCAG luminance calculation screened the proposed primary, text, status, and fill pairs: the lowest sampled text pairing was white on primary at 5.36:1, the control border on white was 4.58:1, and the focus color on white was 8.72:1; implementation pairings and measurements remain pending.
+At session start `HANDOFF.md` and `docs/SPEC_INDEX.md` contained user edits, and the UI/UX design brief and Lagoon handoff were untracked; those documents were preserved and incorporated without staging or committing.
+`npx len-toolkit start` succeeded, installed zero files, and reported a `.gitignore` difference that was preserved.
+Available local runtimes were Node 24.14.0, npm 11.9.0, Flutter 3.44.7, and Dart 3.12.2.
+Phase 1 web tokens and shell are implemented, and verification passed on 2026-10-04T16:37:15+08:00.
+
+`npm run test:ui` passed 12 of 12 tests in 38.0 seconds, including responsive checks at 375, 768, 1024, and 1440 CSS-pixel widths, desktop and mobile keyboard traversal, and the mobile menu Escape and focus-return behavior.
+
+The UI suite used headless Microsoft Edge through Playwright 1.63.0; `git diff --check` passed with only Git line-ending notices.
+
+Viewport screenshots are available in [docs/evidence/screenshots/ui-redesign](docs/evidence/screenshots/ui-redesign/): phone 375 by 667, tablet 768 by 1024, small desktop 1024 by 768, and desktop 1440 by 900 CSS pixels.
+
+The sampled contrast calculation earlier in this handoff remains preliminary; the full approved token-pair contrast verification is still required in PLAN-003 Phase 6.
+
+The next action is to stage and inspect only the reviewed Phase 1 paths, commit as `feat(ui): apply lagoon web tokens and shell`, verify the Git hash, and then continue to Phase 2.
+Len must share or export the design canvas before another agent can open it.
 
 Len's decisions and checks, none of which block the local software:
 
@@ -144,4 +181,3 @@ Len's decisions and checks, none of which block the local software:
 Locally verified: the web Finance workspace, spreadsheet import and export, the budget report, and Android Finance on the API 37 emulator, with the full gate set passing on 2026-10-04.
 
 Pending and unverified: physical Android devices, the API 24 emulator, real Safari, production hosting, production SMTP, hosted backups, and store distribution.
-

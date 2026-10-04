@@ -207,25 +207,29 @@ class App {
             <option value="sam" ${currentUser.id === 'usr-sam' ? 'selected' : ''}>Sam Taylor (Member)</option>
             <option value="jordan" ${currentUser.id === 'usr-jordan' ? 'selected' : ''}>Jordan Lee (Lead)</option>
           </select>
-          <button class="btn btn-secondary btn-sm" id="btn-reset-demo-data" style="font-size:0.75rem; padding:2px 8px; min-height:28px;">Reset data</button>
+          <button class="btn btn-secondary btn-sm" id="btn-reset-demo-data" style="font-size:0.75rem; padding:2px 8px;">Reset data</button>
         </div>
       </aside>
 
       <!-- Mobile Top Bar -->
       <header class="mobile-top-bar">
-        <div class="brand-wordmark" style="margin-bottom:0; font-size:1.1rem;">Team Manager</div>
+        <div>
+          <div class="brand-wordmark" style="margin-bottom:0; font-size:1.1rem;"><span class="brand-mark" aria-hidden="true"></span>Team Manager</div>
+          <span class="mobile-current-view">${this.currentView.charAt(0).toUpperCase() + this.currentView.slice(1)}</span>
+        </div>
         <select id="mobile-scope-select" class="scope-select" style="width:auto; padding:4px 8px;" aria-label="Select organization scope">
           ${availableScopes.map(s => `
             <option value="${s.id}" ${currentScope === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>
           `).join('')}
         </select>
+        <button class="btn btn-secondary btn-sm mobile-menu-button" id="mobile-menu-button" type="button" aria-controls="primary-nav" aria-expanded="false">Menu</button>
       </header>
 
       <div class="app-container">
         <!-- Persistent Desktop Left Navigation Rail -->
-        <nav class="nav-rail" aria-label="Primary Navigation">
+        <nav class="nav-rail" id="primary-nav" aria-label="Primary Navigation">
           <div class="nav-header">
-            <div class="brand-wordmark">Team Manager</div>
+            <div class="brand-wordmark"><span class="brand-mark" aria-hidden="true"></span>Team Manager</div>
             <div class="scope-container">
               <label for="desktop-scope-select" class="scope-label">Organization Scope</label>
               <select id="desktop-scope-select" class="scope-select" aria-label="Organization scope selection">
@@ -238,27 +242,27 @@ class App {
 
           <ul class="nav-destinations">
             <li class="nav-item">
-              <button class="${this.currentView === 'overview' ? 'active' : ''}" id="nav-btn-overview">
+              <button class="${this.currentView === 'overview' ? 'active' : ''}" id="nav-btn-overview" ${this.currentView === 'overview' ? 'aria-current="page"' : ''}>
                 Overview
               </button>
             </li>
             <li class="nav-item">
-              <button class="${this.currentView === 'members' ? 'active' : ''}" id="nav-btn-members">
+              <button class="${this.currentView === 'members' ? 'active' : ''}" id="nav-btn-members" ${this.currentView === 'members' ? 'aria-current="page"' : ''}>
                 Members
               </button>
             </li>
             <li class="nav-item">
-              <button class="${this.currentView === 'tasks' ? 'active' : ''}" id="nav-btn-tasks">
+              <button class="${this.currentView === 'tasks' ? 'active' : ''}" id="nav-btn-tasks" ${this.currentView === 'tasks' ? 'aria-current="page"' : ''}>
                 Tasks
               </button>
             </li>
             <li class="nav-item">
-              <button class="${this.currentView === 'announcements' ? 'active' : ''}" id="nav-btn-announcements">
+              <button class="${this.currentView === 'announcements' ? 'active' : ''}" id="nav-btn-announcements" ${this.currentView === 'announcements' ? 'aria-current="page"' : ''}>
                 Announcements
               </button>
             </li>
             <li class="nav-item">
-              <button class="${this.currentView === 'finance' ? 'active' : ''}" id="nav-btn-finance">
+              <button class="${this.currentView === 'finance' ? 'active' : ''}" id="nav-btn-finance" ${this.currentView === 'finance' ? 'aria-current="page"' : ''}>
                 Finance
               </button>
             </li>
@@ -274,8 +278,8 @@ class App {
                 <span class="user-role-tag">${isOwner ? 'Global Owner' : 'Member'}</span>
               </div>
             </div>
-            <button class="btn btn-secondary btn-sm" id="btn-open-profile" style="padding:2px 8px; min-height:32px;" title="Edit profile">Profile</button>
-            <button class="btn btn-secondary btn-sm" id="btn-sign-out" style="padding:2px 8px; min-height:32px;" title="Sign out">Exit</button>
+            <button class="btn btn-secondary btn-sm" id="btn-open-profile" style="padding:2px 8px;" title="Edit profile">Profile</button>
+            <button class="btn btn-secondary btn-sm" id="btn-sign-out" style="padding:2px 8px;" title="Sign out">Exit</button>
           </div>
         </nav>
 
@@ -289,27 +293,27 @@ class App {
       <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
         <ul class="mobile-bottom-nav-list">
           <li>
-            <button class="${this.currentView === 'overview' ? 'active' : ''}" id="mob-nav-overview">
+            <button class="${this.currentView === 'overview' ? 'active' : ''}" id="mob-nav-overview" ${this.currentView === 'overview' ? 'aria-current="page"' : ''}>
               Overview
             </button>
           </li>
           <li>
-            <button class="${this.currentView === 'members' ? 'active' : ''}" id="mob-nav-members">
+            <button class="${this.currentView === 'members' ? 'active' : ''}" id="mob-nav-members" ${this.currentView === 'members' ? 'aria-current="page"' : ''}>
               Members
             </button>
           </li>
           <li>
-            <button class="${this.currentView === 'tasks' ? 'active' : ''}" id="mob-nav-tasks">
+            <button class="${this.currentView === 'tasks' ? 'active' : ''}" id="mob-nav-tasks" ${this.currentView === 'tasks' ? 'aria-current="page"' : ''}>
               Tasks
             </button>
           </li>
           <li>
-            <button class="${this.currentView === 'announcements' ? 'active' : ''}" id="mob-nav-announcements">
+            <button class="${this.currentView === 'announcements' ? 'active' : ''}" id="mob-nav-announcements" ${this.currentView === 'announcements' ? 'aria-current="page"' : ''}>
               Announce&shy;ments
             </button>
           </li>
           <li>
-            <button class="${this.currentView === 'finance' ? 'active' : ''}" id="mob-nav-finance">
+            <button class="${this.currentView === 'finance' ? 'active' : ''}" id="mob-nav-finance" ${this.currentView === 'finance' ? 'aria-current="page"' : ''}>
               Finance
             </button>
           </li>
@@ -346,6 +350,32 @@ class App {
   }
 
   bindShellEvents() {
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const primaryNav = document.getElementById('primary-nav');
+    const closeMobileMenu = (returnFocus = false) => {
+      if (!primaryNav?.classList.contains('is-open')) return;
+      primaryNav.classList.remove('is-open');
+      mobileMenuButton?.setAttribute('aria-expanded', 'false');
+      if (returnFocus) mobileMenuButton?.focus();
+    };
+
+    mobileMenuButton?.addEventListener('click', () => {
+      const isOpen = primaryNav?.classList.toggle('is-open') ?? false;
+      mobileMenuButton.setAttribute('aria-expanded', String(isOpen));
+      if (isOpen) primaryNav?.querySelector('[aria-current="page"]')?.focus();
+    });
+
+    mobileMenuButton?.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeMobileMenu(true);
+    });
+    primaryNav?.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeMobileMenu(true);
+    });
+    document.querySelector('.app-container')?.addEventListener('click', (event) => {
+      if (!primaryNav?.classList.contains('is-open')) return;
+      if (!primaryNav.contains(event.target)) closeMobileMenu();
+    });
+
     // Navigation items
     document.getElementById('nav-btn-overview')?.addEventListener('click', () => this.navigateTo('overview'));
     document.getElementById('nav-btn-members')?.addEventListener('click', () => this.navigateTo('members'));

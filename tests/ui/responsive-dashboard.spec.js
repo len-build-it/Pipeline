@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = resolve(__dirname, '../..');
-const screenshotsDir = resolve(rootDir, 'docs/evidence/screenshots');
+const screenshotsDir = resolve(rootDir, 'docs/evidence/screenshots/ui-redesign');
 
 test.describe('Responsive Dashboard & UI Navigation (P1)', () => {
 
@@ -41,7 +41,11 @@ test.describe('Responsive Dashboard & UI Navigation (P1)', () => {
       if (vp.name === 'desktop') {
         await page.screenshot({ path: `${screenshotsDir}/p1-desktop-overview-1440.png`, fullPage: true });
       } else if (vp.name === 'phone') {
-        await page.screenshot({ path: `${screenshotsDir}/p1-phone-overview-375.png`, fullPage: true });
+        await page.screenshot({ path: `${screenshotsDir}/p1-phone-overview-375.png` });
+      } else if (vp.name === 'tablet') {
+        await page.screenshot({ path: `${screenshotsDir}/p1-tablet-overview-768.png` });
+      } else if (vp.name === 'small-desktop') {
+        await page.screenshot({ path: `${screenshotsDir}/p1-small-desktop-overview-1024.png` });
       }
     }
   });
@@ -71,6 +75,89 @@ test.describe('Responsive Dashboard & UI Navigation (P1)', () => {
     await expect(page.locator('h1')).toHaveText('Announcements');
     await expect(page.locator('.responsive-record-card').first()).toBeVisible();
     await page.screenshot({ path: `${screenshotsDir}/p1-desktop-announcements-1280.png` });
+  });
+
+  test('Mobile menu opens primary navigation and restores focus on Escape', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/');
+
+    const menuButton = page.locator('#mobile-menu-button');
+    const primaryNav = page.locator('#primary-nav');
+    await expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+    await expect(primaryNav).toBeHidden();
+
+    await menuButton.focus();
+    await page.keyboard.press('Enter');
+    await expect(menuButton).toHaveAttribute('aria-expanded', 'true');
+    await expect(primaryNav).toBeVisible();
+    await expect(page.locator('#nav-btn-overview')).toBeFocused();
+
+    for (const id of [
+      'nav-btn-members', 'nav-btn-tasks', 'nav-btn-announcements', 'nav-btn-finance',
+      'btn-open-profile', 'btn-sign-out'
+    ]) {
+      await page.keyboard.press('Tab');
+      const activeId = await page.evaluate(() => document.activeElement?.id);
+      expect(activeId).toBe(id);
+      const hasVisibleFocus = await page.evaluate(() => {
+        const active = document.activeElement;
+        return active.matches(':focus-visible') && Number.parseFloat(getComputedStyle(active).outlineWidth) >= 3;
+      });
+      expect(hasVisibleFocus).toBe(true);
+    }
+
+    await page.keyboard.press('Escape');
+    await expect(primaryNav).toBeHidden();
+    await expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+    await expect(menuButton).toBeFocused();
+
+    await expect(page.locator('#mob-nav-overview')).toHaveAttribute('aria-current', 'page');
+    await page.locator('#mob-nav-overview').focus();
+    for (const id of ['mob-nav-members', 'mob-nav-tasks', 'mob-nav-announcements', 'mob-nav-finance']) {
+      await page.keyboard.press('Tab');
+      const focus = await page.evaluate(() => ({
+        id: document.activeElement?.id,
+        visible: document.activeElement?.matches(':focus-visible'),
+        outlineWidth: Number.parseFloat(getComputedStyle(document.activeElement).outlineWidth)
+      }));
+      expect(focus.id).toBe(id);
+      expect(focus.visible).toBe(true);
+      expect(focus.outlineWidth).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  test('Keyboard traversal reaches every visible desktop shell control with a focus ring', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto('/');
+
+    const shellControls = new Set([
+      'demo-persona-select', 'btn-reset-demo-data', 'desktop-scope-select',
+      'nav-btn-overview', 'nav-btn-members', 'nav-btn-tasks', 'nav-btn-announcements',
+      'nav-btn-finance', 'btn-open-profile', 'btn-sign-out'
+    ]);
+    const visited = new Set();
+
+    for (let tab = 0; tab < 80 && visited.size < shellControls.size; tab += 1) {
+      await page.keyboard.press('Tab');
+      const focus = await page.evaluate(() => {
+        const active = document.activeElement;
+        return {
+          id: active?.id,
+          visible: active?.getClientRects().length > 0,
+          focusVisible: active?.matches(':focus-visible'),
+          outlineWidth: Number.parseFloat(getComputedStyle(active).outlineWidth)
+        };
+      });
+
+      if (shellControls.has(focus.id)) {
+        expect(focus.visible).toBe(true);
+        expect(focus.focusVisible).toBe(true);
+        expect(focus.outlineWidth).toBeGreaterThanOrEqual(3);
+        visited.add(focus.id);
+      }
+    }
+
+    expect([...visited].sort()).toEqual([...shellControls].sort());
   });
 
   test('Finance destination: demo mode explains that live sign-in is required, at every width', async ({ page }) => {
