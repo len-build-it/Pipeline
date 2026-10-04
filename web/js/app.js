@@ -278,10 +278,10 @@ class App {
           <div class="nav-footer">
             <div class="user-profile-badge">
               <div class="avatar-badge" style="background-color: ${currentUser.avatarColor || '#0F766E'};">
-                ${currentUser.displayName.slice(0, 2).toUpperCase()}
+                ${escapeHtml(currentUser.displayName.slice(0, 2).toUpperCase())}
               </div>
               <div class="user-info">
-                <span class="user-name">${currentUser.displayName}</span>
+                <span class="user-name">${escapeHtml(currentUser.displayName)}</span>
                 <span class="user-role-tag">${isOwner ? 'Global Owner' : 'Member'}</span>
               </div>
             </div>
@@ -664,7 +664,7 @@ class App {
                 <div class="form-group">
                   <label for="task-create-org" class="form-label">Organization *</label>
                   <select id="task-create-org" class="form-select">
-                    ${availableOrgs.map(o => `<option value="${o.id}" ${o.id === defaultOrgId ? 'selected' : ''}>${escapeHtml(o.name)}</option>`).join('')}
+                    ${availableOrgs.map(o => `<option value="${escapeHtml(o.id)}" ${o.id === defaultOrgId ? 'selected' : ''}>${escapeHtml(o.name)}</option>`).join('')}
                   </select>
                 </div>
 
@@ -688,7 +688,7 @@ class App {
                   <label for="task-create-assignee" class="form-label">Assignee (Optional)</label>
                   <select id="task-create-assignee" class="form-select">
                     <option value="">Unassigned</option>
-                    ${orgMembers.map(m => `<option value="${m.userId}">${m.displayName}</option>`).join('')}
+                    ${orgMembers.map(m => `<option value="${escapeHtml(m.userId)}">${escapeHtml(m.displayName)}</option>`).join('')}
                   </select>
                 </div>
 
@@ -1052,7 +1052,7 @@ class App {
             <div class="modal-body">
               <div class="form-group">
                 <label for="profile-name" class="form-label">Display Name *</label>
-                <input type="text" id="profile-name" class="form-input" value="${currentUser.displayName}" required maxlength="100" />
+                <input type="text" id="profile-name" class="form-input" value="${escapeHtml(currentUser.displayName)}" required maxlength="100" />
               </div>
 
               <div class="form-group">

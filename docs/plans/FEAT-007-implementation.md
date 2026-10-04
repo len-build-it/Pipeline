@@ -1,7 +1,7 @@
 # Implementation Plan: FEAT-007 Security hardening from audit candidate leads
 
 Created: 2026-10-04T23:06:52+08:00
-Updated: 2026-10-05T00:10:25+08:00
+Updated: 2026-10-05T00:20:54+08:00
 Revision: 1
 Status: Approved
 Feature spec and revision: [FEAT-007 revision 1](../features/FEAT-007-security-hardening.md), Approved
@@ -141,7 +141,7 @@ Continue automatically to the next approved phase.
 
 Requirements: FEAT-007/REQ-007, FEAT-007/REQ-010
 
-State: Implementation and checks passed; checkpoint review is in progress
+State: Complete
 
 Candidate lead: tasks.comment-history-unbounded
 
@@ -171,9 +171,10 @@ Candidate lead: tasks.comment-history-unbounded
 - [x] Reviewed correctness, accessibility, scope, migration necessity, dependencies, and test-generated changes.
 - [x] Updated this plan, evidence, the specification index, and the current handoff with actual results.
 - [x] Stage only reviewed Phase 3 paths and inspect the staged diff; test-generated legacy screenshots are not staged.
-- [ ] Commit the reviewed phase and verify Git reports success.
+- [x] Commit the reviewed phase and verify Git reports success.
 
 Checkpoint message: fix(tasks): paginate comment and activity history
+Checkpoint commit: `27698745a0207b996259ea6de4edf3d1d0d806b5`.
 
 Phase completion requires all gates and a successful commit; the message identifies the checkpoint without needing its own hash inside the commit.
 
@@ -183,29 +184,29 @@ Continue automatically to the next approved phase.
 
 Requirements: FEAT-007/REQ-008, FEAT-007/REQ-010
 
-State: Not started
+State: Implementation and required checks passed; checkpoint review is in progress
 
 Candidate lead: web.stored-display-name-html-injection
 
 ### Tasks
 
-- [ ] Reproduce the stored display-name flow from member update through task creation using a synthetic account and browser fixture.
-- [ ] Replace dynamic name interpolation into the task-create HTML template with DOM text assignment or the existing context-safe escaping function.
-- [ ] Keep generated option values and all other dynamic fields protected in their correct HTML contexts.
-- [ ] Add a Playwright regression that proves a markup payload remains literal visible text and cannot create an element or execute an event.
+- [x] Reproduced the stored display-name flow from a synthetic member profile update through task creation; the browser created an image element in the assignee selector and executed a synthetic event in the shell.
+- [x] Replaced dynamic display-name interpolation at the shell, profile-input, and task-assignee HTML sinks with the existing context-safe escaping function.
+- [x] Escaped generated organization and assignee option values in their HTML attribute contexts.
+- [x] Added UI and real-backend Playwright regressions that prove a stored markup payload remains literal text, creates no element, and executes no event.
 
 ### Verification
 
-- [ ] Run npm run test:ui -- tests/ui/security-display.spec.js in headless Microsoft Edge; expect the injected element and event counters to remain absent while the full display name is visible as text.
-- [ ] Run npm run test:e2e and npm test against the isolated database; expect existing task and member workflows to pass.
-- [ ] Run git diff --check and record the browser version, scenario, and screenshot in the evidence file.
+- [x] `npm run test:ui -- tests/ui/security-display.spec.js` passed in headless Microsoft Edge; the literal full name is visible and injected elements and event counters remain absent.
+- [x] Run `npm run test:e2e` and `npm test` against the isolated database; all 15 browser workflows and all 250 Node tests passed.
+- [x] Capture and inspect [the stored-name task form screenshot](../evidence/screenshots/FEAT-007-stored-display-1440.png), run `git diff --check`, and record versions, scenario, results, and limits in EVID-004.
 
 ### Review and checkpoint
 
-- [ ] Review all HTML insertion sites changed by the fix and confirm stored values remain text at the rendering boundary.
-- [ ] Review correctness, scope, dependencies, and unrelated changes.
-- [ ] Update this plan, evidence, and the current handoff with actual results.
-- [ ] Stage only reviewed Phase 4 paths and inspect the staged diff.
+- [x] Reviewed all display-name HTML insertion sites in the shell, profile form, task creator, task detail, and member list; stored values are escaped at the rendering boundary.
+- [x] Reviewed correctness, scope, dependencies, screenshot outputs, and unrelated changes.
+- [x] Updated this plan, evidence, the specification index, and the current handoff with actual results.
+- [x] Stage only reviewed Phase 4 paths and inspect the staged diff; test-generated screenshots from earlier runs remain unstaged.
 - [ ] Commit the reviewed phase and verify Git reports success.
 
 Checkpoint message: fix(web): render stored names as text

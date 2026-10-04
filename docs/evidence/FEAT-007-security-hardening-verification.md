@@ -2,10 +2,10 @@
 
 Evidence ID: EVID-004.
 Created: 2026-10-04T23:32:17+08:00
-Updated: 2026-10-05T00:10:25+08:00
+Updated: 2026-10-05T00:20:54+08:00
 Feature and plan: FEAT-007 revision 1 and PLAN-004 revision 1, approved by Len in chat on 2026-10-04T23:19:00+08:00.
-Phase: PLAN-004 Phases 1 and 2 complete; Phase 3 checks pass and its checkpoint is under review.
-Implementation revision: Phase 1 checkpoint `de94ccbf9503a171364e0a6b4bdbfca49e485ce6`; Phase 2 checkpoint `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`; Phase 3 changes are in the working tree pending checkpoint commit.
+Phase: PLAN-004 Phases 1, 2, and 3 complete; Phase 4 checks pass and its checkpoint is under review.
+Implementation revision: Phase 1 checkpoint `de94ccbf9503a171364e0a6b4bdbfca49e485ce6`; Phase 2 checkpoint `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`; Phase 3 checkpoint `27698745a0207b996259ea6de4edf3d1d0d806b5`; Phase 4 changes are in the working tree pending commit.
 
 ## Scope and environment
 
@@ -125,6 +125,36 @@ The browser regression then exposed the actual hidden-button CSS behavior; a glo
 
 All history fixture data used synthetic task IDs, users, comments, and activity in the isolated `pipeline_test` database; no production account or customer record was accessed.
 
+## Phase 4: Escape stored member names at web rendering boundaries
+
+The synthetic profile test updated Sam Taylor's display name to markup containing an image with an event counter, then opened task creation as Alex Rivera so the stored value reached another member's assignee selector.
+
+Before the fix, the task-create modal contained one actual `#stored-name-probe` image generated from the assignee option; a separate run updating the active user's own name fired the synthetic event in the shell and malformed the rendered application enough to hide the task-create button.
+
+The regression setup now stores the malicious name for one member and switches to another lead, isolating the stored assignee-name path while the event counter confirms the shell path is also protected.
+
+The fix escapes the current user's initials and display name in the application shell, the display-name value in the profile input, the assignee option's user ID and display name, and the organization option ID with the existing `escapeHtml` helper.
+
+Member list, task-detail, comment, and other task-assignee rendering paths already escaped display names and were reviewed without needing behavior changes.
+
+The focused UI test saves a synthetic profile name, confirms the shell displays it literally, reopens the profile form, and verifies that the task assignee option displays it as text with no injected element or event.
+
+The E2E test performs the same update through the real profile endpoint, verifies the name persisted in isolated PostgreSQL, signs in as a different lead, and checks the resulting member option in task creation.
+
+The focused `npm run test:ui -- tests/ui/security-display.spec.js` passed one test, `npm test` passed all 250 tests, and the full `npm run test:e2e` suite passed all 15 workflows in 55.5 seconds.
+
+The screenshot of task creation with the saved markup visible as literal option text is [FEAT-007-stored-display-1440.png](screenshots/FEAT-007-stored-display-1440.png).
+
+The test used Node.js v24.14.0, npm 11.9.0, PostgreSQL 18.4 on the isolated loopback test instance, Playwright 1.63.0, and headless Microsoft Edge 138.0.3351.121.
+
+The first reproduction changed the active user's own profile; its synthetic event fired in the shell and the injected markup disrupted the following task view.
+
+The flow was adjusted to store the payload on Sam and then switch to Alex, isolating the task-assignee sink; the first diagnostic assertion read the shell after switching users and therefore saw no shell image while detecting one image in the task modal.
+
+The final regression verifies literal output and no event in the profile owner's shell and profile form, then in the other lead's task-assignee option.
+
+The real-backend browser test used only the seeded synthetic Sam and Alex accounts and an isolated test database; no production identity or data was accessed.
+
 ## Limitations
 
 Production runtime configuration, production deployment seed history, hosted database connection settings, and actual exploitability in any deployed instance were not verified.
@@ -132,6 +162,8 @@ Production runtime configuration, production deployment seed history, hosted dat
 The required OS-enforced audit reproduction sandbox was unavailable during EVID-003, so these results do not replace an independent reproduction in that sandbox.
 
 The E2E run updated existing tracked screenshot outputs under `docs/evidence/screenshots`; those generated changes are preserved and excluded from the FEAT-007 phase checkpoint.
+
+The later browser rerun regenerated the tracked Phase 3 screenshot `FEAT-007-task-history-375.png`; it remains preserved but is excluded from the Phase 4 checkpoint, while `FEAT-007-stored-display-1440.png` is included.
 
 No Flutter, physical-device, hosting, or production-service checks are in scope for Phases 1 through 3.
 
@@ -141,4 +173,4 @@ Phase 1 passed its focused security tests, full Node test gate, isolated restore
 
 Phase 2 passed its focused auth, finance, and security suites, the full Node gate, E2E gate, diff check, code review, and checkpoint commit `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`.
 
-Phase 3 implementation and checks pass; task history pagination and its web consumers are ready for the checkpoint commit.
+Phase 3 passed its focused, complete Node, E2E, UI, and diff checks and is committed as `27698745a0207b996259ea6de4edf3d1d0d806b5`.

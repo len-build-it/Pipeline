@@ -1,9 +1,9 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-05T00:10:25+08:00
-State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, Phases 1 and 2 are committed, and Phase 3 checks pass with its checkpoint under review.
-Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; Phases 1 and 2 are committed and Phase 3 checks pass after implementation.
+Updated: 2026-10-05T00:20:54+08:00
+State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, Phases 1 through 3 are committed, and Phase 4 checks pass with its checkpoint under review.
+Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; Phases 1 through 3 are committed and Phase 4 checks pass.
 Intended executor: Codex, proceeding continuously under PLAN-004.
 
 ## Read first
@@ -312,6 +312,14 @@ The synthetic task regression passed 36 tests; the full Node suite passed 250 te
 
 The 105-comment and 105-activity E2E fixture reached all three pages without missing or duplicated IDs, and the 375-pixel screenshot is [FEAT-007-task-history-375.png](docs/evidence/screenshots/FEAT-007-task-history-375.png).
 
-Browser runs changed existing tracked screenshot outputs under docs/evidence/screenshots and docs/evidence/screenshots/ui-redesign; these changes are preserved and excluded from the Phase 3 checkpoint, while the new FEAT-007 task history screenshot is part of the checkpoint.
+Browser runs changed existing tracked screenshot outputs under docs/evidence/screenshots and docs/evidence/screenshots/ui-redesign; these changes are preserved and excluded from the Phase 3 checkpoint, while the new FEAT-007 task history screenshot was part of that checkpoint.
 
-After verifying the Phase 3 commit hash, continue automatically to PLAN-004 Phase 4 and cover stored member-name rendering using the approved test and build gates.
+PLAN-004 Phase 3 was committed after review as `27698745a0207b996259ea6de4edf3d1d0d806b5` (`fix(tasks): paginate comment and activity history`).
+
+The Phase 4 synthetic profile flow reproduced stored-name HTML injection in the shell and task assignee selector; context-safe escaping now prevents element creation and event execution.
+
+Phase 4 passed the complete 250-test Node suite and all 15 E2E browser workflows; the focused display-name UI regression passed on headless Microsoft Edge.
+
+Browser reruns also regenerated the tracked Phase 3 task-history screenshot; preserve it unstaged and exclude it from the Phase 4 checkpoint along with the other test-generated legacy screenshots.
+
+After staging and reviewing the Phase 4 source, tests, new screenshot, and evidence paths, commit `fix(web): render stored names as text` and continue to PLAN-004 Phase 5.
