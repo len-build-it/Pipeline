@@ -1,9 +1,9 @@
 # Implementation plan: Lagoon UI redesign
 
 Created: 2026-10-04T16:08:31+08:00
-Updated: 2026-10-04T20:34:32+08:00
+Updated: 2026-10-04T20:37:09+08:00
 Revision: 1
-Status: Approved; Phases 1 through 5 complete at commits `2e60838`, `8caa32e`, `58a8d71`, `e64c8c9`, and `75bed89`; Phase 6 verification and evidence are complete, with its checkpoint commit pending.
+Status: Approved; all six phases are complete. Phases 1 through 5 are committed at `2e60838`, `8caa32e`, `58a8d71`, `e64c8c9`, and `75bed89`; Phase 6 is committed as `test(ui): verify lagoon redesign release`.
 Feature spec and revision: [PROD-005 revision 4](../product/UI_UX_DESIGN.md), approved by Len together with this plan.
 Approved baseline and architecture revisions: PROD-001 revision 3, PROD-002 revision 3, PROD-003 revision 3, PROD-004 revision 4, and PROD-005 revision 4; FEAT-001 revision 3, FEAT-002 revision 2, FEAT-003 revision 2, FEAT-004 revision 3, FEAT-005 revision 2, and FEAT-006 revision 2 remain unchanged.
 Len's chat approval: Approved on 2026-10-04T16:19:21+08:00: "Approve PROD-005 revision 4 and PLAN-003 revision 1".
@@ -201,7 +201,7 @@ No API, database schema, permission, validation, or dependency changes were made
 
 Requirements: PROD-005 revision 4 and UI-REQ-001 through UI-REQ-012, alongside all current approved feature behavior.
 
-State: Verification and evidence complete on 2026-10-04; the Phase 6 checkpoint commit is pending.
+State: Complete; integrated verification and evidence are committed as `test(ui): verify lagoon redesign release`.
 
 ### Tasks
 
@@ -233,7 +233,7 @@ The physical-device, TalkBack, API 24, real Safari, production, and field checks
 
 - [x] Confirm each prior phase has passed its required checks and has a verified local commit.
 - [x] Stage only reviewed Phase 6 paths and inspect the staged diff.
-- [ ] Commit as `test(ui): verify lagoon redesign release` and verify Git reports success.
+- [x] Commit as `test(ui): verify lagoon redesign release` and verify Git reports success.
 
 ## Recovery
 
