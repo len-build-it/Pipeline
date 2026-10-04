@@ -3,6 +3,8 @@
  * Requirements: FEAT-001/REQ-004, REQ-008; PROD-005/UI-REQ-001, UI-REQ-002, UI-REQ-003, UI-REQ-004
  */
 
+import { escapeHtml, orgLabel, orgLabels } from '../format.js';
+
 export function renderOverview(container, state, actions) {
   const { currentUser, currentScope } = state;
 
@@ -70,7 +72,7 @@ export function renderOverview(container, state, actions) {
     <header class="page-header">
       <div class="page-title-group">
         <h1>Overview</h1>
-        <p>Current Scope: <strong>${currentScope === 'all' ? 'All Organizations' : (state.organizations.find(o => o.id === currentScope)?.name || currentScope)}</strong></p>
+        <p>Current Scope: <strong>${currentScope === 'all' ? 'All Organizations' : escapeHtml(orgLabel(state, currentScope))}</strong></p>
       </div>
       <div class="page-actions">
         ${isLead ? `
@@ -142,7 +144,7 @@ export function renderOverview(container, state, actions) {
                     <tr>
                       <td>
                         <strong>${escapeHtml(t.title)}</strong>
-                        ${t.orgId ? `<div style="font-size:0.75rem; color:var(--color-text-muted);">${t.orgId === 'org-1' ? 'AqOne' : 'Dev Guild'}</div>` : ''}
+                        ${t.orgId ? `<div style="font-size:0.75rem; color:var(--color-text-muted);">${escapeHtml(orgLabel(state, t.orgId))}</div>` : ''}
                       </td>
                       <td><span class="badge badge-${t.status.toLowerCase().replace(' ', '_')}">${t.status}</span></td>
                       <td><span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span></td>
@@ -186,7 +188,7 @@ export function renderOverview(container, state, actions) {
                   <span class="badge badge-published">Published</span>
                 </div>
                 <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin: var(--spacing-1) 0;">
-                  By ${escapeHtml(a.authorName)} • ${a.publishedAt?.slice(0, 10)} • Target: ${a.targetOrgs.map(o => o === 'org-1' ? 'AqOne' : 'Dev Guild').join(', ')}
+                  By ${escapeHtml(a.authorName)} • ${a.publishedAt?.slice(0, 10)} • Target: ${escapeHtml(orgLabels(state, a.targetOrgs))}
                 </p>
                 <p style="font-size: var(--font-size-sm);">${escapeHtml(a.body)}</p>
               </article>
@@ -217,12 +219,3 @@ export function renderOverview(container, state, actions) {
   });
 }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}

@@ -1,11 +1,12 @@
 /**
- * Synthetic mock data fixtures for AqOne & Dev Guild Manager MVP
+ * Synthetic mock data fixtures for the Team Manager demo
  * Conforms strictly to PROD-003 DATA_MODEL.md
  */
 
 export const FIXTURE_ORGS = [
   { id: 'org-1', name: 'AqOne', status: 'active' },
-  { id: 'org-2', name: 'Dev Guild', status: 'active' }
+  { id: 'org-2', name: 'Dev Guild', status: 'active' },
+  { id: 'org-3', name: 'Harbor Robotics Club', status: 'active' }
 ];
 
 export const FIXTURE_USERS = {
@@ -20,7 +21,8 @@ export const FIXTURE_USERS = {
     interests: ['Product Strategy', 'Systems Design'],
     memberships: [
       { orgId: 'org-1', role: 'Owner', status: 'active', notes: 'Founder and Global Owner' },
-      { orgId: 'org-2', role: 'Owner', status: 'active', notes: 'Founder and Global Owner' }
+      { orgId: 'org-2', role: 'Owner', status: 'active', notes: 'Founder and Global Owner' },
+      { orgId: 'org-3', role: 'Owner', status: 'active', notes: 'Founder and Global Owner' }
     ]
   },
   alex: {
@@ -48,7 +50,8 @@ export const FIXTURE_USERS = {
     interests: ['Backend Systems', 'Performance'],
     memberships: [
       { orgId: 'org-1', role: 'Member', status: 'active', notes: 'Backend apprentice in AqOne' },
-      { orgId: 'org-2', role: 'Member', status: 'active', notes: 'Core developer in Dev Guild' }
+      { orgId: 'org-2', role: 'Member', status: 'active', notes: 'Core developer in Dev Guild' },
+      { orgId: 'org-3', role: 'Member', status: 'active', notes: 'Builds competition firmware' }
     ]
   },
   jordan: {
@@ -69,7 +72,7 @@ export const FIXTURE_USERS = {
 export function createInitialState() {
   return {
     currentUser: FIXTURE_USERS.len,
-    currentScope: 'all', // 'all', 'org-1', 'org-2'
+    currentScope: 'all', // 'all' or any organization id
     organizations: JSON.parse(JSON.stringify(FIXTURE_ORGS)),
     members: [
       {
@@ -169,6 +172,34 @@ export function createInitialState() {
         skills: ['DevOps', 'CI/CD'],
         interests: ['Infrastructure'],
         notes: 'Dev Guild lead organizer.'
+      },
+      {
+        id: 'mem-8',
+        userId: 'usr-owner',
+        orgId: 'org-3',
+        displayName: 'Len',
+        email: 'len@example.com',
+        avatarColor: '#0F766E',
+        role: 'Owner',
+        status: 'active',
+        joinedAt: '2026-09-20T09:00:00+08:00',
+        skills: ['Architecture', 'Leadership'],
+        interests: ['Product Strategy'],
+        notes: 'Club sponsor.'
+      },
+      {
+        id: 'mem-9',
+        userId: 'usr-sam',
+        orgId: 'org-3',
+        displayName: 'Sam Taylor',
+        email: 'sam@example.com',
+        avatarColor: '#7C3AED',
+        role: 'Member',
+        status: 'active',
+        joinedAt: '2026-09-21T10:00:00+08:00',
+        skills: ['Node.js', 'Embedded'],
+        interests: ['Robotics'],
+        notes: 'Builds competition firmware.'
       }
     ],
     invitations: [
@@ -282,6 +313,23 @@ export function createInitialState() {
             createdAt: '2026-09-16T11:00:00+08:00'
           }
         ]
+      },
+      {
+        id: 'tsk-301',
+        orgId: 'org-3',
+        title: 'Calibrate drive motors for regional qualifier',
+        description: 'Tune motor controller limits and record calibration values per chassis.',
+        creator: 'usr-owner',
+        creatorName: 'Len',
+        assignee: 'usr-sam',
+        assigneeName: 'Sam Taylor',
+        status: 'Backlog',
+        priority: 'Medium',
+        dueDate: null,
+        labels: ['hardware'],
+        archived: false,
+        updatedAt: '2026-09-22T09:00:00+08:00',
+        comments: []
       }
     ],
     announcements: [

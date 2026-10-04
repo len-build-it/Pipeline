@@ -73,13 +73,41 @@ test.describe('Responsive Dashboard & UI Navigation (P1)', () => {
     await page.screenshot({ path: `${screenshotsDir}/p1-desktop-announcements-1280.png` });
   });
 
+  test('Finance destination: demo mode explains that live sign-in is required, at every width', async ({ page }) => {
+    for (const width of [375, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+      await page.click(width <= 768 ? '#mob-nav-finance' : '#nav-btn-finance');
+
+      await expect(page.locator('h1')).toHaveText('Finance');
+      await expect(page.locator('.state-box-title')).toHaveText('Sign in to use Finance');
+      // No finance figures are invented for the demo.
+      await expect(page.locator('#view-container table')).toHaveCount(0);
+
+      const hasHorizontalScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+      expect(hasHorizontalScroll, `Horizontal scroll detected at ${width}px`).toBe(false);
+    }
+
+    // All five destinations fit the phone navigation bar.
+    await page.setViewportSize({ width: 375, height: 667 });
+    const buttons = page.locator('.mobile-bottom-nav-list button');
+    await expect(buttons).toHaveCount(5);
+    for (const box of await buttons.evaluateAll(list => list.map(b => b.getBoundingClientRect().toJSON()))) {
+      expect(box.left).toBeGreaterThanOrEqual(0);
+      expect(box.right).toBeLessThanOrEqual(375);
+    }
+
+    await page.click('#btn-finance-sign-in');
+    await expect(page.locator('#sign-in-form')).toBeVisible();
+  });
+
   test('Organization scope switching updates dashboard metrics and records', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/');
 
     // Initial "All Organizations"
     await expect(page.locator('[data-metric="members"] .stat-card-value')).toHaveText('4');
-    await expect(page.locator('[data-metric="open-tasks"] .stat-card-value')).toHaveText('4');
+    await expect(page.locator('[data-metric="open-tasks"] .stat-card-value')).toHaveText('5');
 
     // Switch to AqOne
     await page.selectOption('#desktop-scope-select', 'org-1');
@@ -92,6 +120,49 @@ test.describe('Responsive Dashboard & UI Navigation (P1)', () => {
     await expect(page.locator('.page-title-group strong')).toHaveText('Dev Guild');
     await expect(page.locator('[data-metric="members"] .stat-card-value')).toHaveText('4');
     await expect(page.locator('[data-metric="open-tasks"] .stat-card-value')).toHaveText('2');
+  });
+
+  test('Organization labels come from organization records for three or more teams', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+
+    // Combined scope plus one option per configured organization
+    await expect(page.locator('#desktop-scope-select option')).toHaveText([
+      'All Organizations', 'AqOne', 'Dev Guild', 'Harbor Robotics Club'
+    ]);
+
+    // Third organization scope shows its own name and totals
+    await page.selectOption('#desktop-scope-select', 'org-3');
+    await expect(page.locator('.page-title-group strong')).toHaveText('Harbor Robotics Club');
+    await expect(page.locator('[data-metric="members"] .stat-card-value')).toHaveText('2');
+    await expect(page.locator('[data-metric="open-tasks"] .stat-card-value')).toHaveText('1');
+
+    // Member and task rows carry the third organization's label
+    await page.click('#nav-btn-members');
+    await expect(page.locator('tbody tr').first()).toContainText('Harbor Robotics Club');
+    await page.click('#nav-btn-tasks');
+    await expect(page.locator('tr', { hasText: 'Calibrate drive motors' })).toContainText('Harbor Robotics Club');
+
+    // An arbitrary added organization is labeled from its record and rendered as literal text
+    await page.evaluate(() => {
+      const app = window.__app;
+      app.state.organizations.push({ id: 'org-zeta', name: 'Zeta <Lab> & Co', status: 'active' });
+      app.state.tasks.push({
+        id: 'tsk-zeta', orgId: 'org-zeta', title: 'Zeta onboarding', description: '', creator: 'usr-owner',
+        creatorName: 'Len', assignee: null, assigneeName: 'Unassigned', status: 'Backlog', priority: 'Low',
+        dueDate: null, labels: [], archived: false, updatedAt: new Date().toISOString(), comments: []
+      });
+      app.state.announcements.unshift({
+        id: 'ann-zeta', title: 'Zeta kickoff', body: 'Welcome.', authorId: 'usr-owner', authorName: 'Len',
+        targetOrgs: ['org-zeta', 'org-3'], status: 'published', publishedAt: new Date().toISOString(), archived: false
+      });
+      app.setScope('all');
+    });
+    await expect(page.locator('#desktop-scope-select option')).toHaveCount(5);
+    await page.click('#nav-btn-tasks');
+    await expect(page.locator('tr', { hasText: 'Zeta onboarding' })).toContainText('Zeta <Lab> & Co');
+    await page.click('#nav-btn-announcements');
+    await expect(page.locator('#announcements-list-container')).toContainText('Zeta <Lab> & Co, Harbor Robotics Club');
   });
 
   test('Invite member form: validation errors, summary, and submission', async ({ page }) => {

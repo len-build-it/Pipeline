@@ -162,7 +162,7 @@ test.describe('Integrated E2E Workflow with Real Backend (P8 / FEAT-001 through 
         title: 'MVP Integrated Release Verification Complete',
         body: 'All eight implementation phases have passed verification across Web and Android.',
         targetOrganizations: ['org-1'],
-        publishImmediately: true,
+        publish: true,
       },
     });
     expect([200, 201]).toContain(annPublish.status());

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/data/synthetic_data.dart';
 import 'package:mobile/main.dart';
+import 'package:mobile/models/models.dart';
 
 void main() {
   testWidgets('Navigation across all four bottom destinations', (WidgetTester tester) async {
     final repo = SyntheticDataRepository();
-    await tester.pumpWidget(AqOneDevGuildApp(initialRepo: repo));
+    await tester.pumpWidget(TeamManagerApp(initialRepo: repo));
     await tester.pumpAndSettle();
 
     // 1. Overview destination
@@ -34,7 +35,7 @@ void main() {
 
   testWidgets('Organization scope switching updates displayed records', (WidgetTester tester) async {
     final repo = SyntheticDataRepository();
-    await tester.pumpWidget(AqOneDevGuildApp(initialRepo: repo));
+    await tester.pumpWidget(TeamManagerApp(initialRepo: repo));
     await tester.pumpAndSettle();
 
     // Verify initial All Organizations scope
@@ -58,7 +59,7 @@ void main() {
     // Set to Member persona (Sam Taylor)
     repo.switchPersona(SyntheticDataRepository.userSam);
 
-    await tester.pumpWidget(AqOneDevGuildApp(initialRepo: repo));
+    await tester.pumpWidget(TeamManagerApp(initialRepo: repo));
     await tester.pumpAndSettle();
 
     // Overview should NOT show invite FAB or admin actions
@@ -91,7 +92,7 @@ void main() {
     // Simulate offline mode
     repo.setOffline(true);
 
-    await tester.pumpWidget(AqOneDevGuildApp(initialRepo: repo));
+    await tester.pumpWidget(TeamManagerApp(initialRepo: repo));
     await tester.pumpAndSettle();
 
     // Verify offline banner is shown
@@ -126,7 +127,7 @@ void main() {
           size: Size(375, 667),
           textScaler: TextScaler.linear(2.0),
         ),
-        child: AqOneDevGuildApp(initialRepo: repo),
+        child: TeamManagerApp(initialRepo: repo),
       ),
     );
     await tester.pumpAndSettle();
@@ -138,5 +139,33 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(Card), findsWidgets);
+  });
+
+  testWidgets('Organization labels come from organization records for three or more teams', (WidgetTester tester) async {
+    final repo = SyntheticDataRepository();
+    await tester.pumpWidget(TeamManagerApp(initialRepo: repo));
+    await tester.pumpAndSettle();
+
+    // Scope switcher offers the combined scope plus every configured organization
+    expect(repo.availableScopes.map((o) => o.name), ['All Organizations', 'AqOne', 'Dev Guild', 'Harbor Robotics Club']);
+
+    // Third organization tasks carry its stored name
+    repo.setScope('org-3');
+    await tester.tap(find.byIcon(Icons.check_box_outlined));
+    await tester.pumpAndSettle();
+    expect(find.text('Calibrate drive motors for regional qualifier'), findsOneWidget);
+    expect(find.text('Harbor Robotics Club'), findsAtLeastNWidgets(1));
+
+    // Replacing the organization records relabels the same rows without code changes
+    repo.setOrganizations(const [
+      Org(id: 'org-1', name: 'Kestrel Bakery Co-op', status: 'active'),
+      Org(id: 'org-2', name: 'Mossy Trail Runners', status: 'active'),
+      Org(id: 'org-3', name: 'Zeta <Lab> & Co', status: 'active'),
+      Org(id: 'org-4', name: 'Fourth Street Choir', status: 'active'),
+    ]);
+    await tester.pumpAndSettle();
+    expect(find.text('Zeta <Lab> & Co'), findsAtLeastNWidgets(1));
+    expect(find.text('Harbor Robotics Club'), findsNothing);
+    expect(repo.availableScopes.length, 5);
   });
 }

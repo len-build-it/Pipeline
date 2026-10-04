@@ -1,0 +1,662 @@
+{
+  "skills": {
+    "a-philosophy-of-software-design": {
+      "files": {
+        "SKILL.md": "c34604b6c55d357ff4d3f9e4d9155c53accb2a27d1fdeccc9c8e1c58227ece57",
+        "a-philosophy-of-software-design.md": "b521814b9d050d0d12594e13aa291029148a971b6f7d5a5ac3e74219de6c8563",
+        "a-philosophy-of-software-design.mini.md": "ad8d9bd764179c0d2fea95f2bee3e25d443589a12fec84bfead52bdd94b4645a",
+        "a-philosophy-of-software-design.nano.md": "da780d76b862eb181554548f551493bcaa40ca25a550e2d02d3c67a7885ca6c7"
+      }
+    },
+    "banner-design": {
+      "files": {
+        "LICENSE": "738f69dfa83db5c347c678fb9d90e560877059f0de93a327c39001bff92dc014",
+        "SKILL.md": "5e11796e66b97635173535e8aa51435d9ae474ad4c40c8994474a73bbd32a0aa",
+        "THIRD-PARTY-NOTICE.md": "9570cc0c0f604a75d6c09b8326ea8aaea7576d3dd971a542afab6fbada00480f",
+        "references/banner-sizes-and-styles.md": "c03911d90c7c9fe8eec168bc153c494818ef7f1d926b5403619034caf8de187e"
+      }
+    },
+    "brand": {
+      "files": {
+        "LICENSE": "738f69dfa83db5c347c678fb9d90e560877059f0de93a327c39001bff92dc014",
+        "SKILL.md": "e738a957e4b8f0dcbce7047b95bc362d669ad4eb8fa0e7bec662d680e48bbd7c",
+        "THIRD-PARTY-NOTICE.md": "9570cc0c0f604a75d6c09b8326ea8aaea7576d3dd971a542afab6fbada00480f",
+        "references/approval-checklist.md": "1cbf5f0fb3aa780c1a1406f56afe16f6af8e2e59165b8efc40038c7c0847f5b6",
+        "references/asset-organization.md": "de98123417e9c5a1cc71a78131bba979c4c8ed2e5289e6c7a7f166576e488101",
+        "references/brand-guideline-template.md": "392db8cf10fef492221c15a86e68590074bf5716de1f2982f41c01fbe30567cc",
+        "references/color-palette-management.md": "c429298ffe3955edb8b22c9f51426fef75e83d02848cd4300e89c0d3fc34b44a",
+        "references/consistency-checklist.md": "56d8b2d4852cda11e600adec4b9dd68fc89a1b8265382359953bec5c5e5e2c36",
+        "references/logo-usage-rules.md": "044c5ddf30cfe0eea047451cfce6ea654939198ffdd8968a19161c97066a5a26",
+        "references/messaging-framework.md": "24b2500a72867b55dd10f4bf359178b0eb347fddd852659ce47b69d9f597d4e6",
+        "references/typography-specifications.md": "921c3d9e6ddfde2677b9a3e32eee94c7922f54f22c1f380c5ed2eb25a7d5bfa9",
+        "references/update.md": "26c23af628869bbbc0ec55929e7f087374606218cff32ecaa864a772e477d28e",
+        "references/visual-identity.md": "63f0cfc5d95403d8e12aca4d839cc28471515574d9a431334bfbb96c15407c31",
+        "references/voice-framework.md": "08c15ac79f81cd964c5efbe593131b61a093c7e1b060d5dd28b17f3cc5b331fb",
+        "scripts/extract-colors.cjs": "f09e049d24f26aeb1daccc552e24de4bb112d12a45da4eeb14f55a72554c93ef",
+        "scripts/inject-brand-context.cjs": "5b98abdeb5c636f247102cd235f1d3421db7a4de53fd853360feaa0c471b5c96",
+        "scripts/sync-brand-to-tokens.cjs": "013ab04508631eee80c9390dff8329aa35d1a7d9271584e4c0409d1fa04838de",
+        "scripts/tests/test_sync_brand_to_tokens.py": "3043a8b69fd93a2a24c35b214a4eb28b70fcb89bdd93d4557081b4a1a2085d4c",
+        "scripts/validate-asset.cjs": "4546c9109fb0f4f767426508cb29e60d02b301f8897cf16d8e378b7ce9d997fc",
+        "templates/brand-guidelines-starter.md": "d157a57b15f0b458c79636d11de42f3c89f03d8c0bbea1bdd3cf1c3542b2140d"
+      }
+    },
+    "clean-architecture": {
+      "files": {
+        "SKILL.md": "74578ca50e06263d314d20f349e451634ee48587bb43ad2561c7a900614b26cd",
+        "clean-architecture.md": "1f0366be1720989c63df6da8f15f12e78f8786f6e712eeb16cf3690b4dab6cc4",
+        "clean-architecture.mini.md": "fbead04fa4479bc0d23b8df92e1d04f555e85b9e27994a60209eb311bf342e63",
+        "clean-architecture.nano.md": "75170a4ed69ff9f251d7c55bcd801de5ff092389cb7bc1e63975c0ea2780604f"
+      }
+    },
+    "clean-code": {
+      "files": {
+        "SKILL.md": "9723272b5f87735b736abde08edaef220b194ec698968192405d70baf4518a0d",
+        "clean-code.md": "0ec945c383144e2eeb52bdd18cc87668bff73c13421e17cc6e4ba3fc5905965e",
+        "clean-code.mini.md": "a2cd7e30a03376037e441056a5615e7a15c396642daf16f7875a0f5139b65e67",
+        "clean-code.nano.md": "67dfb781498c7c32a52ddeedc31b4bd971f04089cd65cbd57d15b0ec4535b018"
+      }
+    },
+    "code-complete": {
+      "files": {
+        "SKILL.md": "49e57d403693af04a16b784763a0552aa299f0c2105e4d7098f9ac51d509c447",
+        "code-complete.md": "57ca8fab93baea0761eeeca6c491fe79b093df47feb4172c0917a96f8ddc95a4",
+        "code-complete.mini.md": "88ff0d5bade2b840ae1296b2757a3eee492d505985ea04e4deee158efa127cd7",
+        "code-complete.nano.md": "4537c7942af6c6a07a12b78b66f8b3342fe9943145675d224dd47b065ec9f614"
+      }
+    },
+    "company-valuation": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "1aad488e2c648b5469fdf0ee4f7aa9c92ef0d56d61bca4a0610216c17f572297",
+        "SKILL.md": "ef986c1957c9e5ebea5059388768a7bba99b1cfb5c7e73e6bcfafc0db265c604",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/dcf.md": "544684861b89a954fc2d86ff808e0598255bc324cbe79de3017784d330a5ecbb",
+        "references/relative_valuation.md": "26f219bd1f74a8aa59d31b2391132cd7ac809cb0942f59067fdd451d419e2d0e",
+        "references/sotp.md": "ed8a5f93056003a6553ce8152c36dc8bdb589e06e2445d1d543486d961e17f62",
+        "references/wacc_erp_rates.md": "7a77f82bdf6460485ab371c58a0cf411638b78d0617029bd905861e2e4a68037"
+      }
+    },
+    "council": {
+      "files": {
+        "SKILL.md": "8e62b1b674482e62e14d8eb6fdcf4b6cb2dcb952bf07ecae7b5a5654d77f8fb2"
+      }
+    },
+    "design": {
+      "files": {
+        "LICENSE": "738f69dfa83db5c347c678fb9d90e560877059f0de93a327c39001bff92dc014",
+        "SKILL.md": "0e770c21b8c340e554dc92ba3ba07614ef8ab6c8e4426ddf31e10d10507337f2",
+        "THIRD-PARTY-NOTICE.md": "9570cc0c0f604a75d6c09b8326ea8aaea7576d3dd971a542afab6fbada00480f",
+        "data/cip/deliverables.csv": "229912f35c2f5a790508ddd62270cc7a92a84694027025ea5a30f1fb5ba84b70",
+        "data/cip/industries.csv": "729b1dea6d6f39b0bc22a1e659584e7ca5cead75841146d599c9f8dc00d4da46",
+        "data/cip/mockup-contexts.csv": "15d61cef16e6746d5aa665976f4de8074fedb64bfc5c7313a40eec1112a1d499",
+        "data/cip/styles.csv": "4e7f9e209bc90b60df62fd9843a1a73b365e54161dbd820b82817a8e512af4c4",
+        "data/icon/styles.csv": "a4aa7d326ffe1e50961eb70e25a6351f45c0247cd245461fa1a27cdc72f903b4",
+        "data/logo/colors.csv": "d60218f0705bb0f0b892a10468a5c8d9a44eef3d0262ef8df8970ba3fbab567a",
+        "data/logo/industries.csv": "e58dda4b9d28851f70914f82c1d2a2cff626a991ca41076f64122f33cc8a6525",
+        "data/logo/styles.csv": "ea08bdfb7aa557f08d1b6299222423f948700f8e4029321acb58c8f83197bdf2",
+        "references/banner-sizes-and-styles.md": "c03911d90c7c9fe8eec168bc153c494818ef7f1d926b5403619034caf8de187e",
+        "references/cip-deliverable-guide.md": "1424e120b967288e2334f24fcfa5cdc7f238420326a7444f4c5597efecfabc41",
+        "references/cip-design.md": "1194f59a330fa70052d193c6ff8c1f6b907cd1ad1eb182a7f21b7b8020f7bf74",
+        "references/cip-prompt-engineering.md": "4bf3a0c858f38c230e43e872857b72d9eb692e066e8de5920da75aac733e753c",
+        "references/cip-style-guide.md": "f3e15408cd981e93804440c1159c12e02d001bc37a3945f455b3fc13729ed4e1",
+        "references/design-routing.md": "bc099a1fc0d7b0a6580f214b9166376b711aed61978c56d0666edb27dea160d8",
+        "references/icon-design.md": "f170871a504c7fa82a2c70fe04007e0ec7c0b91326fd74ffe33bb3c585636576",
+        "references/logo-color-psychology.md": "3fd0e93e24c3b2ea7f3be778e8f2d03b1c62c7c6eab3ade478c8fca332bff287",
+        "references/logo-design.md": "8f335b0e7e8538069bfd5af2c1ee4a9f281f14b2854e8a49bfa14253324abb7d",
+        "references/logo-prompt-engineering.md": "e50f55bf323263eb27b4cd4c5172383a787fb894581d5d2befb3f6e0180b253e",
+        "references/logo-style-guide.md": "611baa841eedab101f45c113c6bfbd4d7e16e859c9d6ebd2cf941827a6e8dd15",
+        "references/slides-copywriting-formulas.md": "2df4d83d7a6d4e578dd78911348357b45dfaedbcc948ffbac0e31579c5fb692a",
+        "references/slides-create.md": "792d647a5d4f87d765cf417f7ac54dd0b2fc4d229cc23ea9df56282d4c1ee086",
+        "references/slides-html-template.md": "7a3a499a3fe11504e36cefaa39753874eda2ac7083ad8e519f8d544b93a18cf4",
+        "references/slides-layout-patterns.md": "0de6208dcb32f896ad24df1bfa0c88a6abfe13c6a1ce43df06014810ab98314b",
+        "references/slides-strategies.md": "cc97651ae1b404bde4df6ad0f7b5ef0c3f91506c9c5cb67748489a96fd155a0f",
+        "references/slides.md": "5630d5daec947ff58ab1ac97c7a1ee77a21cf6f5dce5155535b65d291691979f",
+        "references/social-photos-design.md": "0f3040d05ec6daf7ffa84c889a33a95580653697a2a7e8ee2040d3cd25fcee35",
+        "scripts/cip/core.py": "78a78a51f12d2382b2854414df395dc62b68532626ef724ddd5de713507911e4",
+        "scripts/cip/generate.py": "df45dbfd6b57c85451bd51552987834e2d8a32964e3fe69b70aa3b6e4fd7f1e4",
+        "scripts/cip/render-html.py": "a49a89a017ea4a2c492438055f05dfba3dfb4f91563f5f913359939beeaeccab",
+        "scripts/cip/search.py": "6619fbbe71983003a858c5eb79bc59c607b342610a1178b6976c687c2932161b",
+        "scripts/icon/generate.py": "1a6be99dc233f6d9f8b558c26148203418be5b47c677cd83e48e41e78e38780c",
+        "scripts/logo/core.py": "4f8b36ffe538e5995d0e0b740053a0899a1adf445ffdf484bd47f94e71ade8d0",
+        "scripts/logo/generate.py": "a72e25d49e48fac6a1059d681a39c3f334c085f54ab90a88d1c9726edd079940",
+        "scripts/logo/search.py": "693b3a1824831f120d4c60ed72477847604da1f6b654343381f8e9d3800a28f2",
+        "scripts/logo/tests/test_generate.py": "1afc084cd2c5af8bfac0748f11aa547bc78e3f638e06421dd0fad4c0ee6286dc"
+      }
+    },
+    "design-system": {
+      "files": {
+        "LICENSE": "738f69dfa83db5c347c678fb9d90e560877059f0de93a327c39001bff92dc014",
+        "SKILL.md": "e43fc625ac2c0f938ec265cc8e832e3496a41629bd768bb56b350e71059c9f2e",
+        "THIRD-PARTY-NOTICE.md": "9570cc0c0f604a75d6c09b8326ea8aaea7576d3dd971a542afab6fbada00480f",
+        "data/slide-backgrounds.csv": "d1bb701b87bef493d72974d6fac1087c8ba4e2df14185fe3e0c36a13fe35f3d1",
+        "data/slide-charts.csv": "12ef876cd76e67a6553444bfa2ebf1d5d4d6216289d34db052a6e87421135033",
+        "data/slide-color-logic.csv": "ea68c737075f1615b2a7e461e2878c06bfe8f803dcabfbcc2977ffe5f9ec9ded",
+        "data/slide-copy.csv": "43152937a0e598b3fbfdd418684311c105d44e3c5b333703ddb0b8cb28e40658",
+        "data/slide-layout-logic.csv": "26b5b75782d5aba89836c0479acd3111cc69b67853db9c2259b30ac1e966bc62",
+        "data/slide-layouts.csv": "95d558c1b7d2552d7a75402dc68facbd16125e574985851db5729d1145e14896",
+        "data/slide-strategies.csv": "f656be0ab0b3a85fa7fc74202e9701a7236220412d67d5f63eb6dbb100bb2639",
+        "data/slide-typography.csv": "b96cd11dd4ff1dea8a9454b0b9e898e7f82f9243182f8f237af1f2c9b8824ce5",
+        "references/component-specs.md": "b265d979a741dd748d4e595e6898ae430faeef4f6d13d7a634fa6241b91d2da4",
+        "references/component-tokens.md": "e27f8f5999badee425c98235eabbd2cb3ebe2a1a364766d5c7a6b3134ceaaec8",
+        "references/primitive-tokens.md": "91e6caa12646c08c8aadf8e09399aed65760a25c8d80595936d81a9131118fc3",
+        "references/semantic-tokens.md": "97e16d8061bbc22e82b51966a7015e3fc990932902e4647843506669a1cdebcc",
+        "references/states-and-variants.md": "8dacb95d57d4bb37d8a99cc55515ff26da272056f837d29abc74aedcaa3ba104",
+        "references/tailwind-integration.md": "6d01092db1479dbd2060567b4232bb2b4bc16e89730ab07e1f87a3e7f5c406b9",
+        "references/token-architecture.md": "925f4049c4c4313d9fd5df98cdfd52004112aca49fba1664ad85e76bc9dce4d3",
+        "scripts/embed-tokens.cjs": "8c8ad04c1f948402b80693b400047e716235654147a797e11f3ac0283e143486",
+        "scripts/fetch-background.py": "020d4e54bc26595472dc4b5a421830e0e83ffea3f44225fac8ac5f832430e691",
+        "scripts/generate-slide.py": "0463c98efea54870816925015fe5819e42a29aaba57408c2c38bacb33e2605b9",
+        "scripts/generate-tokens.cjs": "aac8a0f4ec4dccf0d371f9ee5a9111e44977bb0cad7e40a3754aba5571aa1231",
+        "scripts/html-token-validator.py": "1242a778493a8fd646da50623d654b783ed8d1b6d4234b3271789eae9f5a4bed",
+        "scripts/search-slides.py": "3d3d842d1c1daa26084a89aa7a41eb89d8c62b777f45cb4923b42aa10bb0b041",
+        "scripts/slide-token-validator.py": "66da5da5e8e659d405a89b342e13dd1e469e79726c46002d9d2368c3c7aaf945",
+        "scripts/slide_search_core.py": "2464050ae338eb50728086046b644845fa7ae943f32efead3908fdbe1473edbe",
+        "scripts/tests/test_validate_tokens.py": "43c56f6ecb89d4dd4010ccabcf047d2f3824d39bbbd5a1f6f697333ff27c59e6",
+        "scripts/validate-tokens.cjs": "65f03a29290b9029d8cc27537701f226de7bcffc303b3bc361648fadfa09b77d",
+        "templates/design-tokens-starter.json": "5444f477b06bab9c72e2cc289d4a9104efef653391c9639972bcb712d5f2d81e"
+      }
+    },
+    "designing-data-intensive-applications": {
+      "files": {
+        "SKILL.md": "7d456399437f98409df01ef991ddaa6ff5aeb2b3a8aa88e320a4255f3f5cbf8e",
+        "designing-data-intensive-applications.md": "8c1bfe1529076fda8f828ed6939b63bc3016830ad3c705071699a250e98b8f25",
+        "designing-data-intensive-applications.mini.md": "cb4ca5fa4dc4fe179772f6fc42f4cd8899a7b95677e5cee13602229099063a12",
+        "designing-data-intensive-applications.nano.md": "31ba0118a6e03018e38c80f7b03dd9d4cbb343a048c31dfa0df07a56de484c0e"
+      }
+    },
+    "discord-reader": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "1695468acf5b125ffc87ff5af2d310d0cc29987287162cd4c94bc16564db18c2",
+        "SKILL.md": "aac6f754271d9e5b7024f2c41c1108663cb301f086893376fa1d629a853fb200",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/commands.md": "f8869f500c65862f4079aa76e31d4696a271e823e69457951d752a593f35a810"
+      }
+    },
+    "domain-driven-design": {
+      "files": {
+        "SKILL.md": "2e50a4156197de93b5a8cda0eddb159cccb4f05833bc725ea38369e57c3f104b",
+        "domain-driven-design.md": "de806ceb828df4408e452361ab587d81f213443ad057017b1f6bed2334d5aaa6",
+        "domain-driven-design.mini.md": "ed6febaa19d3b8c59a67ce61ee6e950e472743f0aa6655a6fed5d6d1d1e8691a",
+        "domain-driven-design.nano.md": "ad703ce23f4cbb4715bd48d3142fe0bf1137e1bdb154c67cd3c3d5be1d7ab3ac"
+      }
+    },
+    "domain-driven-design-distilled": {
+      "files": {
+        "SKILL.md": "a1e8bdc4e52fb4133749a5ac3d675139405f546c258fc5dcd927de60f4b4ab73",
+        "domain-driven-design-distilled.md": "d665da3c697df36fe04f8bb266381e5b40d158aad5283c1d233d4c47319e5b1c",
+        "domain-driven-design-distilled.mini.md": "830e1792c886ed8751a3fa80f2c10af6da2ec280fe462dd63584d9ab48c7364a",
+        "domain-driven-design-distilled.nano.md": "b7d5d4cc0774abb210800d7dc4bfd32d80bea8aba2577899b914612be5402f7d"
+      }
+    },
+    "earnings-preview": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "6d9964b623885d9eb15d8313ee1fcdf5f4350ff91b7dd5bc8962440fe46b833c",
+        "SKILL.md": "51a3c5077f9b9111dd75a02e0027ce872c2f95a6b6d4370d5cce55ae26e503b0",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/api_reference.md": "ff0e844ce1bb71b24d2cbc2cb8b8036f1788b5cca6e13205b8cd76fa561b81df"
+      }
+    },
+    "earnings-recap": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "0e03446da4ccd39c7ce72cff8a52c6d8f314b350cc22f904b59435164ec35e7d",
+        "SKILL.md": "542486f7dac05181b13f81871e1990f339da56ac5de0b8d0c9d32a806edbd215",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/api_reference.md": "f633a31968d9081c6ce82e52673bd8fe4c209bdeca53a1c7cd2f08e89c6c1959"
+      }
+    },
+    "estimate-analysis": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "7408acd3d8c76ce5568bf56d2795462a2b20549dd7ebd4666dd6db85a180ef72",
+        "SKILL.md": "e5de5a17f3ad0fe3ef49903e4a06baa64cf2387d09c51bbe1741a7099f6a9294",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/api_reference.md": "64737a3176919119b66bde6e59583d2ee9ffc6e90c021fd811b24b3a6092b87e"
+      }
+    },
+    "etf-premium": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "5381b4b4e501bb797b3080efaee2a6d0fdab32fad293a841d0472026810d1563",
+        "SKILL.md": "c22114b2e0f3b4b079a4f734dcfd989bceeddd56def9acad1671afe7211f5751",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/etf_premium_reference.md": "c61c3d4a7bb36208afb46c75d017cad0459198afb1b38e4c0198e78715bbe526",
+        "references/gamma_squeeze_reference.md": "f5aec36114d973fd0202ad00f4e2fd8a8353afd18f9affea6cc5569ea530c4c4"
+      }
+    },
+    "finance-sentiment": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "dbfd1154d6aff8c812ad25bf5ab1144a8b12f0a97bd29cabe4cfdbf9676e7b92",
+        "SKILL.md": "cda06b8840cab5d623a09598317b23778d3453601808902abf3d945c8d1f4b63",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/api_reference.md": "7ff5f000a3850f328edd5d6dcb45fc9dc9cc14b8ec148036e3ee13ecb3213a93"
+      }
+    },
+    "fintel-data": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "8563bcbf6a12bb0efe7d1d0272287c7fea213aaba2b692158641911ddd6c9be8",
+        "SKILL.md": "3ec6fdaac748527c71ef0ce95fd99679ca9b47d4ac7555a0115e5e1e7e479ac2",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/api-reference.md": "ff8f677b312b7302216f581b5b49bd31a467fc778405708359b3160ccea360bc"
+      }
+    },
+    "generative-ui": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "2652de042d1fd8a58631d5adb4b764dd84b6698407512cae845bcc25286114c4",
+        "SKILL.md": "52133541b6a2d2902b33743846a109784db1eb77b180f925ddee8b5330b7c324",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/chart_js.md": "bb85c2ab00ddc233533a6074e442a3e78d506462385c34b3920420ca09eeed53",
+        "references/design_system.md": "4c46e524ea943145394daea4438d92ea865fe1ff7fd964eb80a37357255a5577",
+        "references/svg_and_diagrams.md": "92c6f6d4ed7ef66672d8f609d3f3ed6c83b7d675dd3deb72d6de95dcdb5e2461"
+      }
+    },
+    "hormuz-strait": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "3a4f0244517be681c62bf349045a2f1921dbacb6732a280979127173277c8736",
+        "SKILL.md": "3cc1e1ed919e79d9ed868670482e04699ddf7129126176bcf847bc8f4c7d79be",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/api_schema.md": "96328e2194286501a23bf545f2e600e2b9ea776975c5aaf402e0bf5eb09c4ae7"
+      }
+    },
+    "hyperliquid-reader": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "7e57d2742f9cb0fca5c3c173c4780ee277c9d90edc00f05fac87a422b6b0f44c",
+        "SKILL.md": "7b86550d18184d73c92eda1555c7677415ff2078baca7b7476f90884a667658e",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/commands.md": "3087effbe93df652d0904c2badf8d5740cc706775d5c7bf0ec21f5b7eabfdb8b"
+      }
+    },
+    "implementation-plan": {
+      "files": {
+        "SKILL.md": "727639335b784cc4d7c0b19c2a86b220c115d5aa41c5fc3275e3796c1d9ce19f"
+      }
+    },
+    "implementing-domain-driven-design": {
+      "files": {
+        "SKILL.md": "33eef0abefbdd9ad26ddf5c4636ac4d36fdc7429effd23bbd4f73e3e6194c074",
+        "implementing-domain-driven-design.md": "cd2c1d404f60720cebca17fcffed9d68d94b1eef4a13bed63a4f59f01db005ad",
+        "implementing-domain-driven-design.mini.md": "9c1a6bd647823e514320840a32cf06ab26b04ec03656d63820e75db959858249",
+        "implementing-domain-driven-design.nano.md": "b159464fdae8f1fd4de89058c54f8c5f5c86f914587e89a935e5978483fcfeb0"
+      }
+    },
+    "linkedin-reader": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "15cbe3a2bde1cdc799fefa71d7775328e080778fefa681797df522c055bda426",
+        "SKILL.md": "2740a15c1463203985ab972eef1eddb4e7909368225041514a154a899c8069c3",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/commands.md": "7ce55eb1d8eaf763e1630ef671e4ebeba5893b5ed5afb0e16fc60f8ce7c27e75"
+      }
+    },
+    "opencli-reader": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "fa5cd9299b31adadcef8d54b2ee2ad9f2757e72c8a2a1a868e83686a3861d66b",
+        "SKILL.md": "9ff52b027c83dc6d55a78b6e634471c888f829d407de4be443aedc2fd09ad79d",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/discovery.md": "07a4ba3f9de577b9333760f82d043773214019652743bd8fb35314f960435b6e",
+        "references/finance-sources.md": "4c80c5f70137d616fab48c1b5c89091242e9a98796f2b0777e7c8caa632c03e3"
+      }
+    },
+    "options-payoff": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "35027737cb796bd504b8759213e3df73908177f920dcc77eab5f7618135c7997",
+        "SKILL.md": "2c383a7dc580ec3eaaecf15bbb07ce21060d5760e81ed6c4e8ed55fd72722de0",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/bs_code.md": "c40b2b1103706e704aa0e82f2cef8e154fe69ace4fb9ff56421cdab33b478f57",
+        "references/strategies.md": "46afc130454b7ee7ec4a6744a7bb106242440dc8b4907bac628cc4b32fa0647c"
+      }
+    },
+    "patterns-of-enterprise-application-architecture": {
+      "files": {
+        "SKILL.md": "fa705698efa8ef9d02296c853a3fcdc026b87d67417fbbc243adc6d7cf56339a",
+        "patterns-of-enterprise-application-architecture.md": "e7f30e7d65005924ec29cc0c6f032aedd0b1bffa22223d5386c5a3140cd76af0",
+        "patterns-of-enterprise-application-architecture.mini.md": "f4ffcc47f78c524195ea687a7030d5629cc2761bd86cfb9948533e4212a01f4d",
+        "patterns-of-enterprise-application-architecture.nano.md": "0bca8dc3c5a3b9af6d0d5f93d8439d3ea1f41716ced0bee9e13190774f0e8aea"
+      }
+    },
+    "ponytail": {
+      "files": {
+        "SKILL.md": "89401a55ef600b96ce72d8e2970b4cc1a0213a117e79aeeb55cde9fab959f1ee"
+      }
+    },
+    "ponytail-audit": {
+      "files": {
+        "SKILL.md": "de64d65b53c57ddef2dc66478099f2fa5f0920c4795bf6ec8cd8fb2cb5149771"
+      }
+    },
+    "ponytail-debt": {
+      "files": {
+        "SKILL.md": "133dc48a528b72e610fd7db6e750a25ca2ae9399d50849c12dd8c83a3dccb1b6"
+      }
+    },
+    "ponytail-gain": {
+      "files": {
+        "SKILL.md": "bb6eb22b78d2b95a14e7626e2ae3ca89eb4f40b977e8c5ca47e1b413a610f760"
+      }
+    },
+    "ponytail-help": {
+      "files": {
+        "SKILL.md": "66d518505cb9806cf78aa5953a2e720de55da96fa16250fc4603859ce1e6329f"
+      }
+    },
+    "ponytail-review": {
+      "files": {
+        "SKILL.md": "7bf27cb5159b44be20b13aeaeeaa566564917be4f29befdde0297e7c47e1eee8"
+      }
+    },
+    "refactoring": {
+      "files": {
+        "SKILL.md": "d21cd1a2c17a92a44ec073a8ed341ed2a14986b01d09b9b27a61e5513130517c",
+        "refactoring.md": "d7b9cf2b5ca26f3576943ff59cdeee61b65138213777b0e03bfe1075cbd966fc",
+        "refactoring.mini.md": "dc3dc62dad43d9178a57aa768cab7be909bf48bbeb0f040401f90a22cd7c8c2c",
+        "refactoring.nano.md": "ce32dbb86b42fa948106ebea928cbe2996d61b7bf8ab0370824fc2c32cc0ab5b"
+      }
+    },
+    "refactoring-guru": {
+      "files": {
+        "SKILL.md": "66c509c4c9977e3bc5de880968030861325698603a3e9472609a2873b2434228",
+        "refactoring-guru.md": "c92bdfcb8fc5d64a21f10fe268a02bf6a9a9ce6228f83ac85743905cba4b2497",
+        "refactoring-guru.mini.md": "c7c752b794400cbc0527c5a721c323531dfe3c0e963ab95f7c92c51603006054",
+        "refactoring-guru.nano.md": "ee7982dedb94d827d2c9462074d3949687d25b7cfd1c98c644be334cd33ba9b4"
+      }
+    },
+    "release-it": {
+      "files": {
+        "SKILL.md": "e267c8aed935f87062da1b6f24065405b1380b263c46b017f574a29fccf22704",
+        "release-it.md": "ac72b846e9584f376090c8508b2bc66f557ea8d14195ea3b20e15a66b27c4aec",
+        "release-it.mini.md": "21f3e9cdef379f4980b8883d36b587770e56917f0862fac46e57cd1e58d18855",
+        "release-it.nano.md": "3ea2afbcd3fdf7dc9d1ade188eb21764bfd29dc792b5b243f98b89b4f8dfaed9"
+      }
+    },
+    "saas-valuation-compression": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "f6293d7c27c6265948cf040525bdc3ba5f59b2b7c6d371392b72f994eca704ec",
+        "SKILL.md": "18f5d10374f220c28a0ea3dfeacdad71ba4f6a8fd9cfb6342c1664a83998d12b",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/benchmarks.md": "7c120cbe78678b47397a93a30bebc07aeb1eaf6b6cd2b341507dc08add7f01a1"
+      }
+    },
+    "security-audit": {
+      "files": {
+        "AI-AND-LLM.md": "7335a95c43554eadefcf03ece639291bb0e038c398a179299e3887ffe06bd2ef",
+        "ATTACK-CLASSES.md": "a7ee3ba35d6bf076d0312bbb434f23262947bc5ecc270fc747ebbe3954f28a11",
+        "CLIENT-SIDE.md": "613f6b98f86083e045525c5b60154ffdab122bac35f1e05eb17488e6e453370c",
+        "CLOUD-AND-DEPLOYMENT.md": "3c80f3088be22345e07b057c056d6ed99fe2b0304f794398964f7ccd5a496ca3",
+        "DATA-ISOLATION-AND-LIFECYCLE.md": "307dcb3e24d292715c4a041190e7bb135646a37eb6187619ae01d000a634a4ad",
+        "DESKTOP-MOBILE-AND-LOCAL-IPC.md": "58eae8ee0ca6a46611c501ec5a3ab47fdff88dd7db0d8d74789bbf8bb19d8cb2",
+        "HUNTING.md": "0bcc7ecf89fd168e5d126028a7292024d7e9901889d54246f98028fd31560404",
+        "MEMORY-SAFETY-AND-BINARY.md": "7c8b0dccfb35315cca2455509674d49632b2fe37e1f3aac16c1a496a7e9924a7",
+        "PROTOCOLS-RPC-AND-MESSAGING.md": "8b73816fa5b3697c9c40977f0c836b40f01d6e81929ff2720fe83ce089e9a619",
+        "RECONNAISSANCE.md": "5c5f5d02c1f051a4c90ab35c6ce78ab91580bfce275913e56d12801c9a6e3fbe",
+        "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md": "4326fab5c92a0b4c420a70196254040105cd794026562130b59bf1a6db3e4baa",
+        "SKILL.md": "b877dbc32f1bb315e4ca20b25fd7d2bfb50884995a0e6ae2adaf7b9e948d2bcb",
+        "SUPPLY-CHAIN-AND-RELEASE.md": "f372e919940e335468ba1ae09f99026c3986a345f7fe26f8068f132e199f52a5",
+        "VALIDATION-AND-REPORTING.md": "b963a4f25986c5dc2b0c66068f4f0f537749e06b2a5c22788f987c0025511091",
+        "WEB-PROTOCOL-AND-AUTH.md": "4f3066dffa23c5635859187be9b96c32f2aff29a688186b91ff0c63e47d62b5c",
+        "report-schema.json": "6575c9de4a62255699ea052ebf9a49ebfb373a32891bcd89af6f55cc84b35519",
+        "validate-coverage-ledger.cjs": "2eb280bd2e33c002916f86db9b29f9edfedb6454e5db973c766290465b868ac8",
+        "validate-coverage-ledger.test.cjs": "cfb9df26b03469a4279a70e7664a2a5434dd6f8c2c204e91f9b0aeb9dd71e648",
+        "validate-findings.cjs": "e85f232e36bfac0f866f244da50376692d6b45c690beadcb00608b0e6c8b5283",
+        "validate-findings.test.cjs": "b92001117a92c4161d43777a0ba2fa182a8a4d97f2304cc8c0cee5331497b73b"
+      }
+    },
+    "sepa-strategy": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "fcfacfff53ce4684c4f83876b15c3fcbda7c6af69b506a07785fdfbcf3d4bf2e",
+        "SKILL.md": "fbbd1a6ba47deaefb34708fa162e8d6f73f62301c9fdeaa8ca784bdc122ebba6",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/entry-rules.md": "5b41a729b9ea706e760237b94017b6b292a4a65053b9e518bc73e28717697700",
+        "references/fundamentals.md": "18b53d49e7f00a167f2eb4e61c0ca2e93c3ce58f2a8734a09b8552f525bb21c8",
+        "references/market-environment.md": "738e5e6e42037c35ced931649847ddcd5619ca2a6ca13b14d256e1a995dd6110",
+        "references/patterns.md": "33bc2b99e4ac442c218552d2ed7f7b1043fc808933c8f6985fa0bb2049a892fb",
+        "references/position-sizing.md": "69dc4171a5ef05e2e73d2c07df1006b703b20623af16d7eb1627a52f68a47f44",
+        "references/stage-analysis.md": "f5b8e51f51f097fb3453d52e7f8d6b4f984944b1e5bc93880bfbf187782fcc67",
+        "references/trend-template.md": "dd2e9b38d6fc22228352935ced5d2c6e5d0a54b4198ab976f0efd46b781c22c7"
+      }
+    },
+    "skill-creator": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "086afb0c380e430250004b22ef3b7ca1a335612e0d667f54d9f2c81eb02cdfd0",
+        "SKILL.md": "cc755b87a9c3f5a3661e1b63ab779174b795f994aaf17c13f290982c3f7273f8",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/architecture-patterns.md": "a0478c93dd4d2f2da67f5263794508b0d0fc3c52faa6f2ecaac1a343254d1a33",
+        "references/dynamic-calling.md": "1024e18ab2c59b668d800391e48c9b40144d85548a92b73182e8ffad60625e76",
+        "references/frontmatter-guide.md": "0413341928cbcd41fad953e95640e383ab821dc7cc8f52137f8ef5c6c6630673",
+        "references/quality-rubric.md": "685f68e9e15e7ec02033dbfd0897bb2589fbf8f6e97fe5cf9e92186a6c8be689",
+        "references/skill-examples.md": "2f159c8daa00b0111dec9ba8596c5a85da07bac79168e00f1b16c77aebeed278",
+        "references/writing-guide.md": "c59b7a5fc1fb1330443ff836e35a576522e999eddf877f40b6880c5d1a9fe9ec"
+      }
+    },
+    "slides": {
+      "files": {
+        "LICENSE": "738f69dfa83db5c347c678fb9d90e560877059f0de93a327c39001bff92dc014",
+        "SKILL.md": "edd68dc7d10f1c79ffff940147f1106b7c37626ab300ba83e5e5a99f28ba5498",
+        "THIRD-PARTY-NOTICE.md": "9570cc0c0f604a75d6c09b8326ea8aaea7576d3dd971a542afab6fbada00480f",
+        "references/copywriting-formulas.md": "2df4d83d7a6d4e578dd78911348357b45dfaedbcc948ffbac0e31579c5fb692a",
+        "references/create.md": "792d647a5d4f87d765cf417f7ac54dd0b2fc4d229cc23ea9df56282d4c1ee086",
+        "references/html-template.md": "7a3a499a3fe11504e36cefaa39753874eda2ac7083ad8e519f8d544b93a18cf4",
+        "references/layout-patterns.md": "0de6208dcb32f896ad24df1bfa0c88a6abfe13c6a1ce43df06014810ab98314b",
+        "references/slide-strategies.md": "cc97651ae1b404bde4df6ad0f7b5ef0c3f91506c9c5cb67748489a96fd155a0f"
+      }
+    },
+    "spec": {
+      "files": {
+        "SKILL.md": "f7673d70232ef29b63f5d641c61edf634183e169a94817cd3ca7700daa212f51"
+      }
+    },
+    "startup-analysis": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "76e808af6e02343bae8d1fce75be84748d003334aaaad89c64e49b03a4fe4ea3",
+        "SKILL.md": "d473560375c83ff7c4e11df051ac55cbeb607c252b8b1e2387d0f4015433a4f2",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/ceo-framework.md": "97dd9ef4cd764891e0336b0481cd183ab386b3afe4836624a2ecf0aae1c7f871",
+        "references/job-applicant-framework.md": "5126a3dc7700cfae5c74bdd8beb574dfd68d29050f451e9800e27d25e1a0d941",
+        "references/vc-framework.md": "d52194cac1f502ec62666e363274d4c9e024d027c21049fe2374d334c4a38e03"
+      }
+    },
+    "stock-correlation": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "18d78bf9e7119e885e92472721a87da48ddd08fbb4941a4cbb8976bb72781036",
+        "SKILL.md": "b61313e65121b9c53ceb2db32ea5c0d71a6cb8f02c7e3bc9cb6b348300a5fdee",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/sector_universes.md": "fd8fd00b08ff287c5fbd7d93d7b6a0265ae857c62f9c914ec0a454a5a39d4d55"
+      }
+    },
+    "stock-liquidity": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "76765536498d4d14ff04ab3855fc4dbee3ed9ea6c20ec9df1b389c18b9b70057",
+        "SKILL.md": "19ee5f983f9cff2ea472c2ecc2b754dbefeaa723659826cd563fcf68f20a895c",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/liquidity_reference.md": "29ec58375144bc2454c2b0d6e45d4d25b1aa1db57f7f0ce35ab7f0fdfb247bac"
+      }
+    },
+    "telegram-reader": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "88a7f25362dd1b8f3b64fea179ccd798f9c3b4c5d3cb999ed77751c2d2cff7d2",
+        "SKILL.md": "8aad8c92e6f2d20a711c3cafaf44f3e50317c1c3daccc0d2025f87aa233bd0f4",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/commands.md": "e321dca56d95d1d2ac5fc3b4af5b0d9a2d99171c278e8188220cd2c9801d7a16"
+      }
+    },
+    "the-pragmatic-programmer": {
+      "files": {
+        "SKILL.md": "1262b92abe0e66fd2ca2a1680fb6f9cd941866809994afc48abd746fbf6916e7",
+        "the-pragmatic-programmer.md": "ea10063caff1989c1442c2aff501a942281fb5b06456e822ab856c701fc5e28d",
+        "the-pragmatic-programmer.mini.md": "8c0bfde32f29be00e595cf6c103a04b395d258c266784846ac57f2c3944f470f",
+        "the-pragmatic-programmer.nano.md": "050fcef723019df89003bc1e6801198aee086b56e4050f84fa5686cb0004c2a4"
+      }
+    },
+    "tradingview-mcp": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "862f6b0bab34afdd4ef322bb20bb1749833a69e2904424c1c842a5a0c6064852",
+        "SKILL.md": "558ed451ba2d5193f29743cae796e7a6eb63888e422f8c22227b859341c9d131",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d"
+      }
+    },
+    "tradingview-reader": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "d5e47d72710a81e6c750a129459562b11c9df1aade6849cdde7d10ebddd92fb6",
+        "SKILL.md": "4833f2d0dc8f0bb4e5b99d7847c6f4080abd78936bbed82d95b4ef70c658d45c",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/commands.md": "a0e90c7840cb11b584431c9a76d5d1aecc4d7d236aa00b46ff117d90a7f461dc"
+      }
+    },
+    "twitter-reader": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "3d1bb6354e58ec218f6f123dd10dfa6868919be6d76420994d1a9decb0fc1d86",
+        "SKILL.md": "86af18cf06d697382381493f9ed11a5a6df3189bac327cab22f5ad2c2f87a2e5",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/commands.md": "d79b714e921326260fd7a33510e54753308e778efb5c7fc1f15a25b174953042",
+        "references/schema.md": "a9692c1979d04c6893a46ae846b71613da74b3ff6becb58fd16b7c5bdbad16bc"
+      }
+    },
+    "ui-styling": {
+      "files": {
+        "LICENSE": "738f69dfa83db5c347c678fb9d90e560877059f0de93a327c39001bff92dc014",
+        "LICENSE.txt": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+        "SKILL.md": "4c6e1380ae1e416775b8353297cda261853ad45a5abc84bd4a01540bf20d2b6d",
+        "THIRD-PARTY-NOTICE.md": "9570cc0c0f604a75d6c09b8326ea8aaea7576d3dd971a542afab6fbada00480f",
+        "references/canvas-design-system.md": "f5de85ff39d9f3a8275c4164b921ba72d5e1d34b8d7a9243d9ee34b3870a4f5f",
+        "references/shadcn-accessibility.md": "a22cd4ccf82b635b2b2c4f12416a0c4f7edcd825d219d6089450fa797a0d9511",
+        "references/shadcn-components.md": "79c4f91cbf68993a43fa3a95889c35db73de45bdd3dfd83a6830863c01aa598a",
+        "references/shadcn-theming.md": "d17d641474221123ff0e0288043ca2f2dab3ac96908a19eed28d82f9e58865ed",
+        "references/tailwind-customization.md": "4c5adeed6263a274f74f6eb2c816ca420fd6ef4f35683582988bacd404799afe",
+        "references/tailwind-responsive.md": "8d00ae620df26daea4623c7bf996d6e612e09d359305fcfa2b40cab757ed840c",
+        "references/tailwind-utilities.md": "aba1c40ef84f43beea142ae310371e332541f39d973df90a71f1854823effda1",
+        "scripts/requirements.txt": "09402d2d274248e18bb5fd0a0267fd7cbf99b7a2440e73e87f054aa8f259f9da",
+        "scripts/shadcn_add.py": "0c11d28ce9f12217df2c3306f24ae1f73527d5116db63707ab55cbe1a8bcf28c",
+        "scripts/tailwind_config_gen.py": "2385104ac3ac6dc1118063c514d2a126b8e0fa4c739a80191d3e87cda3979325",
+        "scripts/tests/coverage-ui.json": "33bdc1f5998db9a38cac8e6128a82711f8f8b65fbb3dcb0c1680ae260441cbce",
+        "scripts/tests/requirements.txt": "80846c98ee02a7e9651ec4eee6709f840b785646b469aad5284ab7ab9b344f17",
+        "scripts/tests/test_shadcn_add.py": "35f60ac5d74c4a7f950854a0337883c3e8dd812c58fcf6c5153876e43a6effa2",
+        "scripts/tests/test_tailwind_config_gen.py": "2d044e1a9e67d358e8f7f664eeaa588dbd0ef150daa91cdea71519d8d686e470"
+      }
+    },
+    "ui-ux-pro-max": {
+      "files": {
+        "LICENSE": "738f69dfa83db5c347c678fb9d90e560877059f0de93a327c39001bff92dc014",
+        "README.md": "408604d7afb9d892808e24c9abedae550d10ed4ee6db1d5cde3ca051ce4eb09d",
+        "SKILL.md": "118b92800bf261682ea33568e8c169e069476560718fdb76f3207d345a575cf2",
+        "THIRD-PARTY-NOTICE.md": "9570cc0c0f604a75d6c09b8326ea8aaea7576d3dd971a542afab6fbada00480f",
+        "data/app-interface.csv": "331e7cf2c0b222d80c566c5f255c63cb339f65bfd02e471a720f28e4864a9f08",
+        "data/catalog-summary.json": "6638da97231c07fb5cef3cd9d3ce483ca7b2f9748980f8c27490eb03968d8894",
+        "data/charts.csv": "4115cf1120680f2cedef0676cb648f30c7ef4699e2a947535d4113e71ed3b12a",
+        "data/colors.csv": "8162429222bce22df62b564085946a30d07cc9722c58d0a3a494bd0d1d00841c",
+        "data/data-provenance.json": "e82fb33ed49375a300e93d9c11ccd1c1493c999e84ee7ee295e527634786e2e0",
+        "data/google-font-licenses.json": "35688523f2955795caa1a47c53b83099e60c1708461476f9cc3a050cf3b0148a",
+        "data/google-fonts.csv": "1c8c3b2ea1faf6a1012da463756def8b3889db33f2226f0343bb4daa80307d03",
+        "data/icons.csv": "50816c6012030178195a16ee481ebf58b47bd985d70e8ec58886cc83f6eddafc",
+        "data/landing.csv": "9a2edd3bb676c2a58f00ade7a062e285222d4297bfd847c8d5b056f0dbbf52d0",
+        "data/motion.csv": "381affe8df8ea1f66fbbda2598827f9f54299107bbe6a1b4e9b68f6b62091ceb",
+        "data/phosphor-icons-upstream.json": "2399325233b277b5c97a80e6a5e8941154f5d057beee4e7613db87c87d700236",
+        "data/products.csv": "42473f75e8dde5987bdf89ce55d8c168091b80a356cae691dd60247d80720b70",
+        "data/react-performance.csv": "3d925802539abac5afeb63ae8aa1960b7229ad271b3a47caed40ab2d97ad0734",
+        "data/stacks/angular.csv": "704be83f2bad30c7e6de01afb113ffa01e0c458762f48b7102f31ba2367b5553",
+        "data/stacks/astro.csv": "2c2f55fadaafc05e04cc321c8194a1a28b656e6757fe2ba316f41b16428299c6",
+        "data/stacks/avalonia.csv": "442fca14675a020683473e7e49f08abb27b9df0765c80efe54aef61f1a4ac258",
+        "data/stacks/flutter.csv": "64dba0ac17349f28bce517a0f5f48c54d9ed2e487ec0c0258303463b382f41a0",
+        "data/stacks/html-tailwind.csv": "d05a581d20af57b8ca0104a6d31d90a07c437d500662a96c3029fc2f9a4678ee",
+        "data/stacks/javafx.csv": "2e819b8d5abdd23ad4dae0991650fdb57af497aabd68b37463aa9c442944c869",
+        "data/stacks/jetpack-compose.csv": "699de218b286948eaec7d15767b6e1350ee299167e49bf476d82e3ff58724e0a",
+        "data/stacks/laravel.csv": "09a9cf08a587c07816aa36eb68d2773c161cb710087a7b34f867c994e9d0fe32",
+        "data/stacks/nextjs.csv": "ecd2c27b2ea0127d203ae726060efcdd7335b5e83f96b99e4f3befbbfeebd5a4",
+        "data/stacks/nuxt-ui.csv": "6d1a03343f10dcb4651d89a5229fcd8d2a296b91b722655c12f54cc2af05a495",
+        "data/stacks/nuxtjs.csv": "3d9b54ed2d151bd9c86e9e5609b8a6f88a00c4c52fa601a30af96c49b2c4d176",
+        "data/stacks/react-native.csv": "ba31dd9c0c04da6bc02a74448bf121f9c0728ae5ba3b4d47b487778b0a1135b5",
+        "data/stacks/react.csv": "4dd176a9787e5c6306b5df94158d75955adcdc6edab41ce5286641a5842303c1",
+        "data/stacks/shadcn.csv": "e56cfde5b74907836ac3582a4779d5b7f3d206a702ab81b8669a1b668c3eeb51",
+        "data/stacks/svelte.csv": "f6e379ba802941ba26b01d4ffbe3cd39120f2587659a1d93851c707f66bc13db",
+        "data/stacks/swiftui.csv": "bdd9231ff3ad658f4e7c063e1eb49df2fd09ac8d90631a86df899b39833b9623",
+        "data/stacks/threejs.csv": "c4184282304648f073f1aafa3e2359b24c4e4766658c6a54cdf61e00b9563361",
+        "data/stacks/uno.csv": "8a288193bdb77f28b76885e3b33c2707b38a395fe64627b34d1ea1e5eab527ea",
+        "data/stacks/uwp.csv": "c409f08c1fbba1f1029f1acaa554e7b4471cc85517a5751c9f2e62465badcd5c",
+        "data/stacks/vue.csv": "b655f1ebb9dff2652d15981f31b1784c8a6d4759efd2815a14f3088257569f95",
+        "data/stacks/winui.csv": "e676dc1c13ee6c205c40b0746f1335150a346c7a49a0616d2545bc3d2c930c85",
+        "data/stacks/wpf.csv": "9781a9950b20333637b30a02e498b7efca21b618a3eeb8665836f3ac6e974da7",
+        "data/styles.csv": "2e68aeae5ab91e720bb5d5d025e85a985ac0e4478d374f6a8ebc64916d089466",
+        "data/typography.csv": "25acd1cafb906b82e6892478e0fdf3f171e44160fb3652c0d9564c0f1e307f57",
+        "data/ui-reasoning.csv": "f0774dd741cecdad5eec842034bd6d5e9ea50e9f220a1910069748daa0bb8e9a",
+        "data/ux-guidelines.csv": "ff81ec613f70ba9fc3fcce52dbe4ae35d44b2079dbe6dc066d2d6e38c28facd5",
+        "references/pro-rules.md": "77f97dcc95e99cd019a8dc613af727d3161139eb6fe67278125a2f22240a21dd",
+        "references/quick-reference.md": "8590765a9f2b29d8fe03d5c8ebaf59819304a1af6e553a6495da29cc04ed0a1b",
+        "scripts/core.py": "c3be4b23e7150e6b45095213158cfa3c8ad96502f01dde3f6ffff9de64a4f481",
+        "scripts/design_system.py": "4e1102b5de8523a336ac74a6e0a65e936f604cbb69197ffdc02dccf5610373e4",
+        "scripts/reasoning_contract.py": "b8bac1af82aa280d3e06f00aabaeac4337e632996b07fed874e2b6ee6e9c5913",
+        "scripts/search.py": "d54e648fe0ec2932cac66684220cc17be4bd4b4eba1d23d3195d509d398db374",
+        "scripts/tests/fixtures/catalogs/google-api.json": "22d8dc81a7d6827b7e8b64b53e7d184210fb9759e8e294e0d5133c81cc460176",
+        "scripts/tests/fixtures/catalogs/google-catalog.json": "c608ad5c4084ebc50a4bbbfb69ea2456c01fd5519c457e18410fffd250ae948f",
+        "scripts/tests/fixtures/catalogs/google-existing.csv": "4e0761b839dc6b2187a370e82eddc0aed8a7ff10c09e28dd814bb3656dac595b",
+        "scripts/tests/fixtures/catalogs/google-metadata.json": "30bffc29ae348416a2de2f9c6c418e768e4578f136b0f4bac5d2f70124f2e9ba",
+        "scripts/tests/fixtures/catalogs/google-overrides.json": "6243a48a4619986768c4628e2d0c98ff195beba71ba9be5df8f0c52fc6d90c0b",
+        "scripts/tests/fixtures/catalogs/icons-curated.csv": "68362c9a700c13b96f000784a0198c1c7e117a7088a01c85744e44233038fe9d",
+        "scripts/tests/fixtures/catalogs/phosphor-core.json": "ae4d0bb076240824e1b643c2270d1f8cc0952a69502ec1e622b7dedd85b930bb",
+        "scripts/tests/fixtures/catalogs/phosphor-package.json": "500588c757d6de03e3d7e69b27a8b8b1f88ccf6bb0333e4c1e9b0d6a4f112475",
+        "scripts/tests/fixtures/catalogs/phosphor-react-exports.json": "d79f2ee0afdbc2f87776733e145df3538a16a25d7c2fba0056bb48295dad0ded",
+        "scripts/tests/fixtures/catalogs/phosphor-react-package.json": "1c57a1d76bcc0cdd3632d4c18b9c0e79576b4591df39831c9607e5d0eb4f2cec",
+        "scripts/tests/fixtures/relevance-baseline.json": "0df200fc54c1cb97a52d6775e7f501509163cea8f8b73fd7268429bc1f835afe",
+        "scripts/tests/fixtures/relevance-cases.json": "e77d36eebbf6ddc2860946a02cdb659351da6c09f2688f1ed30939a418099646",
+        "scripts/tests/fixtures/relevance-thresholds.json": "8099be287b13a01ef499091b99220692e85a3a652efa308e8a33b6b9fcd57ea6",
+        "scripts/tests/test_catalog_refresh.py": "3e2ca5d12702318f641ae62d0c14f22a3bcc84d84e79b863c0e947d475604adb",
+        "scripts/tests/test_catalog_summary_line_endings.py": "fa6ff09f0ec2c99013588c77397f5082dddebe8f467e94c5f8378ec9595f4989",
+        "scripts/tests/test_core.py": "3527fe2f4b852f69f07c17ddc0d615d9a6e025c924e45a33985579a94a8d2118",
+        "scripts/tests/test_core_data_quality.py": "3ffc6b4905c9ea26d7ac4527ab154d153584231aee71b2ae4bd017977fa09cc5",
+        "scripts/tests/test_data_contracts.py": "0360d6e10080c0bca214f2b0bbad582ba50702a542ce21013351aca54938df3a",
+        "scripts/tests/test_design_system_mode.py": "95ad2c154349f7021f55a558f8dcdd71df1a24fcf531a4364a8e49526a0865ef",
+        "scripts/tests/test_design_system_stack.py": "83d09ffe8cfbf7b265f362129f061dfe8e5e167ce5db43adaead197cabc9ca38",
+        "scripts/tests/test_native_desktop_stack_freshness.py": "3942845712b9a829323cd3568511483135f2a8c7cd79ccf61679da4b0f624dbb",
+        "scripts/tests/test_relevance_evaluator.py": "2fe56a4d6fe5fff15ff592274b0eeaba925146cefea6c0fa29d8f1b77c9aca1f",
+        "scripts/tests/test_skill_script_paths.py": "7cec24b94be771bc60bc84f8993e614bb16d4047930e1dd3d3bed91628311d44",
+        "scripts/tests/test_style_taxonomy.py": "cd14d0092e8a454d213aa104b53e4e70ba698491fa00fde9fdec5ca8a3d70011",
+        "scripts/tests/test_text_layout_resilience.py": "b51d32ee8a15505b87cb81957fb2d1b385e041e8beb4463c311d236bfd29ebd4",
+        "scripts/tests/test_web_stack_freshness.py": "74897571398585f27e2c35d09d81b0a531c8c774f4a2967e5e1b1d1b05a483d9",
+        "scripts/validate_data.py": "a599aa256049cf30954d1f164721b99e453eb7e4cb8241bcab2d5573e6cf58b8"
+      }
+    },
+    "working-effectively-with-legacy-code": {
+      "files": {
+        "SKILL.md": "02bdaf78eb4c8eb28eda674d8d31e31d7ec3c272bd928935daeb6c0869038daa",
+        "working-effectively-with-legacy-code.md": "8b22bfc3d2851509d4cd8e05fbb9aca9e934f4b6915cb65fe8d6d9d241393fce",
+        "working-effectively-with-legacy-code.mini.md": "44eb9d44b7fd51cac342348c65f099deb806729d40edacd43b96fb435fa31051",
+        "working-effectively-with-legacy-code.nano.md": "79aa642e76188755df1972f972800f3d0e2713daa0e6fc2bf763edaaf5a88128"
+      }
+    },
+    "yc-reader": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "af63a4019954c0a4bc4698ec4a8b4629be53ba81899360deff67e83aa87faf40",
+        "SKILL.md": "7259b0305568f94f9341b7e46ced5a5b076f29655837d4c75647ba9f6906f9f7",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/api_reference.md": "1309a40db4a25ca27e0ba9300c4be90552ec97136edfb641c661f41c92c3be61"
+      }
+    },
+    "yfinance-data": {
+      "files": {
+        "LICENSE": "afb4751be1f58107f1daf07472d16f7eb6ec6df09996b5758e8ef6cc6d5a0a30",
+        "README.md": "5697b68e1956efec3374d1af08afe6190deb39a5c7e2be36ad5c6de3842ac3dd",
+        "SKILL.md": "611a0a4da024af0042479ed3399a5994131e062a70e92c0209a48799d569f0e7",
+        "THIRD-PARTY-NOTICE.md": "9d05e4136933e484a3b970c0899f83775cd769d59d1ced9dc0a5c5de67e9911d",
+        "references/api_reference.md": "ad609ec14da68855a863d252848a3ff3b0cbd685dd2240dda6f97513255a96c0"
+      }
+    }
+  },
+  "toolkitVersion": "1.2.0"
+}

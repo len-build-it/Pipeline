@@ -1,15 +1,15 @@
 # FEAT-004: Announcements
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-09-16T21:54:37+08:00
-Revision: 2
-Status: Draft
+Updated: 2026-10-03T22:31:00+08:00
+Revision: 3
+Status: Approved
 
 ## Purpose and success
 
 Leads need one reliable place to publish important information to the right organization.
 
-Success means an authorized lead can draft and publish an announcement targeted to AqOne, the dev guild, or both, and permitted members can view it.
+Success means an authorized lead can draft and publish an announcement targeted to one or more configured teams, and permitted members can view it.
 
 ## Scope and non-goals
 
@@ -19,7 +19,7 @@ It excludes comments, reactions, scheduling, push notification campaigns, attach
 
 ## User flows
 
-An owner or lead writes a title and body, selects one or both organizations, saves a draft, and publishes it.
+An owner or lead writes a title and body, selects one or more organizations they can manage, saves a draft, and publishes it.
 
 An authorized lead can edit an unpublished draft or archive a published announcement according to policy.
 
@@ -64,4 +64,4 @@ The initial release uses immediate publication rather than scheduling.
 
 Use the publication, archive, field-length, and edit-conflict defaults in [DATA_MODEL.md](../product/DATA_MODEL.md).
 
-Exact approval of this revision is pending.
+Revision 3 was approved by Len in chat on 2026-10-03T22:31:00+08:00: "Yes I approve of the revisions".

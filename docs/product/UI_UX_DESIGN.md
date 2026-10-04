@@ -1,9 +1,9 @@
-# UI UX system design: AqOne and Dev Guild Manager
+# UI UX system design: Configurable Team Manager
 
 Created: 2026-09-16T21:37:27+08:00
-Updated: 2026-09-16T21:54:37+08:00
-Revision: 2
-Status: Draft
+Updated: 2026-10-03T22:31:00+08:00
+Revision: 3
+Status: Approved
 
 ## Purpose and design stance
 
@@ -19,7 +19,7 @@ The interface uses progressive disclosure, plain-language labels, consistent pla
 
 The product has two clients, a responsive web dashboard and a Flutter Android app, backed by one shared API.
 
-The first release manages members, tasks, announcements, and dashboard summaries for AqOne and the dev guild.
+The product manages members, tasks, announcements, dashboard summaries, budgets, and expenses for configured teams.
 
 The users are a small team with one owner, organization leads, and members.
 
@@ -31,17 +31,17 @@ The visual recommendations below are therefore proposed product defaults and mus
 
 ## Information architecture and navigation
 
-The product has four primary destinations: Overview, Members, Tasks, and Announcements.
+The web product has Overview, Members, Tasks, Announcements, and Finance destinations. Android keeps no more than four bottom destinations and exposes Finance through a clearly labeled secondary destination.
 
 The current organization scope is always visible near the top of the interface.
 
-Owners can choose All organizations, AqOne, or Dev guild.
+Owners can choose the combined overview or any configured organization they can access.
 
 Leads and members can choose only organizations where they have active membership.
 
 ### Web navigation
 
-The desktop layout uses a persistent left navigation rail with the product name, organization switcher, four destinations, and account controls.
+The desktop layout uses a persistent left navigation rail with the product name, organization switcher, five destinations, and account controls.
 
 The main content area has one page title, an optional short description, a primary action, and the content needed for the selected task.
 
@@ -148,6 +148,16 @@ The compose form places title, audience, and body in that order, with publicatio
 
 Drafts are visually distinct from published messages and are never shown to unauthorized members.
 
+### Finance
+
+Finance opens with the selected organization and month visible, then shows budget versus actual, remaining or over-budget amounts, category comparison, and monthly spending trend.
+
+Budget and expense lists show PHP amounts, dates, categories, and the member who recorded or changed the entry. All active members can use the same finance actions.
+
+Budget comparisons use a compact bullet or bar chart and monthly spending uses a trend line; both always show numeric values and have a corresponding table. Filters are labeled and work by keyboard, touch, and screen reader.
+
+Spreadsheet upload and export are web workflows. Android identifies this clearly while keeping budget and expense workflows available in the app.
+
 ## Feedback and state rules
 
 Every screen defines loading, empty, error, permission-denied, offline, and recovery states.
@@ -193,6 +203,9 @@ Screen reader order follows the visual reading order, and headings are sequentia
 | UI-REQ-007 | Support accessible interaction. | Web primary flows work with keyboard and visible focus, and Android primary flows expose labels and states to TalkBack. |
 | UI-REQ-008 | Keep offline behavior honest. | Cached reads show their age, and offline mutations are visibly disabled or rejected without claiming success. |
 | UI-REQ-009 | Avoid unnecessary complexity. | The first release uses list-first task management, count-based dashboard summaries, and one consistent navigation model across clients. |
+| UI-REQ-010 | Keep finance data legible. | Budget reports display PHP values, comparison period, labels, and a table equivalent; chart color is never the only carrier of meaning. |
+| UI-REQ-011 | Make finance changes transparent. | Finance records identify the member and time of the last change, and users can inspect the allowlisted change history. |
+| UI-REQ-012 | Keep spreadsheet exchange recoverable. | Web imports preview row outcomes before commit, retain user input after validation errors, and exports identify their organization, period, filters, and generation time. |
 
 ## Open questions and approval
 
@@ -202,4 +215,4 @@ Use the platform matrix in [CONSTRAINTS.md](CONSTRAINTS.md) and the icon default
 
 The retained System Design DOCX could not be rendered because the required bundled LibreOffice executable is unavailable in this environment, so no template-based DOCX is being presented as verified.
 
-Exact approval of this revision is pending.
+Revision 3 was approved by Len in chat on 2026-10-03T22:31:00+08:00: "Yes I approve of the revisions".

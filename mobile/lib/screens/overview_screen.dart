@@ -8,12 +8,14 @@ class OverviewScreen extends StatelessWidget {
   final SyntheticDataRepository repo;
   final VoidCallback onNavigateToTasks;
   final VoidCallback onNavigateToAnnouncements;
+  final VoidCallback? onOpenFinance;
 
   const OverviewScreen({
     super.key,
     required this.repo,
     required this.onNavigateToTasks,
     required this.onNavigateToAnnouncements,
+    this.onOpenFinance,
   });
 
   @override
@@ -57,6 +59,19 @@ class OverviewScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (onOpenFinance != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  key: const Key('btn-open-finance'),
+                  onPressed: onOpenFinance,
+                  icon: const Icon(Icons.account_balance_wallet_outlined),
+                  label: const Text('Finance: budgets and expenses'),
+                ),
+              ),
+            ),
           // 4 Metric Cards Grid
           GridView.count(
             crossAxisCount: 2,
@@ -185,7 +200,7 @@ class OverviewScreen extends StatelessWidget {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
-                                task.orgId == 'org-1' ? 'AqOne' : 'Dev Guild',
+                                repo.orgName(task.orgId),
                                 style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                               ),
                               const Text(' • ', style: TextStyle(color: AppColors.textMuted)),

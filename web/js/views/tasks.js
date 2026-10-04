@@ -3,6 +3,8 @@
  * Requirements: FEAT-003/REQ-001 through REQ-008; PROD-005/UI-REQ-001 through 007
  */
 
+import { escapeHtml, orgLabel } from '../format.js';
+
 export function renderTasks(container, state, actions) {
   const { currentUser, currentScope } = state;
   const isOwner = currentUser.isGlobalOwner;
@@ -123,7 +125,7 @@ export function renderTasks(container, state, actions) {
                     ${t.archived ? `<span class="badge badge-archived" style="margin-left:4px;">Archived</span>` : ''}
                     <div style="font-size:0.75rem; color:var(--color-text-muted);">${(t.comments || []).length} comments</div>
                   </td>
-                  <td>${t.orgId === 'org-1' ? 'AqOne' : 'Dev Guild'}</td>
+                  <td>${escapeHtml(orgLabel(state, t.orgId))}</td>
                   <td><span class="badge badge-${t.status.toLowerCase().replace(' ', '_')}">${t.status}</span></td>
                   <td><span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span></td>
                   <td>${escapeHtml(t.assigneeName || 'Unassigned')}</td>
@@ -191,7 +193,7 @@ export function renderTasks(container, state, actions) {
         <select id="task-assignee-filter" class="filter-select" aria-label="Filter by assignee">
           <option value="all">All Assignees</option>
           <option value="unassigned">Unassigned</option>
-          ${availableAssignees.map(a => `<option value="${a.userId}">${escapeHtml(a.displayName)} (${a.orgId === 'org-1' ? 'AqOne' : 'Dev Guild'})</option>`).join('')}
+          ${availableAssignees.map(a => `<option value="${a.userId}">${escapeHtml(a.displayName)} (${escapeHtml(orgLabel(state, a.orgId))})</option>`).join('')}
         </select>
         <label style="display:flex; align-items:center; gap:var(--spacing-1); font-size:var(--font-size-sm); cursor:pointer;">
           <input type="checkbox" id="task-overdue-checkbox" />
@@ -279,7 +281,7 @@ export function openTaskDetailModal(taskId, state, actions) {
         <header class="modal-header">
           <div>
             <div style="font-size:0.75rem; color:var(--color-text-muted); text-transform:uppercase; font-weight:700;">
-              ${task.orgId === 'org-1' ? 'AqOne' : 'Dev Guild'} • ${task.id}
+              ${escapeHtml(orgLabel(state, task.orgId))} • ${task.id}
               ${task.archived ? `<span class="badge badge-archived" style="margin-left:4px;">Archived (Read-only)</span>` : ''}
             </div>
             <h2 id="task-modal-title" class="modal-title">${escapeHtml(task.title)}</h2>
@@ -747,12 +749,3 @@ export function openTaskDetailModal(taskId, state, actions) {
   });
 }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}

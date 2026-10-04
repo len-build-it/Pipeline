@@ -1,9 +1,9 @@
 # FEAT-003: Task management
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-09-16T21:54:37+08:00
+Updated: 2026-10-03T22:08:00+08:00
 Revision: 2
-Status: Draft
+Status: Approved
 
 ## Purpose and success
 
@@ -66,4 +66,4 @@ The initial priority set is Low, Medium, and High.
 
 Use the proposed defaults, comment moderation, archival, date, and edit-conflict rules in [DATA_MODEL.md](../product/DATA_MODEL.md).
 
-Exact approval of this revision is pending.
+Approved by Len in chat on 2026-09-16T21:57:07+08:00 for revision 2.

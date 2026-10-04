@@ -39,7 +39,7 @@ void main() {
             }),
             200,
           );
-        } else if (request.url.path == '/api/members') {
+        } else if (request.url.path == '/api/organizations/org-1/members') {
           return http.Response(
             jsonEncode({
               'members': [
@@ -61,7 +61,7 @@ void main() {
             }),
             200,
           );
-        } else if (request.url.path == '/api/tasks') {
+        } else if (request.url.path == '/api/organizations/org-1/tasks') {
           return http.Response(
             jsonEncode({
               'tasks': [
@@ -360,6 +360,54 @@ void main() {
         destination: 'tasks',
       );
       expect(snapAfter, isNull);
+    });
+
+    test('Organizations and memberships come from the API auth response for any team names', () async {
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/auth/me') {
+          return http.Response(
+            jsonEncode({
+              'user': {
+                'id': 'usr-sam',
+                'email': 'sam@example.com',
+                'displayName': 'Sam Taylor',
+                'status': 'active',
+                'isOwner': false,
+              },
+              'organizations': [
+                {'id': 'org-k', 'name': 'Kestrel Bakery Co-op', 'status': 'active', 'role': 'Lead', 'membership_status': 'active'},
+                {'id': 'org-m', 'name': 'Mossy Trail Runners', 'status': 'active', 'role': 'Member', 'membership_status': 'active'},
+                {'id': 'org-z', 'name': 'Zeta <Lab> & Co', 'status': 'active', 'role': 'Member', 'membership_status': 'active'},
+              ],
+            }),
+            200,
+          );
+        }
+        final listKey = request.url.path.split('/').last;
+        return http.Response(jsonEncode({listKey: []}), 200);
+      });
+
+      final repo = AppRepository(
+        apiClient: ApiClient(
+          baseUrl: 'http://127.0.0.1:3000/api',
+          httpClient: mockClient,
+          storageAdapter: storage,
+        ),
+        cacheService: cache,
+      );
+
+      repo.setScope('org-z');
+      await repo.refreshCurrentScope();
+
+      expect(repo.organizations.map((o) => o.name), ['Kestrel Bakery Co-op', 'Mossy Trail Runners', 'Zeta <Lab> & Co']);
+      expect(repo.availableScopes.map((o) => o.id), ['org-k', 'org-m', 'org-z']);
+      expect(repo.orgName('org-m'), 'Mossy Trail Runners');
+      expect(repo.orgNames(['org-z', 'org-k']), 'Zeta <Lab> & Co, Kestrel Bakery Co-op');
+      expect(repo.orgName('org-missing'), 'Unknown organization');
+      expect(repo.isGlobalOwner, isFalse);
+      expect(repo.isLeadInScope('org-k'), isTrue);
+      expect(repo.isLeadInScope('org-z'), isFalse);
+      expect(repo.hasAccessToScope, isTrue);
     });
   });
 }

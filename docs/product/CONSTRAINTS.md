@@ -1,9 +1,9 @@
-# Shared constraints: AqOne and Dev Guild Manager
+# Shared constraints: Configurable Team Manager
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-09-16T21:54:37+08:00
-Revision: 3
-Status: Draft
+Updated: 2026-10-03T22:31:00+08:00
+Revision: 4
+Status: Approved
 
 ## Platform and environment
 
@@ -35,6 +35,12 @@ User-facing errors must be actionable and must not expose secrets, tokens, stack
 
 The dashboard should return its initial summary within two seconds under the expected small-team dataset and ordinary network conditions.
 
+Organization names and count are data-driven. The app must not branch on a fixed team name or identifier.
+
+Finance data uses exact centavo arithmetic and PHP in the first release. All active members of an organization can view and change its finance data.
+
+Finance spreadsheet import/export runs in the web client through the shared API. Android finance views and writes require connectivity and do not use offline cache.
+
 List views must support pagination or bounded loading so growth does not require loading every record at once.
 
 Important changes must be recorded in the activity history.
@@ -61,7 +67,7 @@ Verify web layouts at 375, 768, 1024, and 1440 CSS pixels, 200 percent zoom, and
 
 Android controls have at least 48 logical-pixel touch targets, support TalkBack and 200 percent text scaling, and remain usable with the on-screen keyboard and system navigation visible.
 
-Use a deterministic synthetic dataset with two organizations, 50 distinct users with some overlapping memberships, 500 tasks, and 100 announcements.
+Use a deterministic synthetic dataset with at least three differently named organizations, 50 distinct users with overlapping memberships, 500 tasks, 100 announcements, and finance records across multiple months.
 
 For a local performance check, measure 20 authenticated warm dashboard loads with 100 ms simulated round-trip latency and report p95 time to usable summary; the target is at most two seconds.
 
@@ -83,4 +89,4 @@ These release checks do not interrupt otherwise independent local implementation
 
 Deployment region, production SMTP provider, retention policy, and release credentials are the remaining operational decisions.
 
-Exact approval of this revision is pending.
+Revision 4 was approved by Len in chat on 2026-10-03T22:31:00+08:00: "Yes I approve of the revisions".

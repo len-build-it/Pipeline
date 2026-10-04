@@ -22,8 +22,7 @@ export async function buildDemoServer() {
   app.get('/api/demo-status', async (req, reply) => {
     return {
       demo: true,
-      label: 'DEMO MODE - Synthetic Data Only',
-      organizations: ['AqOne', 'Dev Guild']
+      label: 'DEMO MODE - Synthetic Data Only'
     };
   });
 

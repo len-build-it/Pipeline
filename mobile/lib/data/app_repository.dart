@@ -13,6 +13,7 @@ class AppRepository extends SyntheticDataRepository {
   String? _cacheAge;
   bool _isStale = false;
   bool _hasAccessToScope = true;
+  bool _hasSession = false;
 
   AppRepository({
     ApiClient? apiClient,
@@ -27,6 +28,9 @@ class AppRepository extends SyntheticDataRepository {
   String? get cacheAge => _cacheAge;
   bool get isStale => _isStale;
   bool get hasAccessToScope => _hasAccessToScope;
+
+  /// True once a member has signed in to the API in this app run.
+  bool get hasSession => _hasSession;
 
   /// Sign in with credentials via real API
   Future<bool> login(String email, String password) async {
@@ -51,14 +55,15 @@ class AppRepository extends SyntheticDataRepository {
     _setLoading(true);
     try {
       final res = await apiClient.login(email, password);
-      final userJson = res['user'] as Map<String, dynamic>;
-      final user = UserAccount.fromJson(userJson);
+      final user = _accountFrom(res);
+      _storeOrganizationsFrom(res);
 
       // Account switch isolation: if switching away from another account, clear old account cache
       if (currentUser.id.isNotEmpty && currentUser.id != user.id) {
         await cacheService.clearAccount(currentUser.id);
       }
 
+      _hasSession = true;
       switchPersona(user);
       await refreshCurrentScope();
       _errorMessage = null;
@@ -83,6 +88,7 @@ class AppRepository extends SyntheticDataRepository {
       await cacheService.clearAccount(accountId);
     }
     await apiClient.logout();
+    _hasSession = false;
     resetToInitial();
   }
 
@@ -107,9 +113,10 @@ class AppRepository extends SyntheticDataRepository {
         password: password,
         displayName: displayName,
       );
-      final userJson = res['user'] as Map<String, dynamic>;
-      final user = UserAccount.fromJson(userJson);
+      final user = _accountFrom(res);
+      _storeOrganizationsFrom(res);
 
+      _hasSession = true;
       switchPersona(user);
       await refreshCurrentScope();
       _errorMessage = null;
@@ -142,7 +149,8 @@ class AppRepository extends SyntheticDataRepository {
 
       // 1. Revalidate user account & memberships (REQ-004, REQ-007)
       final meRes = await apiClient.getCurrentUser();
-      final freshUser = UserAccount.fromJson(meRes['user'] as Map<String, dynamic>);
+      final freshUser = _accountFrom(meRes);
+      _storeOrganizationsFrom(meRes);
 
       // Verify requested scope access before switching persona alters currentScope
       if (requestedScope != 'all') {
@@ -163,18 +171,18 @@ class AppRepository extends SyntheticDataRepository {
       switchPersona(freshUser);
 
       // 2. Fetch fresh records from server
-      final membersRes = await apiClient.getMembers(currentScope, limit: 25);
-      final tasksRes = await apiClient.getTasks(currentScope, limit: 25);
+      // Members and tasks are served per organization; the combined scope reads each one.
+      final scopedOrgIds = currentScope == 'all' ? organizations.map((o) => o.id).toList() : [currentScope];
+      final membersJson = <dynamic>[];
+      final tasksJson = <dynamic>[];
+      for (final orgId in scopedOrgIds) {
+        membersJson.addAll((await apiClient.getMembers(orgId, limit: 25))['members'] as List<dynamic>? ?? const []);
+        tasksJson.addAll((await apiClient.getTasks(orgId, limit: 25))['tasks'] as List<dynamic>? ?? const []);
+      }
       final annRes = await apiClient.getAnnouncements(currentScope, limit: 25);
 
-      final membersList = (membersRes['members'] as List<dynamic>?)
-              ?.map((m) => MemberRecord.fromJson(m as Map<String, dynamic>))
-              .toList() ??
-          [];
-      final tasksList = (tasksRes['tasks'] as List<dynamic>?)
-              ?.map((t) => TaskItem.fromJson(t as Map<String, dynamic>))
-              .toList() ??
-          [];
+      final membersList = membersJson.map((m) => MemberRecord.fromJson(m as Map<String, dynamic>)).toList();
+      final tasksList = tasksJson.map((t) => TaskItem.fromJson(t as Map<String, dynamic>)).toList();
       final annList = (annRes['announcements'] as List<dynamic>?)
               ?.map((a) => AnnouncementItem.fromJson(a as Map<String, dynamic>))
               .toList() ??
@@ -189,14 +197,14 @@ class AppRepository extends SyntheticDataRepository {
         accountId: freshUser.id,
         scope: currentScope,
         destination: 'members',
-        rawPayload: membersRes['members'],
+        rawPayload: membersJson,
         sessionExpiry: sessionExpiry,
       );
       await cacheService.saveSnapshot(
         accountId: freshUser.id,
         scope: currentScope,
         destination: 'tasks',
-        rawPayload: tasksRes['tasks'],
+        rawPayload: tasksJson,
         sessionExpiry: sessionExpiry,
       );
       await cacheService.saveSnapshot(
@@ -232,6 +240,31 @@ class AppRepository extends SyntheticDataRepository {
     } finally {
       _setLoading(false);
     }
+  }
+
+  /// Organization rows of an auth response: id, name, status, role, membership_status.
+  List<Map<String, dynamic>> _organizationRows(Map<String, dynamic> authResponse) {
+    final rows = authResponse['organizations'] as List<dynamic>? ?? const [];
+    return rows.cast<Map<String, dynamic>>();
+  }
+
+  /// The API reports the owner flag as `isOwner` and memberships as organization rows.
+  UserAccount _accountFrom(Map<String, dynamic> authResponse) {
+    final userJson = Map<String, dynamic>.of(authResponse['user'] as Map<String, dynamic>);
+    userJson['isGlobalOwner'] ??= userJson['isOwner'];
+    userJson['memberships'] ??= _organizationRows(authResponse)
+        .map((org) => {
+              'orgId': org['id'],
+              'role': org['role'],
+              'status': org['membership_status'] ?? 'active',
+            })
+        .toList();
+    return UserAccount.fromJson(userJson);
+  }
+
+  void _storeOrganizationsFrom(Map<String, dynamic> authResponse) {
+    final rows = _organizationRows(authResponse);
+    if (rows.isNotEmpty) setOrganizations(rows.map(Org.fromJson).toList());
   }
 
   Future<void> _loadFromCacheFallback() async {

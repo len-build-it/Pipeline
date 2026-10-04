@@ -8,4 +8,6 @@ export const config = {
   isProd: process.env.NODE_ENV === 'production',
   sessionExpiryDays: 7,
   accessTokenExpiry: '15m',
+  // Requests allowed per client address per minute, static assets included.
+  rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || '200', 10),
 };

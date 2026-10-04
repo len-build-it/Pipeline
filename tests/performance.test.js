@@ -1,6 +1,6 @@
 import { performance } from 'node:perf_hooks';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { setupTestDatabase, createTestApp, cleanupTestDatabase } from './helpers/db-helper.js';
+import { setupTestDatabase, createTestApp, cleanupTestDatabase, getTestPool } from './helpers/db-helper.js';
 
 async function runPerformanceTest() {
   console.log('[perf] Setting up test database with deterministic synthetic data...');
@@ -103,10 +103,49 @@ async function runPerformanceTest() {
       console.error(`[perf:fail] p95 latency (${p95.toFixed(2)} ms) exceeded target (<= ${targetMs} ms).`);
       process.exitCode = 1;
     }
+
+    await measureFinanceReport(app, authHeaders, iterations, simulatedLatencyMs);
   } finally {
     await app.close();
     await cleanupTestDatabase();
   }
+}
+
+/**
+ * Times the finance budget report separately from the dashboard.
+ * These timings are recorded for information; the p95 target above applies to the dashboard only.
+ */
+async function measureFinanceReport(app, authHeaders, iterations, simulatedLatencyMs) {
+  // Fixture rows are inserted directly: this run measures reading the report, not recording expenses.
+  await getTestPool().query(`
+    INSERT INTO expenses (id, organization_id, occurred_on, amount_centavos, category, description, created_by, updated_by)
+    SELECT 'exp-perf-' || n, 'org-1', date_trunc('month', CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date,
+           1234, 'Category ' || (n % 10), 'Timing fixture ' || n, 'usr-len', 'usr-len'
+    FROM generate_series(1, 200) AS n
+  `);
+
+  const measurements = [];
+  for (let i = 0; i < iterations + 3; i++) {
+    const t0 = performance.now();
+    await sleep(simulatedLatencyMs / 2);
+    const res = await app.inject({ method: 'GET', url: '/api/organizations/org-1/finance/report', headers: authHeaders });
+    await sleep(simulatedLatencyMs / 2);
+    if (res.statusCode !== 200) throw new Error(`Finance report request ${i + 1} failed with status ${res.statusCode}`);
+    if (JSON.parse(res.body).totals.actual !== '2468.00') throw new Error('Finance report total does not match the 200 fixture expenses.');
+    if (i >= 3) measurements.push(performance.now() - t0); // the first three loads are warm-up
+  }
+
+  measurements.sort((a, b) => a - b);
+  const p95 = measurements[Math.ceil(0.95 * measurements.length) - 1];
+  const avg = measurements.reduce((acc, v) => acc + v, 0) / measurements.length;
+  console.log('============ Finance Report Timings (no target) ============');
+  console.log(`Fixture:    200 expenses in 10 categories, one organization`);
+  console.log(`Samples:    ${measurements.length}, ${simulatedLatencyMs}ms simulated latency`);
+  console.log(`Min:        ${measurements[0].toFixed(2)} ms`);
+  console.log(`Average:    ${avg.toFixed(2)} ms`);
+  console.log(`p95:        ${p95.toFixed(2)} ms`);
+  console.log(`Max:        ${measurements[measurements.length - 1].toFixed(2)} ms`);
+  console.log('============================================================\n');
 }
 
 runPerformanceTest().catch(err => {

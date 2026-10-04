@@ -5,6 +5,7 @@ class SyntheticDataRepository extends ChangeNotifier {
   static final List<Org> initialOrgs = [
     const Org(id: 'org-1', name: 'AqOne', status: 'active'),
     const Org(id: 'org-2', name: 'Dev Guild', status: 'active'),
+    const Org(id: 'org-3', name: 'Harbor Robotics Club', status: 'active'),
   ];
 
   static const userLen = UserAccount(
@@ -19,6 +20,7 @@ class SyntheticDataRepository extends ChangeNotifier {
     memberships: [
       UserMembership(orgId: 'org-1', role: 'Owner', status: 'active', notes: 'Founder and Global Owner'),
       UserMembership(orgId: 'org-2', role: 'Owner', status: 'active', notes: 'Founder and Global Owner'),
+      UserMembership(orgId: 'org-3', role: 'Owner', status: 'active', notes: 'Founder and Global Owner'),
     ],
   );
 
@@ -49,6 +51,7 @@ class SyntheticDataRepository extends ChangeNotifier {
     memberships: [
       UserMembership(orgId: 'org-1', role: 'Member', status: 'active', notes: 'Backend apprentice in AqOne'),
       UserMembership(orgId: 'org-2', role: 'Member', status: 'active', notes: 'Core developer in Dev Guild'),
+      UserMembership(orgId: 'org-3', role: 'Member', status: 'active', notes: 'Builds competition firmware'),
     ],
   );
 
@@ -70,6 +73,7 @@ class SyntheticDataRepository extends ChangeNotifier {
   late String _currentScope;
   bool _isOffline = false;
 
+  late List<Org> _organizations;
   late List<MemberRecord> _members;
   late List<TaskItem> _tasks;
   late List<AnnouncementItem> _announcements;
@@ -82,6 +86,7 @@ class SyntheticDataRepository extends ChangeNotifier {
     _currentUser = userLen;
     _currentScope = 'all';
     _isOffline = false;
+    _organizations = List.of(initialOrgs);
 
     _members = [
       MemberRecord(
@@ -182,6 +187,34 @@ class SyntheticDataRepository extends ChangeNotifier {
         interests: ['Infrastructure'],
         notes: 'Dev Guild lead organizer.',
       ),
+      MemberRecord(
+        id: 'mem-8',
+        userId: 'usr-owner',
+        orgId: 'org-3',
+        displayName: 'Len',
+        email: 'len@example.com',
+        avatarColor: const Color(0xFF0F766E),
+        role: 'Owner',
+        status: 'active',
+        joinedAt: '2026-09-20',
+        skills: ['Architecture', 'Leadership'],
+        interests: ['Product Strategy'],
+        notes: 'Club sponsor.',
+      ),
+      MemberRecord(
+        id: 'mem-9',
+        userId: 'usr-sam',
+        orgId: 'org-3',
+        displayName: 'Sam Taylor',
+        email: 'sam@example.com',
+        avatarColor: const Color(0xFF7C3AED),
+        role: 'Member',
+        status: 'active',
+        joinedAt: '2026-09-21',
+        skills: ['Node.js', 'Embedded'],
+        interests: ['Robotics'],
+        notes: 'Builds competition firmware.',
+      ),
     ];
 
     _tasks = [
@@ -281,6 +314,21 @@ class SyntheticDataRepository extends ChangeNotifier {
           ),
         ],
       ),
+      TaskItem(
+        id: 'tsk-301',
+        orgId: 'org-3',
+        title: 'Calibrate drive motors for regional qualifier',
+        description: 'Tune motor controller limits and record calibration values per chassis.',
+        creator: 'usr-owner',
+        creatorName: 'Len',
+        assignee: 'usr-sam',
+        assigneeName: 'Sam Taylor',
+        status: 'Backlog',
+        priority: 'Medium',
+        labels: ['hardware'],
+        updatedAt: '2026-09-22T09:00:00+08:00',
+        comments: [],
+      ),
     ];
 
     _announcements = [
@@ -322,7 +370,23 @@ class SyntheticDataRepository extends ChangeNotifier {
   UserAccount get currentUser => _currentUser;
   String get currentScope => _currentScope;
   bool get isOffline => _isOffline;
-  List<Org> get organizations => initialOrgs;
+  List<Org> get organizations => _organizations;
+
+  /// Display name of an organization, taken from its record.
+  String orgName(String orgId) {
+    for (final org in _organizations) {
+      if (org.id == orgId) return org.name;
+    }
+    return 'Unknown organization';
+  }
+
+  String orgNames(Iterable<String> orgIds) => orgIds.map(orgName).join(', ');
+
+  /// Organization preselected in create forms: the current scope, or the first available one.
+  String get defaultOrgId {
+    if (_currentScope != 'all') return _currentScope;
+    return _organizations.isNotEmpty ? _organizations.first.id : '';
+  }
   List<MemberRecord> get allMembers => _members;
   List<TaskItem> get allTasks => _tasks;
   List<AnnouncementItem> get allAnnouncements => _announcements;
@@ -343,9 +407,9 @@ class SyntheticDataRepository extends ChangeNotifier {
 
   List<Org> get availableScopes {
     if (_currentUser.isGlobalOwner) {
-      return [const Org(id: 'all', name: 'All Organizations', status: 'active'), ...initialOrgs];
+      return [const Org(id: 'all', name: 'All Organizations', status: 'active'), ..._organizations];
     }
-    return initialOrgs.where((o) => _currentUser.memberships.any((m) => m.orgId == o.id)).toList();
+    return _organizations.where((o) => _currentUser.memberships.any((m) => m.orgId == o.id)).toList();
   }
 
   void switchPersona(UserAccount user) {
@@ -353,7 +417,7 @@ class SyntheticDataRepository extends ChangeNotifier {
     if (!user.isGlobalOwner) {
       final allowed = user.memberships.map((m) => m.orgId).toList();
       if (_currentScope == 'all' || !allowed.contains(_currentScope)) {
-        _currentScope = allowed.isNotEmpty ? allowed.first : 'org-1';
+        _currentScope = allowed.isNotEmpty ? allowed.first : '';
       }
     }
     notifyListeners();
@@ -366,6 +430,11 @@ class SyntheticDataRepository extends ChangeNotifier {
 
   void setOffline(bool offline) {
     _isOffline = offline;
+    notifyListeners();
+  }
+
+  void setOrganizations(List<Org> organizations) {
+    _organizations = organizations;
     notifyListeners();
   }
 

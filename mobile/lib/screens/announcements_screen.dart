@@ -31,6 +31,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
       backgroundColor: AppColors.background,
       floatingActionButton: isLead && !_showArchived
           ? FloatingActionButton.extended(
+              heroTag: 'fab-announcements',
               key: const Key('btn-fab-announcement'),
               onPressed: () => _showComposeDialog(context),
               backgroundColor: AppColors.primary,
@@ -107,7 +108,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Audience: ${a.targetOrgs.map((o) => o == 'org-1' ? 'AqOne' : 'Dev Guild').join(', ')}',
+                                    'Audience: ${widget.repo.orgNames(a.targetOrgs)}',
                                     style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                                   ),
                                   if (a.archived) ...[
@@ -167,7 +168,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
   void _showComposeDialog(BuildContext context) {
     final titleController = TextEditingController();
     final bodyController = TextEditingController();
-    final targetOrgs = <String>{'org-1'};
+    final targetOrgs = <String>{widget.repo.defaultOrgId};
     final formKey = GlobalKey<FormState>();
 
     showDialog(
