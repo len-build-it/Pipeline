@@ -1,9 +1,9 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-05T00:20:54+08:00
-State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, Phases 1 through 3 are committed, and Phase 4 checks pass with its checkpoint under review.
-Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; Phases 1 through 3 are committed and Phase 4 checks pass.
+Updated: 2026-10-05T01:09:48+08:00
+State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, Phases 1 through 4 are committed, and Phase 5 checks pass with its checkpoint under review.
+Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; Phases 1 through 4 are committed and Phase 5 implementation and required checks pass.
 Intended executor: Codex, proceeding continuously under PLAN-004.
 
 ## Read first
@@ -46,7 +46,7 @@ Execution of PLAN-001 P1 through P8 proceeded continuously without routine phase
 | PLAN-003 Lagoon UI redesign implementation | 1 | Approved by Len in chat on 2026-10-04T16:19:21+08:00. |
 | PLAN-004 Security hardening implementation | 1 | Approved by Len in chat on 2026-10-04T23:19:00+08:00: "Approve FEAT-007 revision 1 and PLAN-004 revision 1". |
 
-Allowed execution phases: PLAN-001 P1 through P8, PLAN-002 Phase 1 through Phase 6, and PLAN-003 Phase 1 through Phase 6 are complete; PLAN-004 Phases 1 through 5 are approved and Phase 1 is in progress.
+Allowed execution phases: PLAN-001 P1 through P8, PLAN-002 Phase 1 through Phase 6, and PLAN-003 Phase 1 through Phase 6 are complete; PLAN-004 Phases 1 through 4 are committed and Phase 5 checks pass with its checkpoint under review.
 
 PLAN-002 is a separate scope with its own approval: on 2026-10-03T22:31:00+08:00 Len wrote "Yes I approve of the revisions" in reply to a request naming FEAT-006 revision 2, PLAN-002 revision 3, the other draft revisions in this table, and `exceljs@4.4.0`.
 
@@ -322,4 +322,16 @@ Phase 4 passed the complete 250-test Node suite and all 15 E2E browser workflows
 
 Browser reruns also regenerated the tracked Phase 3 task-history screenshot; preserve it unstaged and exclude it from the Phase 4 checkpoint along with the other test-generated legacy screenshots.
 
-After staging and reviewing the Phase 4 source, tests, new screenshot, and evidence paths, commit `fix(web): render stored names as text` and continue to PLAN-004 Phase 5.
+PLAN-004 Phase 4 is committed as `fix(web): render stored names as text` at `ddee080336c97abe0b4c35584165d1628ea7854f`.
+
+Phase 5 clears account-protected mobile state after a terminal 401, clears only a denied organization after a scoped 403, filters combined caches, gates all protected destinations during cleanup, and preserves other authorized scopes.
+
+`flutter analyze` passed, `flutter test` passed 59 tests with one existing live API test skipped, `npm test` passed 250 tests, `npm run test:e2e` passed 15 workflows, `npm run test:ui` passed 15 workflows, and the API 37 emulator scenarios passed.
+
+The inspected emulator evidence is [the post-401 sign-in screen](docs/evidence/screenshots/FEAT-007-mobile-401-api37.png) and [the post-403 denied-scope screen](docs/evidence/screenshots/FEAT-007-mobile-403-api37.png), with the detailed method and limitations in [EVID-004](docs/evidence/FEAT-007-security-hardening-verification.md).
+
+The Phase 5 checkpoint message is `fix(mobile): clear protected state on denial`, and the next action is to inspect the exact staged diff, commit the reviewed Phase 5 paths, and update this handoff with Git's verified commit hash.
+
+Browser suites regenerated tracked screenshots that are preserved and must remain outside the Phase 5 commit: `FEAT-007-stored-display-1440.png`, `FEAT-007-task-history-375.png`, `p8-e2e-announcements.png`, `p8-e2e-members.png`, `p8-e2e-overview.png`, `p8-e2e-tasks.png`, `plan2-p3-finance-desktop-1440.png`, `plan2-p3-finance-import-1440.png`, `plan2-p3-finance-phone-375.png`, `plan2-p4-finance-report-1440.png`, `ui-redesign/p2-desktop-announcements-1440.png`, `ui-redesign/p2-desktop-tasks-1440.png`, `ui-redesign/p2-phone-announcements-375.png`, `ui-redesign/p2-phone-tasks-375.png`, `ui-redesign/p2-small-desktop-announcements-1024.png`, `ui-redesign/p2-small-desktop-members-1024.png`, `ui-redesign/p2-small-desktop-tasks-1024.png`, `ui-redesign/p2-tablet-announcements-768.png`, `ui-redesign/p3-finance-desktop-1440.png`, `ui-redesign/p3-finance-over-budget-1440.png`, `ui-redesign/p3-finance-phone-375.png`, `ui-redesign/p3-finance-report-1440.png`, `ui-redesign/p3-finance-small-desktop-1024.png`, `ui-redesign/p3-finance-tablet-768.png`, `ui-redesign/p3-import-desktop-1440.png`, `ui-redesign/p3-import-small-desktop-1024.png`, and `ui-redesign/p3-import-tablet-768.png` under `docs/evidence/screenshots/`.
+
+EVID-003 remains an incomplete source-first audit with no confirmed vulnerabilities; EVID-004 records the synthetic implementation results and the remaining production, physical-device, and independent-validator limits.

@@ -2,10 +2,10 @@
 
 Evidence ID: EVID-004.
 Created: 2026-10-04T23:32:17+08:00
-Updated: 2026-10-05T00:20:54+08:00
+Updated: 2026-10-05T01:09:48+08:00
 Feature and plan: FEAT-007 revision 1 and PLAN-004 revision 1, approved by Len in chat on 2026-10-04T23:19:00+08:00.
-Phase: PLAN-004 Phases 1, 2, and 3 complete; Phase 4 checks pass and its checkpoint is under review.
-Implementation revision: Phase 1 checkpoint `de94ccbf9503a171364e0a6b4bdbfca49e485ce6`; Phase 2 checkpoint `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`; Phase 3 checkpoint `27698745a0207b996259ea6de4edf3d1d0d806b5`; Phase 4 changes are in the working tree pending commit.
+Phase: PLAN-004 Phases 1 through 4 complete; Phase 5 implementation and required checks pass, with the checkpoint under review.
+Implementation revision: Phase 1 checkpoint `de94ccbf9503a171364e0a6b4bdbfca49e485ce6`; Phase 2 checkpoint `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`; Phase 3 checkpoint `27698745a0207b996259ea6de4edf3d1d0d806b5`; Phase 4 checkpoint `ddee080336c97abe0b4c35584165d1628ea7854f`; Phase 5 changes are in the working tree pending commit.
 
 ## Scope and environment
 
@@ -42,6 +42,27 @@ The sparse workbook test verifies early row-span rejection but does not benchmar
 The export test establishes the bound with synthetic records but does not measure historical production load or shared service capacity.
 
 Whether a production deployment has a compliant secret, whether seed execution occurred against a production target, and whether any hosted environment has unsafe database overrides remain unable to validate without owner-provided production evidence.
+
+## EVID-003 candidate dispositions after local implementation
+
+EVID-003 remains an incomplete audit, and its candidates remain unconfirmed because its required independent validators and OS-enforced reproduction sandbox were unavailable.
+
+The results below document local regression and remediation evidence; they do not assert that any candidate affected a production deployment or establish a severity.
+
+| Candidate fingerprint | Local result | Remaining disposition |
+| --- | --- | --- |
+| `auth.jwt-secret-fallback` | Synthetic configuration tests reject a missing, short, or development-fallback production secret before server startup or database access. | Unable to validate the effective secret or fallback-token acceptance in a hosted deployment. |
+| `bootstrap.seed-default-owner-credentials` | Synthetic policy and CLI checks refuse production seeding before a database connection and preserve the development seed path. | Unable to validate any historical production seed execution or credential rotation. |
+| `db.migrate.test-url-alias` | Synthetic normalized URL and connection-target cases reject unsafe database targets before destructive SQL; the isolated loopback test database remains usable. | Unable to validate the effective database identity supplied by a hosted or lower-trust runner. |
+| `scripts.test-restore.environment-selected-target` | Synthetic host, port, `PGHOSTADDR`, and `PGSERVICE` overrides are refused before source preparation. | Unable to validate actual hosted restore-runner environment or target history. |
+| `overview.archived-org-active-membership` | A synthetic archived organization with an active non-Owner membership is denied without returning organization records; Owner and active-organization cases remain covered. | Unable to validate whether a deployed archive lifecycle produced this state. |
+| `finance.xlsx-sparse-row-index` | A synthetic nonblank row at worksheet row 5,002 is rejected before iteration across the sparse gap. | Unable to validate pre-fix CPU or memory impact under the unavailable audit sandbox. |
+| `finance.unbounded-xlsx-export` | Synthetic exports complete at 5,000 records and reject 5,001 matches after reading at most 5,001 rows, without returning a partial workbook. | Unable to validate historical production record counts or shared-service impact. |
+| `tasks.comment-history-unbounded` | Synthetic 105-comment and 105-activity histories are reachable through stable pages capped at 100, with no missing or duplicate IDs. | Unable to validate pre-fix production history sizes or performance impact. |
+| `web.stored-display-name-html-injection` | The pre-fix synthetic browser flow created an image element and fired its event marker; the fixed UI displays the same name as text without an element or event. | Local browser behavior is reproduced and remediated; no real external profile payload or hosted browser session was tested. |
+| `mobile.denial-keeps-memory-records` | Repository, widget, and API 37 emulator checks verify account cleanup on terminal 401, scoped cleanup on 403, screen gating during cache deletion, and continued access to a second organization. | No physical-device or production session was tested; the pre-fix effect was not separately replayed on the emulator. |
+
+These are local implementation dispositions, not independent audit verification; EVID-003 remains incomplete until its validator and independent-review gaps are resolved.
 
 ## Verification results
 
@@ -155,6 +176,38 @@ The final regression verifies literal output and no event in the profile owner's
 
 The real-backend browser test used only the seeded synthetic Sam and Alex accounts and an isolated test database; no production identity or data was accessed.
 
+## Phase 5: Clear protected mobile state after access denial
+
+The mobile repository now distinguishes a terminal 401 after the API client's refresh and one retry from an organization-scoped 403 and an account-wide 403.
+
+A terminal 401 clears the in-memory user, organizations, members, tasks, and announcements before notifying the shell, clears the active account's cache and tokens, and replaces the protected shell with a sign-in gate.
+
+A scoped 403 immediately removes that organization's member and task rows and subtracts that organization from shared announcement audiences; it clears that organization's snapshots and filters the denied rows from combined snapshots while preserving other account and organization caches.
+
+An account-validation 403 clears the active account's protected state and credentials instead of attributing the denial to whichever organization happened to be selected.
+
+The UI gates every indexed destination while a denied-scope cache cleanup is pending, while the organization selector remains available for switching to a permitted scope.
+
+The boundary review kept API authorization and refresh orchestration in the existing repository, persistent deletion and combined-snapshot filtering in the existing cache adapter, state removal in the shared data repository, and presentation of access gates in the shell; no dependency or new security framework was added, and network exceptions still use the existing offline-cache path.
+
+The new `mobile/test/security_access_test.dart` covers final 401 retry behavior, account-wide 403, scoped 403 and combined-cache filtering, screen gating during asynchronous deletion, and a post-401 sign-in gate; the existing repository test now verifies automatic movement to the user's still-authorized organization after fresh membership data removes the selected scope.
+
+`flutter analyze` reported no issues. `flutter test` passed 59 tests, with one existing live API test skipped because `FINANCE_LIVE_API` was unset.
+
+On 2026-10-05 PHT, `npm test` passed all 250 tests, `npm run test:e2e` passed all 15 workflows, and `npm run test:ui` passed all 15 workflows.
+
+The running app used the `Medium_Phone` Android emulator, Android 17/API 37, at 1080 by 2400 pixels, with Flutter 3.44.7 and Dart 3.12.2.
+
+For the 401 scenario, a synthetic test account signed in, its isolated test session was revoked, and the API refresh flow ended in HTTP 401; the app removed the protected views and displayed the sign-in gate. The emulator was then signed in again and later signed out through the UI.
+
+For the 403 scenario, a temporary loopback proxy connected the emulator to the local API using only the isolated `pipeline_test` database. A synthetic membership was revoked after the successful user-validation response and before the organization members request; the API returned HTTP 403, the denied organization's protected content disappeared, and switching to a second still-authorized organization followed by refresh returned HTTP 200 and task records.
+
+The inspected [post-401 sign-in capture](screenshots/FEAT-007-mobile-401-api37.png) contains no protected records, and the inspected [post-403 denied-scope capture](screenshots/FEAT-007-mobile-403-api37.png) shows the access-denied gate and scope selector.
+
+The software environment was Node.js v24.14.0, npm 11.9.0, PostgreSQL 18.4 on loopback port 5433, Flutter 3.44.7, Dart 3.12.2, Android 17/API 37, Playwright 1.63.0, and headless Microsoft Edge 138.0.3351.121.
+
+The 401 and 403 emulator scenarios used synthetic records and the isolated local test database; no production credentials, production services, customer records, or physical devices were used.
+
 ## Limitations
 
 Production runtime configuration, production deployment seed history, hosted database connection settings, and actual exploitability in any deployed instance were not verified.
@@ -165,7 +218,7 @@ The E2E run updated existing tracked screenshot outputs under `docs/evidence/scr
 
 The later browser rerun regenerated the tracked Phase 3 screenshot `FEAT-007-task-history-375.png`; it remains preserved but is excluded from the Phase 4 checkpoint, while `FEAT-007-stored-display-1440.png` is included.
 
-No Flutter, physical-device, hosting, or production-service checks are in scope for Phases 1 through 3.
+No production-service, deployment, or physical-device check was performed. The required OS-enforced audit sandbox and independent EVID-003 validators remain unavailable, so these local implementation checks do not complete the source-first security audit.
 
 ## Phase status
 
@@ -174,3 +227,7 @@ Phase 1 passed its focused security tests, full Node test gate, isolated restore
 Phase 2 passed its focused auth, finance, and security suites, the full Node gate, E2E gate, diff check, code review, and checkpoint commit `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`.
 
 Phase 3 passed its focused, complete Node, E2E, UI, and diff checks and is committed as `27698745a0207b996259ea6de4edf3d1d0d806b5`.
+
+Phase 4 passed the focused stored-display UI regression, the complete 250-test Node gate, 15 E2E workflows, and its review; it is committed as `ddee080336c97abe0b4c35584165d1628ea7854f`.
+
+Phase 5 passed Flutter analysis, 59 Flutter tests with one existing live API skip, the complete 250-test Node gate, 15 E2E workflows, 15 UI workflows, the API 37 emulator scenarios, and the pending diff review. Its phase checkpoint is `fix(mobile): clear protected state on denial` and remains under review until Git confirms the commit.

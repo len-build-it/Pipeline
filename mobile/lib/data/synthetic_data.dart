@@ -453,6 +453,51 @@ class SyntheticDataRepository extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Remove all authenticated records and identity before returning to sign-in.
+  void clearProtectedData() {
+    _currentUser = const UserAccount(
+      id: '',
+      email: '',
+      displayName: '',
+      avatarColor: Color(0xFF64748B),
+      status: 'signed_out',
+      isGlobalOwner: false,
+      skills: [],
+      interests: [],
+      memberships: [],
+    );
+    _currentScope = 'all';
+    _isOffline = false;
+    _organizations = [];
+    _members = [];
+    _tasks = [];
+    _announcements = [];
+    notifyListeners();
+  }
+
+  /// Remove one organization's records while retaining records for other scopes.
+  void clearOrganizationRecords(String orgId) {
+    _members = _members.where((member) => member.orgId != orgId).toList();
+    _tasks = _tasks.where((task) => task.orgId != orgId).toList();
+    _announcements = _announcements.map((announcement) {
+      if (!announcement.targetOrgs.contains(orgId)) return announcement;
+      final targets = announcement.targetOrgs.where((id) => id != orgId).toList();
+      if (targets.isEmpty) return null;
+      return AnnouncementItem(
+        id: announcement.id,
+        title: announcement.title,
+        body: announcement.body,
+        authorId: announcement.authorId,
+        authorName: announcement.authorName,
+        targetOrgs: targets,
+        status: announcement.status,
+        publishedAt: announcement.publishedAt,
+        archived: announcement.archived,
+      );
+    }).whereType<AnnouncementItem>().toList();
+    notifyListeners();
+  }
+
   // Scoped queries
   List<MemberRecord> getScopedMembers() {
     var list = _members;

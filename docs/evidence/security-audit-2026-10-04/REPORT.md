@@ -159,4 +159,12 @@ Assign a fresh independent candidate verifier and a separate final-record verifi
 
 Have the owner check production JWT secret configuration, seed execution history, and effective test and restore runner database targets without disclosing secret values or contacting live services.
 
-Update this report and its JSON and ledger artifacts only after those checks are completed, and preserve the current source revision reference for comparison.
+Update the original findings JSON and coverage ledger only after those checks are completed, and preserve the current source revision reference for comparison.
+
+## Implementation follow-up
+
+On 2026-10-05 PHT, the approved PLAN-004 local remediation and synthetic regression results were recorded in [EVID-004](../FEAT-007-security-hardening-verification.md).
+
+EVID-004 records per-candidate local outcomes and keeps hosted configuration, production history, physical-device behavior, independent audit verification, and the required OS-enforced reproduction sandbox explicitly unresolved.
+
+This follow-up does not change this report's `incomplete` status, alter the findings JSON or coverage ledger, confirm any candidate as a vulnerability, or assign severity.

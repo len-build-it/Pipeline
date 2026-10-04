@@ -1,7 +1,7 @@
 # Implementation Plan: FEAT-007 Security hardening from audit candidate leads
 
 Created: 2026-10-04T23:06:52+08:00
-Updated: 2026-10-05T00:20:54+08:00
+Updated: 2026-10-05T01:10:50+08:00
 Revision: 1
 Status: Approved
 Feature spec and revision: [FEAT-007 revision 1](../features/FEAT-007-security-hardening.md), Approved
@@ -184,7 +184,7 @@ Continue automatically to the next approved phase.
 
 Requirements: FEAT-007/REQ-008, FEAT-007/REQ-010
 
-State: Implementation and required checks passed; checkpoint review is in progress
+State: Complete
 
 Candidate lead: web.stored-display-name-html-injection
 
@@ -207,9 +207,11 @@ Candidate lead: web.stored-display-name-html-injection
 - [x] Reviewed correctness, scope, dependencies, screenshot outputs, and unrelated changes.
 - [x] Updated this plan, evidence, the specification index, and the current handoff with actual results.
 - [x] Stage only reviewed Phase 4 paths and inspect the staged diff; test-generated screenshots from earlier runs remain unstaged.
-- [ ] Commit the reviewed phase and verify Git reports success.
+- [x] Commit the reviewed phase and verify Git reports success.
 
 Checkpoint message: fix(web): render stored names as text
+
+Checkpoint commit: `ddee080336c97abe0b4c35584165d1628ea7854f`.
 
 Phase completion requires all gates and a successful commit; the message identifies the checkpoint without needing its own hash inside the commit.
 
@@ -219,33 +221,33 @@ Continue automatically to the next approved phase.
 
 Requirements: FEAT-007/REQ-009, FEAT-007/REQ-010
 
-State: Not started
+State: Implementation and required checks passed; checkpoint review is in progress
 
 Candidate lead: mobile.denial-keeps-memory-records
 
 ### Tasks
 
-- [ ] Reproduce separate 401 and 403 responses after loading synthetic records into repository memory and persistent cache.
-- [ ] Exercise 401 handling after the API client's existing single refresh retry so an ordinary expired access token is not confused with final session denial.
-- [ ] Clear all account-protected in-memory records and credentials after 401, and clear records and cache for only the denied organization after 403.
-- [ ] Gate screen rendering so a denied scope cannot display protected records while repository cleanup is in progress.
-- [ ] Preserve eligible cached reads on ordinary network failure and preserve other authorized organization scopes after a scoped 403.
-- [ ] Add repository and widget regression tests for overview, member, task, and announcement records after both denial statuses.
+- [x] Reproduce separate 401 and 403 responses after loading synthetic records into repository memory and persistent cache.
+- [x] Exercise 401 handling after the API client's existing single refresh retry so an ordinary expired access token is not confused with final session denial.
+- [x] Clear all account-protected in-memory records and credentials after 401, and clear records and cache for only the denied organization after 403.
+- [x] Gate screen rendering so a denied scope cannot display protected records while repository cleanup is in progress.
+- [x] Preserve eligible cached reads on ordinary network failure and preserve other authorized organization scopes after a scoped 403.
+- [x] Add repository and widget regression tests for overview, member, task, and announcement records after both denial statuses.
 
 ### Verification
 
-- [ ] From mobile/, run flutter analyze; expect no analyzer issues.
-- [ ] From mobile/, run flutter test; expect all existing and new tests to pass, with any existing live API test skip reported accurately.
-- [ ] Run the app on the existing Medium_Phone API 37 emulator with a synthetic test account; load protected records, revoke the test session and verify a 401 clears protected views, then deny one organization and verify a 403 clears that scope while another authorized scope remains usable.
-- [ ] Capture emulator screenshots of the post-401 sign-in state and post-403 denied-scope state when the harness permits capture.
-- [ ] Run npm test as the final shared-backend regression gate and git diff --check; record actual emulator, Flutter, and Node versions and limitations in the evidence file.
+- [x] From mobile/, run flutter analyze; it reported no analyzer issues.
+- [x] From mobile/, run flutter test; 59 tests passed and one existing live API test was skipped because FINANCE_LIVE_API was unset.
+- [x] Run the app on the existing Medium_Phone API 37 emulator with a synthetic test account; revoke the test session and verify a 401 clears protected views, then deny one organization and verify a 403 clears that scope while another authorized scope remains usable.
+- [x] Capture and inspect the emulator screenshots of the post-401 sign-in state and post-403 denied-scope state.
+- [x] Run npm test, npm run test:e2e, npm run test:ui, and git diff --check; record actual results, versions, and limitations in the evidence file.
 
 ### Review and checkpoint
 
-- [ ] Review repository state transitions and screen gating so network errors remain distinct from known authorization failures.
-- [ ] Review correctness, scope, accessibility, dependencies, and unrelated changes.
-- [ ] Update this plan, evidence, and the current handoff with actual results.
-- [ ] Stage only reviewed Phase 5 paths and inspect the staged diff.
+- [x] Review repository state transitions and screen gating so network errors remain distinct from known authorization failures.
+- [x] Review correctness, scope, accessibility, dependencies, and unrelated changes.
+- [x] Update this plan, evidence, and the current handoff with actual results.
+- [x] Stage only reviewed Phase 5 paths and inspect the staged diff.
 - [ ] Commit the reviewed phase and verify Git reports success.
 
 Checkpoint message: fix(mobile): clear protected state on denial
@@ -280,4 +282,4 @@ Len approved FEAT-007 revision 1 and PLAN-004 revision 1 in chat on 2026-10-04T2
 
 The approved document package was committed as 7de56533f4422545197ab80a513c7828bdcf56e9 and pushed to origin before approval was recorded.
 
-Phase 1 execution started after approval on 2026-10-04T23:21:09+08:00; no application test has been run for this plan yet.
+Phase 1 execution started after approval on 2026-10-04T23:21:09+08:00; Phases 1 through 4 are committed and Phase 5 checks are complete, with final checkpoint and evidence review in progress.

@@ -41,6 +41,35 @@ class _HomeShellState extends State<HomeShell> {
     return ListenableBuilder(
       listenable: widget.repo,
       builder: (context, _) {
+        final appRepo = widget.repo is AppRepository ? widget.repo as AppRepository : null;
+        if (appRepo?.requiresSignIn == true || appRepo?.requiresAuthorization == true) {
+          final accessRevoked = appRepo?.requiresAuthorization == true;
+          return Scaffold(
+            appBar: AppBar(title: Text(accessRevoked ? 'Account access denied' : 'Session expired')),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.lock_outline, size: 40),
+                    const SizedBox(height: 12),
+                    Text(accessRevoked
+                        ? 'This account no longer has access. Sign in again after access is restored.'
+                        : 'Your session expired. Sign in again to continue.'),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      key: const Key('btn-session-sign-in'),
+                      onPressed: () => _showSignInDialog(context, useDevelopmentDefaults: false),
+                      child: const Text('Sign in'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
         final availableScopes = widget.repo.availableScopes;
         final textScaler = MediaQuery.textScalerOf(context);
         final largeText = textScaler.scale(1) > 1.3;
@@ -261,20 +290,27 @@ class _HomeShellState extends State<HomeShell> {
                   )
                 : null,
           ),
-          body: IndexedStack(
-            index: _currentIndex,
-            children: [
-              OverviewScreen(
-                repo: widget.repo,
-                onNavigateToTasks: () => setState(() => _currentIndex = 2),
-                onNavigateToAnnouncements: () => setState(() => _currentIndex = 3),
-                onOpenFinance: _openFinance,
-              ),
-              MembersScreen(repo: widget.repo),
-              TasksScreen(repo: widget.repo),
-              AnnouncementsScreen(repo: widget.repo),
-            ],
-          ),
+          body: appRepo != null && !appRepo.hasAccessToScope
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text('Access to this organization was denied. Choose another organization to continue.'),
+                  ),
+                )
+              : IndexedStack(
+                  index: _currentIndex,
+                  children: [
+                    OverviewScreen(
+                      repo: widget.repo,
+                      onNavigateToTasks: () => setState(() => _currentIndex = 2),
+                      onNavigateToAnnouncements: () => setState(() => _currentIndex = 3),
+                      onOpenFinance: _openFinance,
+                    ),
+                    MembersScreen(repo: widget.repo),
+                    TasksScreen(repo: widget.repo),
+                    AnnouncementsScreen(repo: widget.repo),
+                  ],
+                ),
           bottomNavigationBar: ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             child: NavigationBar(
@@ -309,9 +345,9 @@ class _HomeShellState extends State<HomeShell> {
     );
   }
 
-  void _showSignInDialog(BuildContext context) {
-    final emailCtrl = TextEditingController(text: 'len@example.com');
-    final passCtrl = TextEditingController(text: 'LocalDevPass123!');
+  void _showSignInDialog(BuildContext context, {bool useDevelopmentDefaults = true}) {
+    final emailCtrl = TextEditingController(text: useDevelopmentDefaults ? 'len@example.com' : '');
+    final passCtrl = TextEditingController(text: useDevelopmentDefaults ? 'LocalDevPass123!' : '');
 
     showDialog(
       context: context,

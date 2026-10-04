@@ -274,6 +274,108 @@ class SecureCacheService {
     await _saveIndex(accountId, remaining);
   }
 
+  /// Purge one organization's snapshots and filter its rows out of combined snapshots.
+  Future<void> clearOrganization({
+    required String accountId,
+    required String organizationId,
+  }) async {
+    if (accountId.isEmpty || organizationId.isEmpty) return;
+
+    final index = await _loadIndex(accountId);
+    final remaining = <Map<String, dynamic>>[];
+    for (final item in index) {
+      final key = item['key'] as String;
+      final scope = item['scope'] as String? ?? '';
+      if (scope == organizationId) {
+        await storage.delete(key: key);
+        continue;
+      }
+      if (scope != 'all') {
+        remaining.add(item);
+        continue;
+      }
+
+      final raw = await storage.read(key: key);
+      if (raw == null || raw.isEmpty) {
+        remaining.add(item);
+        continue;
+      }
+      try {
+        final snapshot = jsonDecode(raw) as Map<String, dynamic>;
+        final destination = snapshot['destination'];
+        final payload = snapshot['payload'];
+        if (payload is! List || !{'members', 'tasks', 'announcements'}.contains(destination)) {
+          remaining.add(item);
+          continue;
+        }
+
+        var changed = false;
+        final filtered = <dynamic>[];
+        for (final value in payload) {
+          if (value is! Map) {
+            filtered.add(value);
+            continue;
+          }
+          final row = Map<String, dynamic>.from(value);
+          if (destination == 'announcements') {
+            String? targetKey;
+            for (final candidate in ['targetOrganizations', 'target_organizations', 'targetOrgs']) {
+              if (row.containsKey(candidate)) {
+                targetKey = candidate;
+                break;
+              }
+            }
+            final targets = targetKey == null ? null : row[targetKey] as List<dynamic>?;
+            if (targets == null || !targets.any((target) => target.toString() == organizationId)) {
+              filtered.add(row);
+              continue;
+            }
+            changed = true;
+            final otherTargets = targets.where((target) => target.toString() != organizationId).toList();
+            if (otherTargets.isNotEmpty) {
+              row[targetKey!] = otherTargets;
+              filtered.add(row);
+            }
+            continue;
+          }
+
+          final rowOrgId = row['orgId'] ?? row['organizationId'] ?? row['organization_id'];
+          if (rowOrgId?.toString() == organizationId) {
+            changed = true;
+          } else {
+            filtered.add(row);
+          }
+        }
+
+        if (changed) {
+          snapshot['payload'] = filtered;
+          final serialized = jsonEncode(snapshot);
+          await storage.write(key: key, value: serialized);
+          item['size'] = utf8.encode(serialized).length;
+        }
+        remaining.add(item);
+      } catch (_) {
+        // Keep malformed snapshots indexed; the regular reader removes corrupt entries.
+        remaining.add(item);
+      }
+    }
+    await _saveIndex(accountId, remaining);
+  }
+
+  Future<void> clearSnapshot({
+    required String accountId,
+    required String scope,
+    required String destination,
+    String filterKey = '',
+  }) async {
+    if (accountId.isEmpty) return;
+    final key = buildCacheKey(accountId: accountId, scope: scope, destination: destination, filterKey: filterKey);
+    await storage.delete(key: key);
+    final index = await _loadIndex(accountId);
+    index.removeWhere((item) => item['key'] == key);
+    await _saveIndex(accountId, index);
+  }
+
   Future<void> clearAccount(String accountId) async {
     if (accountId.isEmpty) return;
 
