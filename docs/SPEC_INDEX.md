@@ -1,7 +1,7 @@
 # Specification index
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T16:37:15+08:00
+Updated: 2026-10-04T18:28:10+08:00
 
 | Category | ID | Current path | Revision | Status | Replaces |
 | --- | --- | --- | --- | --- | --- |
@@ -18,7 +18,7 @@ Updated: 2026-10-04T16:37:15+08:00
 | Feature | FEAT-006 | [features/FEAT-006-configurable-finance.md](features/FEAT-006-configurable-finance.md) | 2 | Approved | - |
 | Plan | PLAN-001 | [plans/FEAT-001-implementation.md](plans/FEAT-001-implementation.md) | 1 | Approved; all eight phases complete | - |
 | Plan | PLAN-002 | [plans/FEAT-006-implementation.md](plans/FEAT-006-implementation.md) | 3 | Approved, complete | - |
-| Plan | PLAN-003 | [plans/UI-REDESIGN-implementation.md](plans/UI-REDESIGN-implementation.md) | 1 | Approved; Phase 1 checks passed, checkpoint commit pending | - |
+| Plan | PLAN-003 | [plans/UI-REDESIGN-implementation.md](plans/UI-REDESIGN-implementation.md) | 1 | Approved; Phase 1 complete at `2e60838`; Phase 2 implementation, UI, and E2E checks complete; checkpoint pending | - |
 | Evidence | EVID-001 | [evidence/MVP-verification.md](evidence/MVP-verification.md) | 14 | PLAN-001 complete; PLAN-002 complete | - |
 | Supporting handoff | DESIGN-001 | [product/UI_UX_HANDOFF_BRIEF.md](product/UI_UX_HANDOFF_BRIEF.md) | 1 | Informational; derived from approved specs and not authoritative | - |
 | Supporting handoff | DESIGN-002 | [product/UI_REDESIGN_LAGOON_HANDOFF.md](product/UI_REDESIGN_LAGOON_HANDOFF.md) | 2 | Supporting design reference; execution authorized by PROD-005 revision 4 and PLAN-003 revision 1 | - |

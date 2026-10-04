@@ -91,6 +91,7 @@ function createFinancePage(container, state, orgId) {
   let filters = { from: `${month}-01`, to: lastDayOfMonth(month), category: '', includeVoided: false };
   let page = 1;
   let data = null;
+  let loadSequence = 0;
 
   container.innerHTML = `
     ${pageHeader(
@@ -104,7 +105,7 @@ function createFinancePage(container, state, orgId) {
     )}
     <div class="content-area">
       <div id="finance-status" aria-live="polite"></div>
-      <div id="finance-body"></div>
+      <div id="finance-body" aria-busy="true"></div>
     </div>
   `;
 
@@ -138,24 +139,33 @@ function createFinancePage(container, state, orgId) {
 
   async function load() {
     if (!container.isConnected) return false;
+    const requestSequence = ++loadSequence;
+    const requestedMonth = month;
+    const requestedFilters = { ...filters };
+    const requestedPage = page;
+    body.setAttribute('aria-busy', 'true');
     if (data === null) body.innerHTML = '<p class="form-help-text" aria-busy="true">Loading finance records…</p>';
 
     try {
       const [report, budgets, expenses, categories, activity] = await Promise.all([
-        api.getReport(month),
-        api.listBudgets(month),
-        api.listExpenses({ ...filters, page, limit: PAGE_SIZE }),
+        api.getReport(requestedMonth),
+        api.listBudgets(requestedMonth),
+        api.listExpenses({ ...requestedFilters, page: requestedPage, limit: PAGE_SIZE }),
         api.listCategories(),
         api.listActivity({ limit: RECENT_HISTORY_SIZE }),
       ]);
-      if (!container.isConnected) return false;
+      if (!container.isConnected || requestSequence !== loadSequence) return false;
       data = { report, budgets: budgets.budgets, expenses, categories: categories.categories, events: activity.events };
       headerButtons.forEach(button => { button.disabled = false; });
       showStatus('', '');
       renderBody();
+      body.setAttribute('aria-busy', 'false');
       return true;
     } catch (error) {
-      if (container.isConnected) reportFailure(error);
+      if (container.isConnected && requestSequence === loadSequence) {
+        body.setAttribute('aria-busy', 'false');
+        reportFailure(error);
+      }
       return false;
     }
   }

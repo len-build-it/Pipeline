@@ -84,27 +84,28 @@ export function renderOverview(container, state, actions) {
     </header>
 
     <div class="content-area">
-      <!-- 4 Summary Metrics Cards -->
-      <section aria-label="Organization Metrics" class="grid-cards">
-        <article class="stat-card" data-metric="members">
+      <!-- Four existing metrics with overdue tasks as the hero -->
+      <section aria-label="Organization Metrics" class="grid-cards overview-metrics">
+        <article class="stat-card stat-card-hero" data-metric="overdue-tasks">
+          <div class="stat-card-title">Overdue Tasks</div>
+          <div class="stat-card-value">${overdueTasksCount}</div>
+          <div class="stat-card-sub">Due before Manila today (${todayManila})</div>
+          <button class="btn btn-primary btn-sm" id="btn-hero-view-overdue">Review tasks</button>
+        </article>
+
+        <article class="stat-card stat-card-support stat-card-support-aqua" data-metric="members">
           <div class="stat-card-title">Active Members</div>
           <div class="stat-card-value">${activeMembersCount}</div>
           <div class="stat-card-sub">${currentScope === 'all' ? 'Deduplicated across organizations' : 'In this organization'}</div>
         </article>
 
-        <article class="stat-card" data-metric="open-tasks">
+        <article class="stat-card stat-card-support stat-card-support-mint" data-metric="open-tasks">
           <div class="stat-card-title">Open Tasks</div>
           <div class="stat-card-value">${openTasksCount}</div>
           <div class="stat-card-sub">In backlog, progress, or blocked</div>
         </article>
 
-        <article class="stat-card" data-metric="overdue-tasks">
-          <div class="stat-card-title">Overdue Tasks</div>
-          <div class="stat-card-value" style="color: var(--color-danger);">${overdueTasksCount}</div>
-          <div class="stat-card-sub">Due before Manila today (${todayManila})</div>
-        </article>
-
-        <article class="stat-card" data-metric="announcements">
+        <article class="stat-card stat-card-support stat-card-support-lime" data-metric="announcements">
           <div class="stat-card-title">Recent Announcements</div>
           <div class="stat-card-value">${recentAnnouncementsCount}</div>
           <div class="stat-card-sub">Published in the last 7 days</div>
@@ -125,7 +126,7 @@ export function renderOverview(container, state, actions) {
             ${isLead ? `<button class="btn btn-primary btn-sm" id="btn-empty-task">Create a task</button>` : ''}
           </div>
         ` : `
-          <div class="table-responsive">
+          <div class="table-responsive record-table-view">
             <table class="data-table" aria-label="Actionable tasks list">
               <thead>
                 <tr>
@@ -162,6 +163,27 @@ export function renderOverview(container, state, actions) {
                 }).join('')}
               </tbody>
             </table>
+          </div>
+          <div class="mobile-record-list" aria-label="Actionable tasks">
+            ${actionableTasks.map(t => {
+              const isOverdue = t.dueDate && t.dueDate < todayManila;
+              return `
+                <article class="responsive-record-card">
+                  <div class="record-card-chips">
+                    <span class="badge badge-${t.status.toLowerCase().replace(' ', '_')}">${escapeHtml(t.status)}</span>
+                    <span class="badge badge-${t.priority.toLowerCase()}">${escapeHtml(t.priority)} priority</span>
+                    ${isOverdue ? '<span class="badge badge-blocked">Overdue</span>' : ''}
+                  </div>
+                  <strong>${escapeHtml(t.title)}</strong>
+                  <p class="record-card-subline">${t.orgId ? escapeHtml(orgLabel(state, t.orgId)) : ''}</p>
+                  <div class="record-card-meta">
+                    <span>${escapeHtml(t.assigneeName || 'Unassigned')}</span>
+                    <span>${escapeHtml(t.dueDate || 'No date')}${isOverdue ? ' (Overdue)' : ''}</span>
+                  </div>
+                  <button class="btn btn-secondary btn-sm btn-open-task" data-task-id="${escapeHtml(t.id)}">View task</button>
+                </article>
+              `;
+            }).join('')}
           </div>
         `}
       </section>
@@ -209,13 +231,13 @@ export function renderOverview(container, state, actions) {
   }
 
   container.querySelector('#btn-view-all-tasks')?.addEventListener('click', () => actions.navigateTo('tasks'));
+  container.querySelector('#btn-hero-view-overdue')?.addEventListener('click', () => actions.navigateTo('tasks'));
   container.querySelector('#btn-view-all-announcements')?.addEventListener('click', () => actions.navigateTo('announcements'));
 
   container.querySelectorAll('.btn-open-task').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const taskId = e.currentTarget.getAttribute('data-task-id');
-      actions.openTaskDetailModal(taskId);
+      actions.openTaskDetailModal(taskId, e.currentTarget);
     });
   });
 }
-

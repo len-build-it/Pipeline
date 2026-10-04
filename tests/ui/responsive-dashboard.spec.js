@@ -37,15 +37,50 @@ test.describe('Responsive Dashboard & UI Navigation (P1)', () => {
         await expect(page.locator('#desktop-scope-select')).toBeVisible();
       }
 
-      // Capture desktop and phone screenshots as required by P1
+      // Capture the redesigned operational shell at each target viewport.
       if (vp.name === 'desktop') {
-        await page.screenshot({ path: `${screenshotsDir}/p1-desktop-overview-1440.png`, fullPage: true });
+        await page.screenshot({ path: `${screenshotsDir}/p2-desktop-overview-1440.png`, fullPage: true });
       } else if (vp.name === 'phone') {
-        await page.screenshot({ path: `${screenshotsDir}/p1-phone-overview-375.png` });
+        await page.screenshot({ path: `${screenshotsDir}/p2-phone-overview-375.png` });
       } else if (vp.name === 'tablet') {
-        await page.screenshot({ path: `${screenshotsDir}/p1-tablet-overview-768.png` });
+        await page.screenshot({ path: `${screenshotsDir}/p2-tablet-overview-768.png` });
       } else if (vp.name === 'small-desktop') {
-        await page.screenshot({ path: `${screenshotsDir}/p1-small-desktop-overview-1024.png` });
+        await page.screenshot({ path: `${screenshotsDir}/p2-small-desktop-overview-1024.png` });
+      }
+    }
+
+    const operationalPages = [
+      { name: 'members', nav: 'members', heading: 'Members', action: '#btn-invite-member', records: '#members-list-container' },
+      { name: 'tasks', nav: 'tasks', heading: 'Tasks', action: '#btn-create-task', records: '#tasks-list-container' },
+      { name: 'announcements', nav: 'announcements', heading: 'Announcements', action: '#btn-create-announcement' }
+    ];
+
+    for (const vp of viewports) {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      for (const destination of operationalPages) {
+        await page.goto('/');
+        await page.locator(vp.width <= 768 ? `#mob-nav-${destination.nav}` : `#nav-btn-${destination.nav}`).click();
+        await expect(page.locator('h1')).toHaveText(destination.heading);
+        await expect(page.locator(destination.action)).toBeVisible();
+
+        if (destination.records) {
+          const recordList = page.locator(destination.records);
+          if (vp.width <= 1100) {
+            await expect(recordList.locator('.record-table-view')).toBeHidden();
+            await expect(recordList.locator('.mobile-record-list')).toBeVisible();
+          } else {
+            await expect(recordList.locator('.record-table-view')).toBeVisible();
+            await expect(recordList.locator('.mobile-record-list')).toBeHidden();
+          }
+        }
+
+        const hasHorizontalScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+        expect(hasHorizontalScroll, `${destination.heading} has horizontal page overflow at ${vp.width}px`).toBe(false);
+
+        await page.screenshot({
+          path: `${screenshotsDir}/p2-${vp.name}-${destination.name}-${vp.width}.png`,
+          fullPage: true
+        });
       }
     }
   });
@@ -62,19 +97,70 @@ test.describe('Responsive Dashboard & UI Navigation (P1)', () => {
     await page.click('#nav-btn-members');
     await expect(page.locator('h1')).toHaveText('Members');
     await expect(page.locator('table')).toBeVisible();
-    await page.screenshot({ path: `${screenshotsDir}/p1-desktop-members-1280.png` });
+    await page.screenshot({ path: `${screenshotsDir}/p2-desktop-members-1280.png` });
 
     // 3. Tasks
     await page.click('#nav-btn-tasks');
     await expect(page.locator('h1')).toHaveText('Tasks');
     await expect(page.locator('table')).toBeVisible();
-    await page.screenshot({ path: `${screenshotsDir}/p1-desktop-tasks-1280.png` });
+    await page.screenshot({ path: `${screenshotsDir}/p2-desktop-tasks-1280.png` });
 
     // 4. Announcements
     await page.click('#nav-btn-announcements');
     await expect(page.locator('h1')).toHaveText('Announcements');
     await expect(page.locator('.responsive-record-card').first()).toBeVisible();
-    await page.screenshot({ path: `${screenshotsDir}/p1-desktop-announcements-1280.png` });
+    await page.screenshot({ path: `${screenshotsDir}/p2-desktop-announcements-1280.png` });
+  });
+
+  test('Member and task filters stay usable with active chips and phone record cards', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/');
+
+    await page.click('#mob-nav-members');
+    await expect(page.locator('#members-list-container .record-table-view')).toBeHidden();
+    await expect(page.locator('#members-list-container .mobile-record-list')).toBeVisible();
+    const memberSearch = page.locator('#member-search');
+    await expect(memberSearch).toBeVisible();
+    await memberSearch.fill('Alex Rivera');
+    await expect(page.locator('#members-list-container .mobile-record-list article')).toHaveCount(2);
+    await memberSearch.clear();
+    await page.locator('#member-filter-disclosure > summary').click();
+    await page.selectOption('#member-role-filter', 'Lead');
+    await page.selectOption('#member-status-filter', 'active');
+    await expect(page.locator('#member-active-filters')).toContainText('Role: Lead');
+    await expect(page.locator('#member-active-filters')).toContainText('Status: Active');
+    await page.locator('[data-clear-filter="role"]').click();
+    await expect(page.locator('#member-active-filters')).not.toContainText('Role: Lead');
+
+    await page.locator('#members-list-container .mobile-record-list .btn-member-detail').last().click();
+    const memberPanel = page.locator('#member-detail-modal');
+    await expect(memberPanel).toBeVisible();
+    await expect(memberPanel.locator('#btn-close-member-modal')).toHaveText('Close');
+    await expect(page.locator('#members-list-container .mobile-record-list article').last()).toHaveAttribute('aria-current', 'true');
+    await memberPanel.locator('#btn-close-member-modal').click();
+    await expect(page.locator('#members-list-container .mobile-record-list .btn-member-detail').last()).toBeFocused();
+
+    await page.click('#mob-nav-tasks');
+    await expect(page.locator('#tasks-list-container .record-table-view')).toBeHidden();
+    await expect(page.locator('#tasks-list-container .mobile-record-list')).toBeVisible();
+    const taskSearch = page.locator('#task-search');
+    await expect(taskSearch).toBeVisible();
+    await taskSearch.fill('Design responsive navigation rail');
+    await expect(page.locator('#tasks-list-container .mobile-record-list article')).toHaveCount(1);
+    await taskSearch.clear();
+    await page.locator('#task-filter-disclosure > summary').click();
+    expect(await page.locator('#task-label-filter option').count()).toBeGreaterThan(1);
+    await page.selectOption('#task-label-filter', { index: 1 });
+    await expect(page.locator('#task-active-filters')).toContainText('Label:');
+
+    const openTaskButton = page.locator('#tasks-list-container .mobile-record-list .btn-open-task-detail').first();
+    await openTaskButton.click();
+    const taskPanel = page.locator('#task-detail-modal');
+    await expect(taskPanel).toBeVisible();
+    await expect(taskPanel).toHaveClass(/detail-panel-backdrop/);
+    await expect(taskPanel.locator('#btn-close-task-modal')).toHaveText('Close');
+    await taskPanel.locator('#btn-close-task-modal').click();
+    await expect(openTaskButton).toBeFocused();
   });
 
   test('Mobile menu opens primary navigation and restores focus on Escape', async ({ page }) => {
@@ -308,9 +394,13 @@ test.describe('Responsive Dashboard & UI Navigation (P1)', () => {
 
     // 2. Open task detail
     const newRow = page.locator('tr', { hasText: 'Test UI integration flow' });
-    await newRow.locator('.btn-open-task-detail').click();
+    const taskTitleButton = newRow.locator('.btn-open-task-detail').first();
+    await taskTitleButton.click();
     const detailModal = page.locator('#task-detail-modal');
     await expect(detailModal).toBeVisible();
+    await expect(detailModal).toHaveClass(/detail-panel-backdrop/);
+    await expect(newRow).toHaveAttribute('aria-current', 'true');
+    await expect(detailModal.locator('#btn-close-task-modal')).toHaveText('Close');
 
     // 3. Post a comment
     await detailModal.locator('#task-new-comment').fill('This is an automated test comment.');
@@ -325,6 +415,8 @@ test.describe('Responsive Dashboard & UI Navigation (P1)', () => {
     // Close modal
     await detailModal.locator('#btn-close-task-modal').click();
     await expect(detailModal).not.toBeVisible();
+    await expect(newRow).not.toHaveAttribute('aria-current', 'true');
+    await expect(taskTitleButton).toBeFocused();
   });
 
   test('Announcements: compose, preview toggle, and publish', async ({ page }) => {
@@ -378,13 +470,16 @@ test.describe('Responsive Dashboard & UI Navigation (P1)', () => {
 
     // Open detail of Alex Rivera
     const alexRow = page.locator('tr', { hasText: 'Alex Rivera' }).first();
-    await alexRow.locator('.btn-member-detail').click();
+    await alexRow.locator('.btn-member-detail').first().click();
     const detailModal = page.locator('#member-detail-modal');
     await expect(detailModal).toBeVisible();
+    await expect(alexRow).toHaveAttribute('aria-current', 'true');
+    await expect(detailModal.locator('#btn-close-member-modal')).toHaveText('Close');
 
     // Private notes must NOT be in the DOM for Member persona
     await expect(detailModal.locator('#member-notes-input')).toHaveCount(0);
     await detailModal.locator('#btn-done-member-modal').click();
+    await expect(alexRow.locator('.btn-member-detail').first()).toBeFocused();
   });
 
   test('Accessibility: skip link and dialog escape dismissal', async ({ page }) => {

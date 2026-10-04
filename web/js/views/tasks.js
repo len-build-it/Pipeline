@@ -16,19 +16,14 @@ export function renderTasks(container, state, actions) {
   let statusFilter = 'all';
   let priorityFilter = 'all';
   let assigneeFilter = 'all';
+  let labelFilter = 'all';
   let showArchived = false;
   let overdueOnly = false;
 
   const todayManila = '2026-09-16';
 
-  function getFilteredTasks() {
+  function getScopedTasks() {
     let list = state.tasks;
-
-    if (showArchived) {
-      list = list.filter(t => t.archived);
-    } else {
-      list = list.filter(t => !t.archived);
-    }
 
     if (currentScope !== 'all') {
       list = list.filter(t => t.orgId === currentScope);
@@ -36,6 +31,12 @@ export function renderTasks(container, state, actions) {
       const allowed = currentUser.memberships.map(m => m.orgId);
       list = list.filter(t => allowed.includes(t.orgId));
     }
+
+    return list;
+  }
+
+  function getFilteredTasks() {
+    let list = getScopedTasks().filter(t => showArchived ? t.archived : !t.archived);
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
@@ -58,6 +59,10 @@ export function renderTasks(container, state, actions) {
       }
     }
 
+    if (labelFilter !== 'all') {
+      list = list.filter(t => (t.labels || []).includes(labelFilter));
+    }
+
     if (overdueOnly) {
       list = list.filter(t => t.status !== 'Done' && t.dueDate && t.dueDate < todayManila);
     }
@@ -65,10 +70,59 @@ export function renderTasks(container, state, actions) {
     return list;
   }
 
+  function getActiveFilters() {
+    const filters = [];
+    if (statusFilter !== 'all') filters.push(['status', `Status: ${statusFilter}`]);
+    if (priorityFilter !== 'all') filters.push(['priority', `Priority: ${priorityFilter}`]);
+    if (assigneeFilter !== 'all') {
+      const assignee = assigneeFilter === 'unassigned'
+        ? 'Unassigned'
+        : availableAssignees.find(m => m.userId === assigneeFilter)?.displayName || 'Selected member';
+      filters.push(['assignee', `Assignee: ${assignee}`]);
+    }
+    if (labelFilter !== 'all') filters.push(['label', `Label: ${labelFilter}`]);
+    if (overdueOnly) filters.push(['overdue', 'Overdue only']);
+    if (showArchived) filters.push(['archived', 'Archived tasks']);
+    return filters;
+  }
+
+  function updateFilterCount() {
+    const count = getActiveFilters().length;
+    container.querySelector('#task-filter-count').textContent = count ? `${count}` : '';
+  }
+
+  function renderActiveFilters() {
+    container.querySelector('#task-active-filters').innerHTML = getActiveFilters().map(([key, label]) => `
+      <span class="active-filter-chip">${escapeHtml(label)}<button type="button" data-clear-task-filter="${key}" aria-label="Remove ${escapeHtml(label)} filter">&times;</button></span>
+    `).join('');
+  }
+
+  function resetFilters() {
+    searchQuery = '';
+    statusFilter = 'all';
+    priorityFilter = 'all';
+    assigneeFilter = 'all';
+    labelFilter = 'all';
+    overdueOnly = false;
+    showArchived = false;
+    container.querySelector('#task-search').value = '';
+    container.querySelector('#task-status-filter').value = 'all';
+    container.querySelector('#task-priority-filter').value = 'all';
+    container.querySelector('#task-assignee-filter').value = 'all';
+    container.querySelector('#task-label-filter').value = 'all';
+    container.querySelector('#task-overdue-checkbox').checked = false;
+    container.querySelector('#task-archived-checkbox').checked = false;
+    container.querySelector('#task-filter-disclosure').open = false;
+    updateFilterCount();
+    renderList();
+  }
+
   function renderList() {
     const list = getFilteredTasks();
     const tableContainer = container.querySelector('#tasks-list-container');
     if (!tableContainer) return;
+
+    renderActiveFilters();
 
     if (list.length === 0) {
       tableContainer.innerHTML = `
@@ -81,19 +135,7 @@ export function renderTasks(container, state, actions) {
           </div>
         </div>
       `;
-      tableContainer.querySelector('#btn-clear-task-filters')?.addEventListener('click', () => {
-        searchQuery = '';
-        statusFilter = 'all';
-        priorityFilter = 'all';
-        assigneeFilter = 'all';
-        overdueOnly = false;
-        container.querySelector('#task-search').value = '';
-        container.querySelector('#task-status-filter').value = 'all';
-        container.querySelector('#task-priority-filter').value = 'all';
-        container.querySelector('#task-assignee-filter').value = 'all';
-        container.querySelector('#task-overdue-checkbox').checked = false;
-        renderList();
-      });
+      tableContainer.querySelector('#btn-clear-task-filters')?.addEventListener('click', resetFilters);
       tableContainer.querySelector('#btn-empty-create-task')?.addEventListener('click', () => {
         actions.openTaskCreateModal();
       });
@@ -101,12 +143,12 @@ export function renderTasks(container, state, actions) {
     }
 
     tableContainer.innerHTML = `
-      <div class="table-responsive">
+      <p class="page-result-count" aria-live="polite">${list.length} ${list.length === 1 ? 'task' : 'tasks'} shown</p>
+      <div class="table-responsive record-table-view">
         <table class="data-table" aria-label="Organization tasks list">
           <thead>
             <tr>
               <th scope="col">Task Title</th>
-              <th scope="col">Organization</th>
               <th scope="col">Status</th>
               <th scope="col">Priority</th>
               <th scope="col">Assignee</th>
@@ -121,13 +163,13 @@ export function renderTasks(container, state, actions) {
               return `
                 <tr ${t.archived ? 'style="opacity:0.75;"' : ''}>
                   <td>
-                    <strong>${escapeHtml(t.title)}</strong>
+                    <button type="button" class="record-title-link btn-open-task-detail" data-task-id="${escapeHtml(t.id)}">${escapeHtml(t.title)}</button>
                     ${t.archived ? `<span class="badge badge-archived" style="margin-left:4px;">Archived</span>` : ''}
+                    <div class="record-card-subline">${escapeHtml(orgLabel(state, t.orgId))}</div>
                     <div style="font-size:0.75rem; color:var(--color-text-muted);">${(t.comments || []).length} comments</div>
                   </td>
-                  <td>${escapeHtml(orgLabel(state, t.orgId))}</td>
-                  <td><span class="badge badge-${t.status.toLowerCase().replace(' ', '_')}">${t.status}</span></td>
-                  <td><span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span></td>
+                  <td><span class="badge badge-${t.status.toLowerCase().replace(' ', '_')}">${escapeHtml(t.status)}</span></td>
+                  <td><span class="badge badge-${t.priority.toLowerCase()}">${escapeHtml(t.priority)}</span></td>
                   <td>${escapeHtml(t.assigneeName || 'Unassigned')}</td>
                   <td>
                     <span style="${isOverdue ? 'color: var(--color-danger); font-weight:700;' : ''}">
@@ -135,12 +177,12 @@ export function renderTasks(container, state, actions) {
                     </span>
                   </td>
                   <td>
-                    <div style="display:flex; flex-wrap:wrap; gap:4px; max-width:180px;">
-                      ${(t.labels || []).map(l => `<span style="font-size:0.7rem; background:#E2E8F0; padding:1px 4px; border-radius:3px;">${escapeHtml(l)}</span>`).join('')}
+                    <div class="member-skill-list" style="max-width:180px;">
+                      ${(t.labels || []).map(l => `<span class="badge">${escapeHtml(l)}</span>`).join('')}
                     </div>
                   </td>
                   <td>
-                    <button class="btn btn-secondary btn-sm btn-open-task-detail" data-task-id="${t.id}">View / Edit</button>
+                    <button class="btn btn-secondary btn-sm btn-open-task-detail" data-task-id="${escapeHtml(t.id)}">Details</button>
                   </td>
                 </tr>
               `;
@@ -148,18 +190,47 @@ export function renderTasks(container, state, actions) {
           </tbody>
         </table>
       </div>
+      <div class="mobile-record-list" aria-label="Organization task records">
+        ${list.map(t => {
+          const isOverdue = !t.archived && t.status !== 'Done' && t.dueDate && t.dueDate < todayManila;
+          return `
+            <article class="responsive-record-card" id="task-card-${escapeHtml(t.id)}">
+              <div class="record-card-chips">
+                <span class="badge badge-${t.status.toLowerCase().replace(' ', '_')}">${escapeHtml(t.status)}</span>
+                <span class="badge badge-${t.priority.toLowerCase()}">${escapeHtml(t.priority)} priority</span>
+                ${t.archived ? '<span class="badge badge-archived">Archived</span>' : ''}
+                ${isOverdue ? '<span class="badge badge-blocked">Overdue</span>' : ''}
+              </div>
+              <button type="button" class="record-title-link btn-open-task-detail" data-task-id="${escapeHtml(t.id)}">${escapeHtml(t.title)}</button>
+              <p class="record-card-subline">${escapeHtml(orgLabel(state, t.orgId))}</p>
+              <div class="record-card-meta">
+                <span>${escapeHtml(t.assigneeName || 'Unassigned')}</span>
+                <span>${escapeHtml(t.dueDate || 'No date')}${isOverdue ? ' (Overdue)' : ''}</span>
+                <span>${(t.comments || []).length} comments</span>
+              </div>
+              ${(t.labels || []).length ? `
+                <div class="member-skill-list" aria-label="Task labels">
+                  ${(t.labels || []).map(l => `<span class="badge">${escapeHtml(l)}</span>`).join('')}
+                </div>
+              ` : ''}
+              <button class="btn btn-secondary btn-sm btn-open-task-detail" data-task-id="${escapeHtml(t.id)}">View / Edit</button>
+            </article>
+          `;
+        }).join('')}
+      </div>
     `;
 
     tableContainer.querySelectorAll('.btn-open-task-detail').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const taskId = e.currentTarget.getAttribute('data-task-id');
-        openTaskDetailModal(taskId, state, actions);
+        openTaskDetailModal(taskId, state, actions, e.currentTarget);
       });
     });
   }
 
   // Populate assignee filter dropdown with active members
   const availableAssignees = state.members.filter(m => m.status === 'active');
+  const availableLabels = [...new Set(getScopedTasks().flatMap(t => t.labels || []))].sort((a, b) => a.localeCompare(b));
 
   container.innerHTML = `
     <header class="page-header">
@@ -175,35 +246,55 @@ export function renderTasks(container, state, actions) {
     </header>
 
     <div class="content-area">
-      <section class="filter-bar" aria-label="Task filters">
-        <input type="search" id="task-search" class="filter-input" placeholder="Search tasks by title..." aria-label="Search tasks" />
-        <select id="task-status-filter" class="filter-select" aria-label="Filter by status">
-          <option value="all">All Statuses</option>
-          <option value="Backlog">Backlog</option>
-          <option value="In progress">In progress</option>
-          <option value="Blocked">Blocked</option>
-          <option value="Done">Done</option>
-        </select>
-        <select id="task-priority-filter" class="filter-select" aria-label="Filter by priority">
-          <option value="all">All Priorities</option>
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-        </select>
-        <select id="task-assignee-filter" class="filter-select" aria-label="Filter by assignee">
-          <option value="all">All Assignees</option>
-          <option value="unassigned">Unassigned</option>
-          ${availableAssignees.map(a => `<option value="${a.userId}">${escapeHtml(a.displayName)} (${escapeHtml(orgLabel(state, a.orgId))})</option>`).join('')}
-        </select>
-        <label style="display:flex; align-items:center; gap:var(--spacing-1); font-size:var(--font-size-sm); cursor:pointer;">
-          <input type="checkbox" id="task-overdue-checkbox" />
-          Overdue only
-        </label>
-        <label style="display:flex; align-items:center; gap:var(--spacing-1); font-size:var(--font-size-sm); cursor:pointer;">
-          <input type="checkbox" id="task-archived-checkbox" />
-          Show Archived
-        </label>
+      <section class="page-tools" aria-label="Task search and filters">
+        <div class="search-field">
+          <label for="task-search" class="form-label">Search tasks</label>
+          <input type="search" id="task-search" class="filter-input" placeholder="Task title or description" />
+        </div>
+        <details class="filter-disclosure" id="task-filter-disclosure">
+          <summary>Filters<span class="filter-count" id="task-filter-count"></span></summary>
+          <div class="filter-disclosure-content">
+            <div class="filter-select-wrap">
+              <label for="task-status-filter" class="form-label">Status</label>
+              <select id="task-status-filter" class="filter-select">
+                <option value="all">All statuses</option>
+                <option value="Backlog">Backlog</option>
+                <option value="In progress">In progress</option>
+                <option value="Blocked">Blocked</option>
+                <option value="Done">Done</option>
+              </select>
+            </div>
+            <div class="filter-select-wrap">
+              <label for="task-priority-filter" class="form-label">Priority</label>
+              <select id="task-priority-filter" class="filter-select">
+                <option value="all">All priorities</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+            <div class="filter-select-wrap">
+              <label for="task-assignee-filter" class="form-label">Assignee</label>
+              <select id="task-assignee-filter" class="filter-select">
+                <option value="all">All assignees</option>
+                <option value="unassigned">Unassigned</option>
+                ${availableAssignees.map(a => `<option value="${escapeHtml(a.userId)}">${escapeHtml(a.displayName)} (${escapeHtml(orgLabel(state, a.orgId))})</option>`).join('')}
+              </select>
+            </div>
+            <div class="filter-select-wrap">
+              <label for="task-label-filter" class="form-label">Label</label>
+              <select id="task-label-filter" class="filter-select">
+                <option value="all">All labels</option>
+                ${availableLabels.map(label => `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`).join('')}
+              </select>
+            </div>
+            <label class="filter-checkbox"><input type="checkbox" id="task-overdue-checkbox" /> Overdue only</label>
+            <label class="filter-checkbox"><input type="checkbox" id="task-archived-checkbox" /> Show archived</label>
+          </div>
+        </details>
       </section>
+
+      <div id="task-active-filters" class="active-filter-chips" aria-label="Active task filters" aria-live="polite"></div>
 
       <section class="section-panel">
         <div id="tasks-list-container"></div>
@@ -219,26 +310,56 @@ export function renderTasks(container, state, actions) {
 
   container.querySelector('#task-status-filter')?.addEventListener('change', (e) => {
     statusFilter = e.target.value;
+    updateFilterCount();
     renderList();
   });
 
   container.querySelector('#task-priority-filter')?.addEventListener('change', (e) => {
     priorityFilter = e.target.value;
+    updateFilterCount();
     renderList();
   });
 
   container.querySelector('#task-assignee-filter')?.addEventListener('change', (e) => {
     assigneeFilter = e.target.value;
+    updateFilterCount();
+    renderList();
+  });
+
+  container.querySelector('#task-label-filter')?.addEventListener('change', (e) => {
+    labelFilter = e.target.value;
+    updateFilterCount();
     renderList();
   });
 
   container.querySelector('#task-overdue-checkbox')?.addEventListener('change', (e) => {
     overdueOnly = e.target.checked;
+    updateFilterCount();
     renderList();
   });
 
   container.querySelector('#task-archived-checkbox')?.addEventListener('change', (e) => {
     showArchived = e.target.checked;
+    updateFilterCount();
+    renderList();
+  });
+
+  container.querySelector('#task-active-filters')?.addEventListener('click', (e) => {
+    const filter = e.target.closest('[data-clear-task-filter]')?.dataset.clearTaskFilter;
+    if (!filter) return;
+    if (filter === 'status') statusFilter = 'all';
+    if (filter === 'priority') priorityFilter = 'all';
+    if (filter === 'assignee') assigneeFilter = 'all';
+    if (filter === 'label') labelFilter = 'all';
+    if (filter === 'overdue') overdueOnly = false;
+    if (filter === 'archived') showArchived = false;
+    container.querySelector('#task-status-filter').value = statusFilter;
+    container.querySelector('#task-priority-filter').value = priorityFilter;
+    container.querySelector('#task-assignee-filter').value = assigneeFilter;
+    container.querySelector('#task-label-filter').value = labelFilter;
+    container.querySelector('#task-overdue-checkbox').checked = overdueOnly;
+    container.querySelector('#task-archived-checkbox').checked = showArchived;
+    updateFilterCount();
     renderList();
   });
 
@@ -248,13 +369,14 @@ export function renderTasks(container, state, actions) {
     });
   }
 
+  updateFilterCount();
   renderList();
 }
 
 /**
  * Task Detail & Edit Modal
  */
-export function openTaskDetailModal(taskId, state, actions) {
+export function openTaskDetailModal(taskId, state, actions, triggerElement = null) {
   const task = state.tasks.find(t => t.id === taskId);
   if (!task) return;
 
@@ -276,7 +398,7 @@ export function openTaskDetailModal(taskId, state, actions) {
   const orgAssignees = state.members.filter(m => m.orgId === task.orgId && m.status === 'active');
 
   const modalHtml = `
-    <div class="modal-backdrop" id="task-detail-modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
+    <div class="modal-backdrop detail-panel-backdrop" id="task-detail-modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
       <div class="modal-dialog">
         <header class="modal-header">
           <div>
@@ -286,7 +408,7 @@ export function openTaskDetailModal(taskId, state, actions) {
             </div>
             <h2 id="task-modal-title" class="modal-title">${escapeHtml(task.title)}</h2>
           </div>
-          <button class="modal-close-btn" id="btn-close-task-modal" aria-label="Close dialog">&times;</button>
+          <button class="btn btn-secondary btn-sm" id="btn-close-task-modal" aria-label="Close dialog">Close</button>
         </header>
 
         <div class="modal-body">
@@ -427,14 +549,30 @@ export function openTaskDetailModal(taskId, state, actions) {
     </div>
   `;
 
+  const invokingElement = triggerElement || document.activeElement;
+  const selectedRecord = invokingElement?.closest('tr, .responsive-record-card');
+  selectedRecord?.classList.add('is-selected');
+  selectedRecord?.setAttribute('aria-current', 'true');
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   const modal = document.getElementById('task-detail-modal');
 
   function closeModal() {
     modal.remove();
+    selectedRecord?.classList.remove('is-selected');
+    selectedRecord?.removeAttribute('aria-current');
+    if (invokingElement?.isConnected) invokingElement.focus();
+  }
+
+  function refreshAndReopen() {
+    closeModal();
+    actions.refresh();
+    const refreshedTrigger = Array.from(document.querySelectorAll('.btn-open-task-detail'))
+      .find(button => button.dataset.taskId === taskId && button.getClientRects().length > 0);
+    openTaskDetailModal(taskId, state, actions, refreshedTrigger);
   }
 
   modal.querySelector('#btn-close-task-modal').addEventListener('click', closeModal);
+  modal.querySelector('#btn-close-task-modal').focus();
   modal.querySelector('#btn-close-task-bottom').addEventListener('click', closeModal);
 
   // Stale edit simulation
@@ -621,9 +759,7 @@ export function openTaskDetailModal(taskId, state, actions) {
           body: newCmt.body,
           createdAt: newCmt.createdAt,
         });
-        closeModal();
-        openTaskDetailModal(taskId, state, actions);
-        actions.refresh();
+        refreshAndReopen();
       }).catch(err => {
         alert(`Network error: ${err.message}`);
       });
@@ -639,9 +775,7 @@ export function openTaskDetailModal(taskId, state, actions) {
       createdAt: new Date().toISOString(),
     });
 
-    closeModal();
-    openTaskDetailModal(taskId, state, actions);
-    actions.refresh();
+    refreshAndReopen();
   });
 
   // Comment edit / delete
@@ -660,9 +794,7 @@ export function openTaskDetailModal(taskId, state, actions) {
             return;
           }
           task.comments = task.comments.filter(c => c.id !== cmtId);
-          closeModal();
-          openTaskDetailModal(taskId, state, actions);
-          actions.refresh();
+          refreshAndReopen();
         }).catch(err => {
           alert(`Network error: ${err.message}`);
         });
@@ -670,9 +802,7 @@ export function openTaskDetailModal(taskId, state, actions) {
       }
 
       task.comments = task.comments.filter(c => c.id !== cmtId);
-      closeModal();
-      openTaskDetailModal(taskId, state, actions);
-      actions.refresh();
+      refreshAndReopen();
     });
   });
 
@@ -699,9 +829,7 @@ export function openTaskDetailModal(taskId, state, actions) {
             }
             const updated = await res.json();
             comment.body = updated.body;
-            closeModal();
-            openTaskDetailModal(taskId, state, actions);
-            actions.refresh();
+            refreshAndReopen();
           }).catch(err => {
             alert(`Network error: ${err.message}`);
           });
@@ -709,9 +837,7 @@ export function openTaskDetailModal(taskId, state, actions) {
         }
 
         comment.body = newBody.trim();
-        closeModal();
-        openTaskDetailModal(taskId, state, actions);
-        actions.refresh();
+        refreshAndReopen();
       }
     });
   });
@@ -748,4 +874,3 @@ export function openTaskDetailModal(taskId, state, actions) {
     }
   });
 }
-

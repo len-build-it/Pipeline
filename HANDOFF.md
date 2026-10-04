@@ -1,8 +1,8 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T16:37:15+08:00
-State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 is implemented and PLAN-002 revision 3 is complete; local software is verified, physical-device and production checks are pending, and Lagoon redesign Phase 1 checks passed with its checkpoint commit pending under approved PROD-005 revision 4 and PLAN-003 revision 1.
+Updated: 2026-10-04T18:28:10+08:00
+State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 is implemented and PLAN-002 revision 3 is complete; local software is verified, physical-device and production checks are pending, and Lagoon redesign Phase 1 is complete while Phase 2 implementation and required UI and E2E checks pass under approved PROD-005 revision 4 and PLAN-003 revision 1; its Phase 2 checkpoint is pending.
 Feature: FEAT-006 approved; implemented under PLAN-002 revision 3; all six phases complete.
 Intended executor: Claude Code (Opus 5.5), selected by Len in chat on 2026-10-03 with "Execute".
 
@@ -43,7 +43,7 @@ Execution of PLAN-001 P1 through P8 proceeded continuously without routine phase
 | PLAN-002 Configurable finance implementation | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | PLAN-003 Lagoon UI redesign implementation | 1 | Approved by Len in chat on 2026-10-04T16:19:21+08:00. |
 
-Allowed execution phases: PLAN-001 P1 through P8 and PLAN-002 Phase 1 through Phase 6 are complete; PLAN-003 Phase 1 through Phase 6 are approved, with Phase 1 checks passed and its checkpoint commit pending under PROD-005 revision 4.
+Allowed execution phases: PLAN-001 P1 through P8 and PLAN-002 Phase 1 through Phase 6 are complete; PLAN-003 Phase 1 is complete, Phase 2 implementation and required UI and E2E checks are complete with its checkpoint pending, and Phases 3 through 6 remain approved for execution.
 
 PLAN-002 is a separate scope with its own approval: on 2026-10-03T22:31:00+08:00 Len wrote "Yes I approve of the revisions" in reply to a request naming FEAT-006 revision 2, PLAN-002 revision 3, the other draft revisions in this table, and `exceljs@4.4.0`.
 
@@ -127,6 +127,7 @@ Local PostgreSQL on port 5433, the API 37 Android emulator, and Microsoft Edge w
 | ISS-012 Android finance widget tests (PLAN-002 Phase 5) | 0, resolved on attempt 1 | Fake server counted offline requests; three floating buttons shared one hero tag and asserted on route push. | `flutter test` passing 53/53. |
 | ISS-013 emulator left in airplane mode (PLAN-002 Phase 5) | 0, resolved | Sign-in sent no request until airplane mode was turned off. | Emulator scenarios passed; airplane mode is off. |
 | P8 E2E announcement status code | 0, resolved | POST /api/announcements returned 200 instead of 201; updated assertion to expect([200, 201]). | E2E workflow passing. |
+| ISS-014 PLAN-003 Phase 2 Finance refresh race | 3 failed full-suite runs before expanded authorization; resolved on the first authorized fix-and-check | Finance requests used live filter state and had no latest-request guard, so overlapping responses could replace newer results; a scope refresh could rerender Finance after navigation and restore default dates; the tests proceeded before the filter refresh completed. Len expanded authorization on 2026-10-04 to fix these failures. `web/js/app.js` now ignores stale scope completions and avoids replacing an active Finance page after navigation; `web/js/views/finance.js` snapshots each request and ignores stale responses and errors while exposing `aria-busy`; the existing E2E flow now waits for the refresh to finish without weakening assertions. The targeted Finance journeys passed 3/3 after the fix, two full `npm run test:e2e` runs passed 13/13 each, and two `npm run test:ui` runs passed 13/13 each. | Resolved. Stage and commit Phase 2 after the final diff review, then begin approved Phase 3. |
 
 For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
 
@@ -168,7 +169,27 @@ Viewport screenshots are available in [docs/evidence/screenshots/ui-redesign](do
 
 The sampled contrast calculation earlier in this handoff remains preliminary; the full approved token-pair contrast verification is still required in PLAN-003 Phase 6.
 
-The next action is to stage and inspect only the reviewed Phase 1 paths, commit as `feat(ui): apply lagoon web tokens and shell`, verify the Git hash, and then continue to Phase 2.
+Git confirmed the Phase 1 checkpoint `feat(ui): apply lagoon web tokens and shell` at `2e608380afa128a07c3c542c530b0475bd6dcd9e` on `codex/organization-manager-mvp`, and the worktree was clean after commit.
+
+PLAN-003 Phase 1 is complete. Phase 2 implementation, responsive checks, review, `npm run test:e2e`, and `npm run test:ui` are complete; the phase is awaiting its reviewed local checkpoint commit.
+
+The earlier Phase 2 `npm run test:ui` run passed all 13 tests in 40.8 seconds, including search, filters, detail focus return, primary-action visibility, and page-level overflow checks at 375, 768, 1024, and 1440 CSS-pixel widths.
+The suite ran with headless Microsoft Edge through Playwright 1.63.0, and `git diff --check` passed with Git line-ending notices.
+Screenshots for Overview, Members, Tasks, and Announcements at all four target widths are in [docs/evidence/screenshots/ui-redesign](docs/evidence/screenshots/ui-redesign/); the final captures were written at 2026-10-04T17:18:32+08:00 through 2026-10-04T17:18:34+08:00.
+
+The first E2E attempt could not start because port 5433 had no response. After the temporary database was available, three full `npm run test:e2e` runs completed with 11/13, 11/13, and 10/13 passing, respectively, with the Finance failures recorded under ISS-014.
+The E2E suite overwrote existing `p8-e2e-*` and `plan2-p3-*`/`plan2-p4-*` screenshots; those eight files were restored from backups and verified byte-for-byte with SHA-256.
+The temporary PostgreSQL cluster was stopped after the initial three attempts, while the existing PostgreSQL service on port 5432 continued accepting connections.
+The automatic safety policy rejected deletion of the temporary PostgreSQL data directory, which remains stopped at `%TEMP%\pipeline-ui-redesign-e2e-pg`.
+
+On 2026-10-04, Len expanded the authorized work to include the Finance issues blocking the Phase 2 E2E gate.
+The isolated PostgreSQL 18 test cluster was restarted at `%TEMP%\pipeline-ui-redesign-e2e-pg` and bound only to `127.0.0.1:5433`; the PostgreSQL service on port 5432 was not changed.
+The first post-fix targeted Finance run passed 3/3 in 19.7 seconds, and two subsequent full E2E runs each passed 13/13 in 1.0 and 1.7 minutes.
+Two subsequent UI runs each passed 13/13 in 56 seconds and 1.4 minutes, including the approved target widths and keyboard flows.
+The eight pre-existing E2E screenshot files were restored byte-for-byte after each full E2E run; only the new Lagoon screenshots under `docs/evidence/screenshots/ui-redesign/` remain untracked for Phase 2 evidence.
+The final `git diff --check` passed with only Git line-ending notices.
+The next action is to stage and review the exact Phase 2 paths, commit `feat(ui): restyle web organization pages`, verify its hash, and continue into approved Phase 3.
+The isolated PostgreSQL 18 test cluster remains running on `127.0.0.1:5433` for the database-backed PLAN-003 Phase 3 checks.
 Len must share or export the design canvas before another agent can open it.
 
 Len's decisions and checks, none of which block the local software:

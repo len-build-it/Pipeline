@@ -31,6 +31,7 @@ async function openFinance(page) {
   await expect(page.locator('#finance-filter-form')).toBeVisible();
   await page.locator('#finance-from').fill('2020-01-01');
   await page.locator('#finance-filter-form button[type="submit"]').click();
+  await expect(page.locator('#finance-body')).toHaveAttribute('aria-busy', 'false');
   await expect(page.locator('#finance-from')).toHaveValue('2020-01-01');
 }
 
@@ -445,6 +446,7 @@ test.describe('Finance workspace with the real backend (PLAN-002 Phase 3 / FEAT-
 
     await page.locator('#finance-category').selectOption('Export');
     await page.locator('#finance-filter-form button[type="submit"]').click();
+    await expect(page.locator('#finance-body')).toHaveAttribute('aria-busy', 'false');
     await expect(page.locator('#finance-expense-total')).toContainText('PHP 10.10');
 
     const [download] = await Promise.all([

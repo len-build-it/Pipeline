@@ -1,9 +1,9 @@
 # Implementation plan: Lagoon UI redesign
 
 Created: 2026-10-04T16:08:31+08:00
-Updated: 2026-10-04T16:37:15+08:00
+Updated: 2026-10-04T18:28:10+08:00
 Revision: 1
-Status: Approved; Phase 1 verification passed, checkpoint commit pending.
+Status: Approved; Phase 1 complete; Phase 2 implementation, review, UI checks, and E2E checks complete; Phase 2 checkpoint pending.
 Feature spec and revision: [PROD-005 revision 4](../product/UI_UX_DESIGN.md), approved by Len together with this plan.
 Approved baseline and architecture revisions: PROD-001 revision 3, PROD-002 revision 3, PROD-003 revision 3, PROD-004 revision 4, and PROD-005 revision 4; FEAT-001 revision 3, FEAT-002 revision 2, FEAT-003 revision 2, FEAT-004 revision 3, FEAT-005 revision 2, and FEAT-006 revision 2 remain unchanged.
 Len's chat approval: Approved on 2026-10-04T16:19:21+08:00: "Approve PROD-005 revision 4 and PLAN-003 revision 1".
@@ -33,7 +33,7 @@ Do not add an icon pack, font, CSS framework, component library, Flutter package
 
 Requirements: PROD-005 revision 4 visual system and Web shell; UI-REQ-001, UI-REQ-002, UI-REQ-004, UI-REQ-006, and UI-REQ-007.
 
-State: Verification passed; checkpoint commit pending.
+State: Complete; `feat(ui): apply lagoon web tokens and shell` committed as `2e608380afa128a07c3c542c530b0475bd6dcd9e`.
 
 ### Tasks
 
@@ -63,35 +63,37 @@ Screenshots for all four target widths are in `docs/evidence/screenshots/ui-rede
 
 - [x] Review token use, decorative blob placement, focus visibility, and unrelated changes.
 - [x] Update plan and current handoff with actual checks and limitations.
-- [ ] Stage only reviewed Phase 1 paths and inspect the staged diff.
-- [ ] Commit as `feat(ui): apply lagoon web tokens and shell` and verify Git reports success.
+- [x] Stage only reviewed Phase 1 paths and inspect the staged diff.
+- [x] Commit as `feat(ui): apply lagoon web tokens and shell` and verify Git reports success.
 
 ## Phase 2: Web operational pages
 
 Requirements: PROD-005 revision 4 Overview, Members, Tasks, and Lists rules; UI-REQ-001 through UI-REQ-009.
 
-State: Not started.
+State: Implementation, review, and required UI and E2E verification complete; checkpoint commit is pending.
 
 ### Tasks
 
-- [ ] Restyle Overview with overdue tasks as the hero tile and the other three existing metrics as supporting tiles.
-- [ ] Restyle Members, Tasks, and Announcements with summary-first hierarchy where numbers already exist, quiet rows, text-labeled status chips, and straight-edged data surfaces.
-- [ ] Put member role and status filters behind one labeled Filters control and task filters behind one labeled Filters control, while keeping search visible and active filters visible as chips.
-- [ ] Open member and task details on selection in the desktop detail panel and retain a visible Close control; keep existing mobile detail flows.
-- [ ] Preserve every existing field, status, label, action, and loading, empty, error, denied, offline, success, and recovery state.
-- [ ] Omit the Tasks status count tiles because complete counts are not available from the paginated task API.
+- [x] Restyle Overview with overdue tasks as the hero tile and the other three existing metrics as supporting tiles.
+- [x] Restyle Members, Tasks, and Announcements with summary-first hierarchy where numbers already exist, quiet rows, text-labeled status chips, and straight-edged data surfaces.
+- [x] Put member role and status filters behind one labeled Filters control and task filters behind one labeled Filters control, while keeping search visible and active filters visible as chips.
+- [x] Open member and task details on selection in the desktop detail panel and retain a visible Close control; keep existing mobile detail flows.
+- [x] Preserve every existing field, status, label, action, and loading, empty, error, denied, offline, success, and recovery state.
+- [x] Omit the Tasks status count tiles because complete counts are not available from the paginated task API.
+- [x] Resolve the Finance refresh races blocking the required E2E gate after Len expanded the authorized scope on 2026-10-04; keep the existing assertions intact.
 
 ### Verification
 
-- [ ] Run `npm run test:ui` and `npm run test:e2e` from the repository root and expect the existing UI and end-to-end assertions to pass unchanged.
-- [ ] Exercise organization switching, scope clarity, member search and filters, task search and filters, opening and closing details, and announcement list and compose flows.
-- [ ] Inspect 375, 768, 1024, and 1440 CSS-pixel layouts; confirm there is no page-level horizontal overflow or hidden primary action.
-- [ ] Save available page screenshots in `docs/evidence/screenshots/ui-redesign/` and record the viewport and browser.
+- [x] Run `npm run test:ui` from the repository root; it passed all 13 tests, including the four target widths, active filter chips, card breakpoints, search, details, permissions, and keyboard behavior.
+- [x] Run `npm run test:e2e` from the repository root; the three pre-fix runs ended with 11/13, 11/13, and 10/13, then the targeted Finance flows passed 3/3 after the fix and two full runs passed 13/13 each against an isolated PostgreSQL 18 test cluster.
+- [x] Exercise organization switching, scope clarity, member search and filters, task search and filters, opening and closing details, and announcement list and compose flows.
+- [x] Inspect 375, 768, 1024, and 1440 CSS-pixel layouts; UI checks found no page-level horizontal overflow or hidden page-level primary action.
+- [x] Save page screenshots for Overview, Members, Tasks, and Announcements at 375, 768, 1024, and 1440 CSS-pixel widths in `docs/evidence/screenshots/ui-redesign/` using headless Microsoft Edge and Playwright 1.63.0.
 
 ### Review and checkpoint
 
-- [ ] Review information hierarchy, active filter chips, selection and close behavior, accessibility semantics, and unrelated changes.
-- [ ] Update plan and current handoff with actual checks and limitations.
+- [x] Review information hierarchy, active filter chips, selection and close behavior, accessibility semantics, and unrelated changes.
+- [x] Update plan and current handoff with actual checks and limitations.
 - [ ] Stage only reviewed Phase 2 paths and inspect the staged diff.
 - [ ] Commit as `feat(ui): restyle web organization pages` and verify Git reports success.
 

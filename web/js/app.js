@@ -7,7 +7,7 @@ import { createInitialState, FIXTURE_USERS } from './fixtures.js';
 import { escapeHtml, orgLabel } from './format.js';
 import { renderOverview } from './views/overview.js';
 import { renderMembers } from './views/members.js';
-import { renderTasks } from './views/tasks.js';
+import { renderTasks, openTaskDetailModal } from './views/tasks.js';
 import { renderAnnouncements } from './views/announcements.js';
 import { renderSignIn, renderInviteAccept } from './views/auth.js';
 import { renderFinance } from './views/finance.js';
@@ -18,6 +18,7 @@ class App {
     this.currentView = 'overview';
     this.appRoot = document.getElementById('app-root');
     this.lastFocusedElement = null;
+    this.scopeChangeSequence = 0;
   }
 
   init() {
@@ -30,6 +31,8 @@ class App {
   }
 
   async setScope(orgId) {
+    const scopeChangeSequence = ++this.scopeChangeSequence;
+    const renderedRoot = this.appRoot.firstElementChild;
     this.state.currentScope = orgId;
     if (this.state.isRealAuth && this.state.token) {
       try {
@@ -51,6 +54,9 @@ class App {
         // Keep the records already shown when the network request fails.
       }
     }
+    if (scopeChangeSequence !== this.scopeChangeSequence) return;
+    // A scope request started on another page must not replace Finance after the member has begun using it.
+    if (this.currentView === 'finance' && this.appRoot.firstElementChild !== renderedRoot) return;
     this.render();
   }
 
@@ -431,7 +437,7 @@ class App {
       setScope: (scope) => this.setScope(scope),
       openInviteModal: () => this.openInviteModal(),
       openTaskCreateModal: () => this.openTaskCreateModal(),
-      openTaskDetailModal: (id) => this.openTaskDetailModal(id),
+      openTaskDetailModal: (id, triggerElement) => openTaskDetailModal(id, this.state, this.getActions(), triggerElement),
       openAnnouncementComposeModal: () => this.openAnnouncementComposeModal(),
       openProfileModal: () => this.openProfileModal()
     };
