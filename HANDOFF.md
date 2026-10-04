@@ -1,10 +1,10 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T23:13:14+08:00
-State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are drafts awaiting approval.
-Feature: FEAT-007 security hardening from audit candidate leads; no implementation is approved or started.
-Intended executor: Not selected for PLAN-004.
+Updated: 2026-10-04T23:21:09+08:00
+State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, with Phase 1 in progress.
+Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; Phase 1 in progress.
+Intended executor: Codex, proceeding continuously under PLAN-004.
 
 ## Read first
 
@@ -14,7 +14,7 @@ Intended executor: Not selected for PLAN-004.
 - [Access](docs/features/FEAT-001-access-dashboard.md), [members](docs/features/FEAT-002-member-management.md), [tasks](docs/features/FEAT-003-task-management.md), [announcements](docs/features/FEAT-004-announcements.md), and [mobile](docs/features/FEAT-005-mobile-offline.md).
 - [The completed MVP implementation checklist](docs/plans/FEAT-001-implementation.md) and [verification ledger](docs/evidence/MVP-verification.md).
 - [Finance feature](docs/features/FEAT-006-configurable-finance.md) and [its implementation plan](docs/plans/FEAT-006-implementation.md).
-- [Security hardening feature](docs/features/FEAT-007-security-hardening.md) and [its implementation plan](docs/plans/FEAT-007-implementation.md), both awaiting approval.
+- [Security hardening feature](docs/features/FEAT-007-security-hardening.md) and [its implementation plan](docs/plans/FEAT-007-implementation.md), approved by Len on 2026-10-04T23:19:00+08:00.
 - [UI/UX design handoff brief](docs/product/UI_UX_HANDOFF_BRIEF.md), an informational summary for design work that does not replace or revise the approved specifications.
 - [Lagoon UI redesign implementation handoff](docs/product/UI_REDESIGN_LAGOON_HANDOFF.md), a supporting design reference for the approved PROD-005 revision 4 and PLAN-003 revision 1 implementation.
 
@@ -40,11 +40,13 @@ Execution of PLAN-001 P1 through P8 proceeded continuously without routine phase
 | FEAT-004 Announcements | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | FEAT-005 Mobile | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
 | FEAT-006 Configurable finance | 2 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
+| FEAT-007 Security hardening | 1 | Approved by Len in chat on 2026-10-04T23:19:00+08:00: "Approve FEAT-007 revision 1 and PLAN-004 revision 1". |
 | PLAN-001 Coordinated implementation | 1 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
 | PLAN-002 Configurable finance implementation | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | PLAN-003 Lagoon UI redesign implementation | 1 | Approved by Len in chat on 2026-10-04T16:19:21+08:00. |
+| PLAN-004 Security hardening implementation | 1 | Approved by Len in chat on 2026-10-04T23:19:00+08:00: "Approve FEAT-007 revision 1 and PLAN-004 revision 1". |
 
-Allowed execution phases: PLAN-001 P1 through P8 and PLAN-002 Phase 1 through Phase 6 are complete; PLAN-003 Phases 1 through 5 are committed at `2e60838`, `8caa32e`, `58a8d71`, `e64c8c9`, and `75bed89`; Phase 6 is committed as `test(ui): verify lagoon redesign release`.
+Allowed execution phases: PLAN-001 P1 through P8, PLAN-002 Phase 1 through Phase 6, and PLAN-003 Phase 1 through Phase 6 are complete; PLAN-004 Phases 1 through 5 are approved and Phase 1 is in progress.
 
 PLAN-002 is a separate scope with its own approval: on 2026-10-03T22:31:00+08:00 Len wrote "Yes I approve of the revisions" in reply to a request naming FEAT-006 revision 2, PLAN-002 revision 3, the other draft revisions in this table, and `exceljs@4.4.0`.
 
@@ -260,7 +262,11 @@ The external audit path `C:\Users\User\security-audit-skill\Pipeline\run-1` cont
 
 Automatic safety review rejected recursive removal of that path because it is outside the authorized project folder; no more specific reason text was surfaced, and no further cleanup attempt was made.
 
-The next action is for Len to review and approve FEAT-007 revision 1 and PLAN-004 revision 1 or request edits; the exact approval has not been recorded.
+Len approved FEAT-007 revision 1 and PLAN-004 revision 1 in chat on 2026-10-04T23:19:00+08:00 with the exact message: "Approve FEAT-007 revision 1 and PLAN-004 revision 1".
+
+The document package was committed as 7de56533f4422545197ab80a513c7828bdcf56e9 and pushed to origin/codex/organization-manager-mvp before approval was recorded.
+
+PLAN-004 Phase 1 is in progress; no Phase 1 checks have run yet.
 
 The session setup check npx len-toolkit start succeeded, installed zero files, and reported the existing .gitignore difference; that difference was preserved.
 
@@ -268,7 +274,7 @@ PLAN-004 maps the ten unvalidated candidate leads to synthetic regression checks
 
 No application code, tests, builds, database commands, browsers, emulators, or production services were run while drafting FEAT-007 and PLAN-004.
 
-The draft proposes a 5,000-expense per-workbook export cap and task-history pages of 50 records by default and 100 maximum; these behavior limits require approval with the feature spec.
+The approved feature proposes a 5,000-expense per-workbook export cap and task-history pages of 50 records by default and 100 maximum.
 
 The plan uses the existing architecture and toolchain and adds no dependency.
 

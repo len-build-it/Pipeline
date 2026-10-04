@@ -1,9 +1,9 @@
 # FEAT-007: Security hardening from audit candidate leads
 
 Created: 2026-10-04T23:06:52+08:00
-Updated: 2026-10-04T23:14:13+08:00
+Updated: 2026-10-04T23:21:09+08:00
 Revision: 1
-Status: Draft
+Status: Approved
 
 ## Purpose and success
 
@@ -110,4 +110,4 @@ Production deployment configuration, seed-command history, and credential rotati
 
 No unresolved implementation choice remains beyond approval of this feature and its paired implementation plan.
 
-Revision 1 is a draft and has not been approved by Len.
+Len approved FEAT-007 revision 1 in chat on 2026-10-04T23:19:00+08:00: "Approve FEAT-007 revision 1 and PLAN-004 revision 1".
