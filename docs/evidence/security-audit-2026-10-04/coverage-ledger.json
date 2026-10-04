@@ -1,0 +1,1366 @@
+[
+  {
+    "coverage_id": "db%2Fseed.js%23seedDatabase%20CLI::db%2Fseed.js%23users.password_hash%20and%20is_owner%20upsert::db%2Fbootstrap::ATTACK-CLASSES.md%23Cryptography%20and%20secrets",
+    "canonical_refs": {
+      "surface": "db/seed.js#seedDatabase CLI",
+      "boundary": "db/seed.js#users.password_hash and is_owner upsert",
+      "subsystem": "db/bootstrap",
+      "attack_class": "ATTACK-CLASSES.md#Cryptography and secrets"
+    },
+    "surface": "Local seed/bootstrap command",
+    "boundary": "Known local seed credentials must never become active production owner credentials",
+    "subsystem": "Bootstrap and credential provisioning",
+    "attack_class": "Seed credential and bootstrap safety",
+    "starting_paths": [
+      "db/seed.js",
+      "db/client.js",
+      "package.json",
+      "server/index.js",
+      "server/config.js"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Cryptography and secrets",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Migration default and ownership confusion",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules",
+      "CLOUD-AND-DEPLOYMENT.md#Core discipline"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter_auth",
+    "reviewed_paths": [
+      "db/client.js",
+      "db/seed.js",
+      "package.json",
+      "server/config.js",
+      "server/index.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_auth",
+        "reviewed_paths": [
+          "db/seed.js",
+          "db/client.js",
+          "package.json",
+          "server/index.js",
+          "server/config.js"
+        ],
+        "invariant": "A local seed command must not leave known owner credentials active in a production database.",
+        "method": "source",
+        "result": "Direct seed execution writes the documented default password hash for the active global owner and other seeded accounts, and the upsert resets password_hash, status, and is_owner. The function has no production guard, but package scripts and server startup do not invoke it. Whether an operator or deployment job has targeted production is unknown.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "bootstrap.seed-default-owner-credentials"
+    ],
+    "unresolved": [
+      "Production seed history and rotation of seeded account credentials are not visible in the repository."
+    ],
+    "hardening": [
+      "Keep the seed command limited to disposable development databases and fail closed when NODE_ENV is production."
+    ]
+  },
+  {
+    "coverage_id": "mobile%2Fandroid%2Fapp%2Fbuild.gradle.kts%23release%20signing%20config::mobile%2Fandroid%2Fapp%2Fbuild.gradle.kts%23application%20signing%20identity::mobile%2Fandroid::ATTACK-CLASSES.md%23Chained%20vulnerabilities%20and%20trust%20boundaries",
+    "canonical_refs": {
+      "surface": "mobile/android/app/build.gradle.kts#release signing config",
+      "boundary": "mobile/android/app/build.gradle.kts#application signing identity",
+      "subsystem": "mobile/android",
+      "attack_class": "ATTACK-CLASSES.md#Chained vulnerabilities and trust boundaries"
+    },
+    "surface": "Android release build and package signing",
+    "boundary": "A release package must have a trusted, private signing identity before distribution",
+    "subsystem": "Android packaging and release",
+    "attack_class": "Mobile release signing trust",
+    "starting_paths": [
+      "mobile/android/app/build.gradle.kts",
+      "mobile/android/app/src/main/AndroidManifest.xml",
+      "mobile/android/app/src/debug/AndroidManifest.xml",
+      "README.md"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Chained vulnerabilities and trust boundaries",
+    "selected_companion_blocks": [
+      "SUPPLY-CHAIN-AND-RELEASE.md#Core discipline",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Release authorization and signing-policy gaps",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Universal moves",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Validation rules",
+      "CLOUD-AND-DEPLOYMENT.md#Core discipline"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "blocked",
+    "agent_id": "hunter_client",
+    "reviewed_paths": [
+      "README.md",
+      "mobile/android/app/build.gradle.kts",
+      "mobile/android/app/src/debug/AndroidManifest.xml",
+      "mobile/android/app/src/main/AndroidManifest.xml",
+      "mobile/android/app/src/profile/AndroidManifest.xml",
+      "mobile/lib/services/api_client.dart"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_client",
+        "reviewed_paths": [
+          "mobile/lib/services/api_client.dart",
+          "mobile/android/app/src/main/AndroidManifest.xml",
+          "mobile/android/app/src/debug/AndroidManifest.xml",
+          "mobile/android/app/src/profile/AndroidManifest.xml",
+          "mobile/android/app/build.gradle.kts",
+          "README.md"
+        ],
+        "invariant": "A release package must have a private signing identity and production API transport configuration before distribution.",
+        "method": "source",
+        "result": "The Gradle release build selects the debug signing configuration. App source defaults to emulator/loopback HTTP endpoints, debug manifest allows cleartext, and no release artifact, production endpoint, signing key custody, or distribution configuration is present. The in-repository release posture is a hardening issue; deployed signer and remote cleartext exposure are unknown.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [
+      "No release APK/AAB, release endpoint configuration, signing certificate, key custody record, or distribution evidence is present, so deployed release behavior cannot be assessed."
+    ],
+    "hardening": [
+      "Define a release signing key held outside source and a production HTTPS base URL before distributing an APK or AAB."
+    ]
+  },
+  {
+    "coverage_id": "mobile%2Flib%2Fdata%2Fapp_repository.dart%23cache%20fallback%20and%20account%20switch::mobile%2Flib%2Fservices%2Fsecure_cache_service.dart%23account%20scope%20and%20expiry%20checks::mobile::ATTACK-CLASSES.md%23Feature%20abuse%20and%20data%20leakage",
+    "canonical_refs": {
+      "surface": "mobile/lib/data/app_repository.dart#cache fallback and account switch",
+      "boundary": "mobile/lib/services/secure_cache_service.dart#account scope and expiry checks",
+      "subsystem": "mobile",
+      "attack_class": "ATTACK-CLASSES.md#Feature abuse and data leakage"
+    },
+    "surface": "Android sign-in, account switching, logout, and offline reads",
+    "boundary": "Cached records and credentials must not cross account, organization, revoked-access, or logout boundaries",
+    "subsystem": "Mobile authentication and offline cache lifecycle",
+    "attack_class": "Mobile cache and credential lifecycle",
+    "starting_paths": [
+      "mobile/lib/data/app_repository.dart",
+      "mobile/lib/services/api_client.dart",
+      "mobile/lib/services/secure_cache_service.dart",
+      "mobile/android/app/src/main/AndroidManifest.xml"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Feature abuse and data leakage",
+    "selected_companion_blocks": [
+      "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Core discipline",
+      "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Account switch, logout, and device restore leakage",
+      "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Credential-store and local-secret boundary mismatch",
+      "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Universal moves",
+      "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Validation rules",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Stale authorization and derived copy use"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter_client",
+    "reviewed_paths": [
+      "mobile/lib/data/app_repository.dart",
+      "mobile/lib/data/synthetic_data.dart",
+      "mobile/lib/screens/announcements_screen.dart",
+      "mobile/lib/screens/home_shell.dart",
+      "mobile/lib/screens/members_screen.dart",
+      "mobile/lib/screens/overview_screen.dart",
+      "mobile/lib/screens/tasks_screen.dart",
+      "mobile/lib/services/api_client.dart",
+      "mobile/lib/services/secure_cache_service.dart"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_client",
+        "reviewed_paths": [
+          "mobile/lib/data/app_repository.dart",
+          "mobile/lib/services/api_client.dart",
+          "mobile/lib/services/secure_cache_service.dart",
+          "mobile/lib/data/synthetic_data.dart",
+          "mobile/lib/screens/home_shell.dart",
+          "mobile/lib/screens/overview_screen.dart",
+          "mobile/lib/screens/members_screen.dart",
+          "mobile/lib/screens/tasks_screen.dart",
+          "mobile/lib/screens/announcements_screen.dart"
+        ],
+        "invariant": "Known authentication failure or organization revocation must remove protected data from persistent and in-memory display paths.",
+        "method": "source",
+        "result": "Normal cache reads are bounded to 25 records and 24 hours, keys include account and scope, and explicit logout or account switching clears account cache. On 401, the repository clears persistent cache and tokens but leaves currentUser and in-memory records unchanged. On 403, it clears persistent scope cache and sets hasAccessToScope false but leaves in-memory records unchanged; screens read the records directly and do not check that flag. The approved FEAT-005 REQ-008 requires these denial states not to show stale protected data. No device flow was executed.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "mobile.denial-keeps-memory-records"
+    ],
+    "unresolved": [
+      "A bounded dummy-account device or widget flow is needed to confirm that the existing screens render retained in-memory records after a 401 or 403; emulator execution is blocked by missing sandbox controls."
+    ],
+    "hardening": [
+      "Clear or scope-gate in-memory protected records and require sign-in after a 401; remove the revoked organization from memory on a 403."
+    ]
+  },
+  {
+    "coverage_id": "mobile%2Fpubspec.lock%20and%20Android%20Gradle%20build%20files%23release%20dependency%20inputs::mobile%2Fandroid%23dependency%20repositories%2C%20plugins%2C%20and%20version%20selection::Android%20release%20dependency%20integrity::SUPPLY-CHAIN-AND-RELEASE.md%23Dependency%20and%20build-input%20attack%20classes",
+    "canonical_refs": {
+      "surface": "mobile/pubspec.lock and Android Gradle build files#release dependency inputs",
+      "boundary": "mobile/android#dependency repositories, plugins, and version selection",
+      "subsystem": "Android release dependency integrity",
+      "attack_class": "SUPPLY-CHAIN-AND-RELEASE.md#Dependency and build-input attack classes"
+    },
+    "surface": "Flutter Android release build dependency inputs",
+    "boundary": "Dependencies and build plugins used in a mobile release must be pinned and sourced as intended before artifact creation.",
+    "subsystem": "Mobile build dependency supply chain",
+    "attack_class": "Dependency and build-input integrity",
+    "starting_paths": [
+      "mobile/pubspec.yaml",
+      "mobile/pubspec.lock",
+      "mobile/android/settings.gradle.kts",
+      "mobile/android/build.gradle.kts",
+      "mobile/android/app/build.gradle.kts",
+      "mobile/android/gradle/wrapper/gradle-wrapper.properties"
+    ],
+    "ordinary_attack_class_block": "SUPPLY-CHAIN-AND-RELEASE.md#Dependency and build-input attack classes",
+    "selected_companion_blocks": [
+      "SUPPLY-CHAIN-AND-RELEASE.md#Core discipline",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Dependency and build-input attack classes",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Universal moves",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "DESKTOP-MOBILE-AND-LOCAL-IPC.md#Core discipline",
+        "reason": "This unit concerns build inputs rather than runtime credential or cache lifecycle."
+      },
+      {
+        "block": "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+        "reason": "This unit concerns build inputs rather than web identity or session handling."
+      },
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository has no model prompt, agent, or model-tool trust boundary."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 3,
+    "status": "deferred",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "coverage_agent_capacity_unavailable_before assignment; the post-wave critic found this unit, but no source hunter could be assigned before the available agent-thread limit was reached."
+    ],
+    "hardening": []
+  },
+  {
+    "coverage_id": "package-lock.json%23runtime%20dependency%20graph::server%2Fapp.js%23loaded%20runtime%20packages%20and%20static%20root::package.json::ATTACK-CLASSES.md%23Chained%20vulnerabilities%20and%20trust%20boundaries",
+    "canonical_refs": {
+      "surface": "package-lock.json#runtime dependency graph",
+      "boundary": "server/app.js#loaded runtime packages and static root",
+      "subsystem": "package.json",
+      "attack_class": "ATTACK-CLASSES.md#Chained vulnerabilities and trust boundaries"
+    },
+    "surface": "Locked npm runtime dependencies and their reachable call sites",
+    "boundary": "An advisory in an installed dependency is actionable only when attacker-controlled input reaches the affected behavior with impact",
+    "subsystem": "Dependency resolution and runtime reachability",
+    "attack_class": "Third-party dependency advisory applicability",
+    "starting_paths": [
+      "package.json",
+      "package-lock.json",
+      "server/app.js",
+      "server/services/email.js",
+      "server/finance/spreadsheet.js"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Chained vulnerabilities and trust boundaries",
+    "selected_companion_blocks": [
+      "SUPPLY-CHAIN-AND-RELEASE.md#Core discipline",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Dependency source and namespace confusion",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Universal moves",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter_client",
+    "reviewed_paths": [
+      "node_modules/exceljs/lib/xlsx/xform/sheet/cf-rule-ext-xform.js",
+      "package-lock.json",
+      "package.json",
+      "server/app.js",
+      "server/finance/spreadsheet.js",
+      "server/services/email.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_client",
+        "reviewed_paths": [
+          "package.json",
+          "package-lock.json",
+          "server/app.js",
+          "server/services/email.js",
+          "server/finance/spreadsheet.js",
+          "node_modules/exceljs/lib/xlsx/xform/sheet/cf-rule-ext-xform.js"
+        ],
+        "invariant": "An installed dependency advisory is actionable only when attacker-controlled input reaches the affected code path with impact.",
+        "method": "source",
+        "result": "Fastify is locked at 5.12.5; @fastify/static is 8.3.0; Nodemailer is 6.10.1; ExcelJS is 4.4.0 with uuid 8.3.2. The static root is public web content and no guarded private-file route is visible. Nodemailer is imported, but the email service only stores messages in memory and configures no transport. ExcelJS uses uuid v4 with no caller buffer, not the affected v3/v5/v6 paths. These advisory matches do not establish a reachable defect in current source.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "hardening": [
+      "Review @fastify/static and Nodemailer versions before serving protected static files or enabling SMTP."
+    ]
+  },
+  {
+    "coverage_id": "package.json%23demo%20entry%20point::server%2Fdemo.js%23loopback%20listener%20and%20static%20file%20mapping::demo%20server::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+    "canonical_refs": {
+      "surface": "package.json#demo entry point",
+      "boundary": "server/demo.js#loopback listener and static file mapping",
+      "subsystem": "demo server",
+      "attack_class": "ATTACK-CLASSES.md#Resource and file handling"
+    },
+    "surface": "Loopback static demo server",
+    "boundary": "Local clients must receive only intended static demo content and must not use this server to escape its document root or reach privileged API state.",
+    "subsystem": "Demo-server static file and local-request boundary",
+    "attack_class": "Local file access and request handling",
+    "starting_paths": [
+      "package.json",
+      "server/demo.js"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Resource and file handling",
+    "selected_companion_blocks": [
+      "ATTACK-CLASSES.md#Resource and file handling",
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+        "reason": "This server is documented as a static demo server without organization-record access."
+      },
+      {
+        "block": "CLIENT-SIDE.md#DOM-based XSS",
+        "reason": "This unit covers server file mapping and local request handling, not browser DOM rendering."
+      },
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository has no model prompt, agent, or model-tool trust boundary."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 3,
+    "status": "deferred",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "coverage_agent_capacity_unavailable_before assignment; the post-wave critic found this unit, but no source hunter could be assigned before the available agent-thread limit was reached."
+    ],
+    "hardening": []
+  },
+  {
+    "coverage_id": "scripts%2Ftest-restore.js%23test%20restore%20CLI%20and%20package%20scripts::db%2Fclient.js%23database%20URL%20targeting%20and%20destructive%20restore::local%20database%20tooling::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+    "canonical_refs": {
+      "surface": "scripts/test-restore.js#test restore CLI and package scripts",
+      "boundary": "db/client.js#database URL targeting and destructive restore",
+      "subsystem": "local database tooling",
+      "attack_class": "ATTACK-CLASSES.md#Resource and file handling"
+    },
+    "surface": "Database test and restore command entry points",
+    "boundary": "A test or restore command must target only its intended disposable database and must not drop, recreate, or export an unintended or shared database.",
+    "subsystem": "Database test and restore tooling",
+    "attack_class": "Resource and destructive data handling",
+    "starting_paths": [
+      "package.json",
+      "scripts/test-restore.js",
+      "db/client.js",
+      "db/migrate.js"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Resource and file handling",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Import and restore authority expansion",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Export and backup scope expansion",
+      "CLOUD-AND-DEPLOYMENT.md#Core discipline"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+        "reason": "This boundary is local database tooling rather than web identity or session handling."
+      },
+      {
+        "block": "CLIENT-SIDE.md#Core discipline",
+        "reason": "This boundary does not involve browser rendering or client-side storage."
+      },
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository has no model prompt, agent, or model-tool trust boundary."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 3,
+    "status": "candidate",
+    "agent_id": "hunter_db_tools",
+    "reviewed_paths": [
+      "package.json",
+      "scripts/test-restore.js",
+      "db/client.js",
+      "db/migrate.js",
+      "tests/helpers/db-helper.js",
+      "README.md",
+      "docs/plans/FEAT-001-implementation.md"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_db_tools",
+        "reviewed_paths": [
+          "package.json",
+          "db/migrate.js",
+          "db/client.js",
+          "tests/helpers/db-helper.js"
+        ],
+        "invariant": "Test-mode database selection must not allow a shared database URL to pass the development/production guard and then be truncated by test setup.",
+        "method": "source",
+        "result": "The test URL guard compares raw strings and checks substrings. A TEST_DATABASE_URL for the same shared database with an added connection option can differ from DATABASE_URL without containing either blocked name; the pool uses that accepted URL, and test setup subsequently truncates application tables. No target code or database was run.",
+        "artifact": null
+      },
+      {
+        "agent_id": "hunter_db_tools",
+        "reviewed_paths": [
+          "package.json",
+          "scripts/test-restore.js",
+          "README.md",
+          "docs/plans/FEAT-001-implementation.md"
+        ],
+        "invariant": "The restore CLI must not direct destructive database operations to a shared server selected by environment configuration.",
+        "method": "source",
+        "result": "PGHOST and PGPORT are environment-overridable with loopback defaults. The maintenance pool uses those values, then unconditionally drops the fixed pipeline_restore_test database on that server. The source contains no check that an override remains local or that the target is disposable. No target code or database was run.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "db.migrate.test-url-alias",
+      "scripts.test-restore.environment-selected-target"
+    ],
+    "unresolved": [
+      "Whether a lower-trust runner or caller can set TEST_DATABASE_URL to an alias of a shared database, and whether the installed pg parser treats the alternate URL as the same database, requires bounded local validation.",
+      "Whether PGHOST overrides can reach a shared server containing pipeline_restore_test, and whether the configured role can drop it, depends on runtime environment and grants not established by repository source."
+    ],
+    "hardening": [
+      "The restore utility defaults PGHOST to 127.0.0.1 and uses a fixed pipeline_restore_test destination, but environment overrides are not constrained.",
+      "The restore source database is selected separately through TEST_DB_NAME while setupTestDatabase uses TEST_DATABASE_URL. pg_dump writes to .db/restore_temp.sql, and cleanup occurs only on the successful path. Source does not establish a lower-trust reader of that ignored file, so this remains a hardening note."
+    ]
+  },
+  {
+    "coverage_id": "server%2Fauth%2Froutes.js%23POST%20%2Fapi%2Fauth%2Finvitation%2Faccept::server%2Fauth%2Fservice.js%23acceptInvitation%20token%20to%20membership%20transition::server%2Fauth::ATTACK-CLASSES.md%23Business%20logic",
+    "canonical_refs": {
+      "surface": "server/auth/routes.js#POST /api/auth/invitation/accept",
+      "boundary": "server/auth/service.js#acceptInvitation token to membership transition",
+      "subsystem": "server/auth",
+      "attack_class": "ATTACK-CLASSES.md#Business logic"
+    },
+    "surface": "Public invitation lookup and acceptance",
+    "boundary": "A bearer invitation may create only the invited email's intended membership, once and before expiry",
+    "subsystem": "Invitation and account lifecycle",
+    "attack_class": "Invitation acceptance business logic",
+    "starting_paths": [
+      "server/auth/routes.js",
+      "server/auth/service.js",
+      "server/auth/crypto.js",
+      "db/migrations/001_initial_schema.sql"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#Account linking and identity collision",
+      "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter_auth",
+    "reviewed_paths": [
+      "db/migrations/001_initial_schema.sql",
+      "server/auth/crypto.js",
+      "server/auth/routes.js",
+      "server/auth/service.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_auth",
+        "reviewed_paths": [
+          "server/auth/routes.js",
+          "server/auth/service.js",
+          "server/auth/crypto.js",
+          "db/migrations/001_initial_schema.sql"
+        ],
+        "invariant": "A bearer invitation may create only the invited email membership, once and before expiry.",
+        "method": "source",
+        "result": "Acceptance looks up a token digest under a row lock, checks pending status and expiry, requires normalized email equality, and creates or reactivates membership using the invitation role. New accounts are not owners and passwords are scrypt-hashed.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "hardening": []
+  },
+  {
+    "coverage_id": "server%2Fauth%2Froutes.js%23POST%20%2Fapi%2Fauth%2Flogin%20scrypt%20path::server%2Fapp.js%23rate%20limits%20and%20request%20body%20bounds::server::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+    "canonical_refs": {
+      "surface": "server/auth/routes.js#POST /api/auth/login scrypt path",
+      "boundary": "server/app.js#rate limits and request body bounds",
+      "subsystem": "server",
+      "attack_class": "ATTACK-CLASSES.md#Resource and file handling"
+    },
+    "surface": "Pre-authentication login and authenticated file-processing resource costs",
+    "boundary": "Untrusted work must not create unbounded shared CPU or memory consumption",
+    "subsystem": "Request limits and shared service availability",
+    "attack_class": "Authentication and parser resource bounds",
+    "starting_paths": [
+      "server/config.js",
+      "server/app.js",
+      "server/auth/routes.js",
+      "server/auth/crypto.js",
+      "server/routes/finance.js",
+      "server/finance/spreadsheet.js"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Resource and file handling",
+    "selected_companion_blocks": [
+      "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Core discipline",
+      "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Pre-authentication work imbalance",
+      "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Unbounded buffering and cardinality",
+      "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Universal moves",
+      "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter_tenant",
+    "reviewed_paths": [
+      "server/app.js",
+      "server/auth/crypto.js",
+      "server/auth/routes.js",
+      "server/config.js",
+      "server/finance/spreadsheet.js",
+      "server/routes/finance.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_tenant",
+        "reviewed_paths": [
+          "server/config.js",
+          "server/app.js",
+          "server/auth/routes.js",
+          "server/auth/crypto.js",
+          "server/routes/finance.js",
+          "server/finance/spreadsheet.js"
+        ],
+        "invariant": "Untrusted work must not create unbounded shared CPU or memory consumption.",
+        "method": "source",
+        "result": "The service has a global 200-request per-minute rate limit, a stricter login limit, scrypt password hashing, a 5 MiB spreadsheet request limit, a 20 MiB expanded workbook limit, and a 5,000 nonblank-row cap. Resource leads caused by sparse worksheet row indices, unpaginated task histories, and unbounded finance export volume are tracked in their owning units.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "hardening": []
+  },
+  {
+    "coverage_id": "server%2Fauth%2Froutes.js%23POST%20%2Fapi%2Fauth%2Flogin::server%2Fapp.js%23fastify.authenticate%20JWT%20and%20live%20session%20check::server%2Fauth::ATTACK-CLASSES.md%23Cryptography%20and%20secrets",
+    "canonical_refs": {
+      "surface": "server/auth/routes.js#POST /api/auth/login",
+      "boundary": "server/app.js#fastify.authenticate JWT and live session check",
+      "subsystem": "server/auth",
+      "attack_class": "ATTACK-CLASSES.md#Cryptography and secrets"
+    },
+    "surface": "Login and bearer access-token authentication",
+    "boundary": "A caller without a session must not mint an authenticated identity",
+    "subsystem": "Authentication and session lifecycle",
+    "attack_class": "Authentication secrets and token claims",
+    "starting_paths": [
+      "server/config.js",
+      "server/app.js",
+      "server/index.js",
+      "server/auth/routes.js"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Cryptography and secrets",
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#JWT verification and claim binding",
+      "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules",
+      "CLOUD-AND-DEPLOYMENT.md#Core discipline"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter_auth",
+    "reviewed_paths": [
+      "server/app.js",
+      "server/auth/routes.js",
+      "server/config.js",
+      "server/index.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_auth",
+        "reviewed_paths": [
+          "server/config.js",
+          "server/app.js",
+          "server/index.js",
+          "server/auth/routes.js"
+        ],
+        "invariant": "A caller without a valid server-issued identity must not mint an authenticated API identity.",
+        "method": "source",
+        "result": "The configuration uses a committed JWT fallback when JWT_SECRET is absent. The production startup branch only logs and does not reject the fallback. The protected-request guard checks a database session only when sessionId is present, then accepts an active database user matching sub. The deployment secret and a bounded dummy-token acceptance result remain unverified.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "auth.jwt-secret-fallback"
+    ],
+    "unresolved": [
+      "Production secret injection and the behavior of a token signed with the fallback require owner observation and a disposable sandbox; target execution was blocked by missing OS-enforced isolation."
+    ],
+    "hardening": [
+      "Require a non-default production JWT secret at startup and rotate any deployment that used the committed fallback."
+    ]
+  },
+  {
+    "coverage_id": "server%2Fauth%2Froutes.js%23POST%20%2Fapi%2Fauth%2Frefresh::server%2Fauth%2Froutes.js%23cookie%20refresh%20and%20CSRF%20validation::server%2Fauth::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "server/auth/routes.js#POST /api/auth/refresh",
+      "boundary": "server/auth/routes.js#cookie refresh and CSRF validation",
+      "subsystem": "server/auth",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "Browser refresh-cookie and logout flows",
+    "boundary": "Ambient refresh credentials must not permit cross-site state changes or unintended token rotation",
+    "subsystem": "Authentication and session lifecycle",
+    "attack_class": "Cookie and CSRF access control",
+    "starting_paths": [
+      "server/auth/routes.js",
+      "server/auth/service.js",
+      "server/auth/crypto.js"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#Ordinary CSRF",
+      "WEB-PROTOCOL-AND-AUTH.md#Cookie scope and transport",
+      "WEB-PROTOCOL-AND-AUTH.md#Session fixation and invalidation",
+      "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter_auth",
+    "reviewed_paths": [
+      "server/auth/crypto.js",
+      "server/auth/routes.js",
+      "server/auth/service.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_auth",
+        "reviewed_paths": [
+          "server/auth/routes.js",
+          "server/auth/service.js",
+          "server/auth/crypto.js"
+        ],
+        "invariant": "Ambient refresh credentials must not permit cross-site state changes or unintended token rotation.",
+        "method": "source",
+        "result": "Cookie refresh requires a matching CSRF header, and refresh tokens are digest-checked, rotated, and revoked on reuse. Logout is unauthenticated and revokes a supplied session ID, but IDs are random 128-bit values returned to the matching user and no source-visible path exposes another user ID. The generic cross-user logout lead is rejected as lacking an attacker-selectable identifier path.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "hardening": []
+  },
+  {
+    "coverage_id": "server%2Froutes%2Fannouncements.js%23announcement%20routes::server%2Fannouncements%2Fservice.js%23target%20organization%20authorization::server%2Fannouncements::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "server/routes/announcements.js#announcement routes",
+      "boundary": "server/announcements/service.js#target organization authorization",
+      "subsystem": "server/announcements",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "Announcement list, detail, draft, publish, archive, and activity routes",
+    "boundary": "Announcement visibility and mutations must remain limited to active target organizations and lead/owner roles",
+    "subsystem": "Announcement audiences and lifecycle",
+    "attack_class": "Audience-scoped announcement authorization",
+    "starting_paths": [
+      "server/routes/announcements.js",
+      "server/announcements/service.js",
+      "server/members/service.js",
+      "db/migrations/001_initial_schema.sql"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Missing tenant or owner enforcement",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Policy and query disagreement",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter_tenant",
+    "reviewed_paths": [
+      "db/migrations/001_initial_schema.sql",
+      "server/announcements/service.js",
+      "server/members/service.js",
+      "server/routes/announcements.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_tenant",
+        "reviewed_paths": [
+          "server/routes/announcements.js",
+          "server/announcements/service.js",
+          "server/members/service.js",
+          "db/migrations/001_initial_schema.sql"
+        ],
+        "invariant": "Announcement visibility and mutations remain limited to active target organizations and Lead or Owner roles.",
+        "method": "source",
+        "result": "Creation validates active target organizations and requires authority in each target. Draft reads require authority across all targets; published reads require membership in at least one target. Updates, publishing, archiving, lists, and activity recheck target scope. No cross-organization path was found.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "hardening": []
+  },
+  {
+    "coverage_id": "server%2Froutes%2Ffinance.js%23POST%20imports%20preview%20and%20confirm::server%2Ffinance%2Fspreadsheet.js%23CSV%20and%20XLSX%20parsing%20limits::server%2Ffinance%2Fimport::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+    "canonical_refs": {
+      "surface": "server/routes/finance.js#POST imports preview and confirm",
+      "boundary": "server/finance/spreadsheet.js#CSV and XLSX parsing limits",
+      "subsystem": "server/finance/import",
+      "attack_class": "ATTACK-CLASSES.md#Resource and file handling"
+    },
+    "surface": "Authenticated CSV/XLSX upload, preview, and confirmation",
+    "boundary": "An organization member's uploaded bytes must stay within parser/resource bounds and cannot escape that member's finance scope",
+    "subsystem": "Spreadsheet import and parser",
+    "attack_class": "Spreadsheet parser and file resource handling",
+    "starting_paths": [
+      "server/routes/finance.js",
+      "server/finance/spreadsheet.js",
+      "server/finance/import.js",
+      "server/finance/validation.js"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Resource and file handling",
+    "selected_companion_blocks": [
+      "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Core discipline",
+      "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Decompression and representation amplification",
+      "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Unbounded buffering and cardinality",
+      "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Universal moves",
+      "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md#Validation rules",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Import and restore authority expansion"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter_tenant",
+    "reviewed_paths": [
+      "node_modules/exceljs/lib/doc/worksheet.js",
+      "node_modules/exceljs/lib/xlsx/xform/sheet/row-xform.js",
+      "server/finance/import.js",
+      "server/finance/spreadsheet.js",
+      "server/finance/validation.js",
+      "server/routes/finance.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_tenant",
+        "reviewed_paths": [
+          "server/routes/finance.js",
+          "server/finance/spreadsheet.js",
+          "server/finance/import.js",
+          "server/finance/validation.js",
+          "node_modules/exceljs/lib/doc/worksheet.js",
+          "node_modules/exceljs/lib/xlsx/xform/sheet/row-xform.js"
+        ],
+        "invariant": "Uploaded workbook work must remain bounded by file size, decompression size, and row count.",
+        "method": "source",
+        "result": "The route and parser cap request bytes at 5 MiB, expanded workbook bytes at 20 MiB, and nonblank data rows at 5,000. The parser nevertheless iterates every row number through worksheet.rowCount. The locally installed ExcelJS implementation derives rowCount from the sparse row array length and parses worksheet row numbers from input XML, so a sparse high-index row may cause work far above the nonblank-row count. The installed dependency version matches the package lock; no workbook was executed and impact is unmeasured.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "finance.xlsx-sparse-row-index"
+    ],
+    "unresolved": [
+      "A crafted workbook needs bounded validation against the locked ExcelJS version in an OS-enforced sandbox; the current environment cannot enforce the required controls."
+    ],
+    "hardening": [
+      "Reject worksheet row indices above the spreadsheet format limit and enforce a total row-index span before iterating."
+    ]
+  },
+  {
+    "coverage_id": "server%2Froutes%2Ffinance.js%23organization%20finance%20routes::server%2Ffinance%2Fservice.js%23requireFinanceAccess::server%2Ffinance::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "server/routes/finance.js#organization finance routes",
+      "boundary": "server/finance/service.js#requireFinanceAccess",
+      "subsystem": "server/finance",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "Organization finance reads, writes, activity, imports, and exports",
+    "boundary": "An active member may affect only finance records for an organization where membership is active",
+    "subsystem": "Budgets, expenses, analytics, and exports",
+    "attack_class": "Tenant-scoped finance authorization",
+    "starting_paths": [
+      "server/routes/finance.js",
+      "server/finance/service.js",
+      "server/finance/repository.js",
+      "server/finance/import.js",
+      "server/finance/export.js",
+      "db/migrations/002_finance.sql"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Missing tenant or owner enforcement",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Export and backup scope expansion",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter_tenant",
+    "reviewed_paths": [
+      "db/migrations/002_finance.sql",
+      "server/finance/analytics.js",
+      "server/finance/export.js",
+      "server/finance/import.js",
+      "server/finance/repository.js",
+      "server/finance/service.js",
+      "server/members/service.js",
+      "server/routes/finance.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_tenant",
+        "reviewed_paths": [
+          "server/routes/finance.js",
+          "server/finance/service.js",
+          "server/finance/repository.js",
+          "server/finance/analytics.js",
+          "server/finance/export.js",
+          "server/finance/import.js",
+          "server/members/service.js",
+          "db/migrations/002_finance.sql"
+        ],
+        "invariant": "A user may affect only finance records for an organization where membership is active.",
+        "method": "source",
+        "result": "All finance routes require authentication. Service entrypoints require an active organization and active membership or Owner status; SQL operations bind organization ID. Equal finance permissions for active members, Leads, and Owners are authorized by the approved feature scope. The export path returns every matching non-void expense for an unfiltered request and buffers a complete workbook without an application row limit; shared-service impact remains unmeasured.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "finance.unbounded-xlsx-export"
+    ],
+    "unresolved": [
+      "The maximum realistic organization history and bounded workbook resource cost were not established in a safe local environment."
+    ],
+    "hardening": [
+      "If bounded measurements show material resource use, cap or paginate exports or generate them asynchronously."
+    ]
+  },
+  {
+    "coverage_id": "server%2Froutes%2Fmembers.js%23organization%20member%20routes::server%2Fmembers%2Fservice.js%23getCallerOrgPermission%20and%20role%20checks::server%2Fmembers::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "server/routes/members.js#organization member routes",
+      "boundary": "server/members/service.js#getCallerOrgPermission and role checks",
+      "subsystem": "server/members",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "Organization member, profile, and invitation API routes",
+    "boundary": "A member must not read privileged notes or change membership outside authorized lead/owner scope",
+    "subsystem": "Membership and invitation administration",
+    "attack_class": "Tenant-scoped member authorization",
+    "starting_paths": [
+      "server/routes/members.js",
+      "server/members/service.js",
+      "db/migrations/001_initial_schema.sql"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Missing tenant or owner enforcement",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Policy and query disagreement",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter_tenant",
+    "reviewed_paths": [
+      "db/migrations/001_initial_schema.sql",
+      "server/members/service.js",
+      "server/routes/members.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_tenant",
+        "reviewed_paths": [
+          "server/routes/members.js",
+          "server/members/service.js",
+          "db/migrations/001_initial_schema.sql"
+        ],
+        "invariant": "A member must not read privileged notes or change membership outside authorized Lead or Owner scope.",
+        "method": "source",
+        "result": "Member list and detail operations bind records to organization ID. Notes are returned only to Owners and Leads. Membership edits, invitations, resend, and listing require Lead or Owner authority, and Leads cannot modify another Lead or promote members to Lead. The self-service display name path is separately covered by the browser rendering unit.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "hardening": []
+  },
+  {
+    "coverage_id": "server%2Froutes%2Forganizations.js%23GET%20%2Forganizations%20and%20%2Foverview::server%2Froutes%2Forganizations.js%23Owner-only%20scope%3Dall%20and%20membership-scoped%20overview::server%2Forganizations::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "server/routes/organizations.js#GET /organizations and /overview",
+      "boundary": "server/routes/organizations.js#Owner-only scope=all and membership-scoped overview",
+      "subsystem": "server/organizations",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "Authenticated organization directory and dashboard overview endpoints",
+    "boundary": "A non-Owner may receive only organization names and overview records or aggregates for organizations with active membership; combined cross-organization overview is Owner-only.",
+    "subsystem": "Organization scope and overview aggregation",
+    "attack_class": "Access control",
+    "starting_paths": [
+      "server/routes/organizations.js",
+      "server/app.js",
+      "server/auth/service.js"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Missing tenant or owner enforcement",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Policy and query disagreement",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Enumeration and aggregate oracles",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "DATA-ISOLATION-AND-LIFECYCLE.md#Blob and signed-reference overreach",
+        "reason": "These endpoints return JSON directory and dashboard data and do not issue object references or signed URLs."
+      },
+      {
+        "block": "DATA-ISOLATION-AND-LIFECYCLE.md#Export and backup scope expansion",
+        "reason": "These endpoints do not generate exports, backups, or downloadable artifacts."
+      },
+      {
+        "block": "DATA-ISOLATION-AND-LIFECYCLE.md#Import and restore authority expansion",
+        "reason": "These endpoints are read-only and do not import or restore records."
+      },
+      {
+        "block": "DATA-ISOLATION-AND-LIFECYCLE.md#Stale authorization and derived copy use",
+        "reason": "The handlers query current membership and primary records directly; no cached authorization copy is visible in these handlers."
+      },
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter_org_overview",
+    "reviewed_paths": [
+      "server/routes/organizations.js",
+      "server/app.js",
+      "server/auth/service.js",
+      "server/auth/routes.js",
+      "db/migrations/001_initial_schema.sql"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_org_overview",
+        "reviewed_paths": [
+          "server/routes/organizations.js",
+          "server/app.js",
+          "server/auth/service.js",
+          "server/auth/routes.js",
+          "db/migrations/001_initial_schema.sql"
+        ],
+        "invariant": "Non-Owners may receive organization directory and overview data only for active organizations where their membership is active; combined scope is Owner-only.",
+        "method": "source",
+        "result": "GET /organizations and getUserOrganizations filter non-Owner organizations by active membership and active organization status. GET /overview rejects scope=all for non-Owners before global aggregates. For a specific scope, authorization checks active membership only, and organization-specific aggregates and records bind the requested ID without checking organizations.status. The schema permits archived organizations and active memberships independently. No archive transition or route/database result was validated.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "overview.archived-org-active-membership"
+    ],
+    "unresolved": [
+      "Whether a supported organization archive lifecycle can leave membership active and whether the route returns scoped data in that state need bounded local validation."
+    ],
+    "hardening": [
+      "Join the scoped authorization and overview queries to organizations and require active status if archived organizations must be inaccessible."
+    ]
+  },
+  {
+    "coverage_id": "server%2Froutes%2Ftasks.js%23organization%20task%20and%20comment%20routes::server%2Ftasks%2Fservice.js%23organization%20membership%20and%20task%20ownership%20checks::server%2Ftasks::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "server/routes/tasks.js#organization task and comment routes",
+      "boundary": "server/tasks/service.js#organization membership and task ownership checks",
+      "subsystem": "server/tasks",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "Organization task, comment, and activity API routes",
+    "boundary": "A user must not read or change another organization's tasks or exceed role/assignment authority",
+    "subsystem": "Tasks and comments",
+    "attack_class": "Tenant-scoped task and comment authorization",
+    "starting_paths": [
+      "server/routes/tasks.js",
+      "server/tasks/service.js",
+      "server/members/service.js",
+      "db/migrations/001_initial_schema.sql"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Missing tenant or owner enforcement",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Policy and query disagreement",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter_tenant",
+    "reviewed_paths": [
+      "db/migrations/001_initial_schema.sql",
+      "server/app.js",
+      "server/config.js",
+      "server/members/service.js",
+      "server/routes/tasks.js",
+      "server/tasks/service.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_tenant",
+        "reviewed_paths": [
+          "server/routes/tasks.js",
+          "server/tasks/service.js",
+          "server/members/service.js",
+          "db/migrations/001_initial_schema.sql",
+          "server/app.js",
+          "server/config.js"
+        ],
+        "invariant": "Task and comment records remain organization-scoped, and repeated member writes must not create an unbounded shared-service workload.",
+        "method": "source",
+        "result": "Task routes and service operations check active organization permission and bind records to organization ID. Members may update only assigned task status; comment edits and deletes are author or Lead/Owner limited. A member may add 5,000-character comments, each creating both a persistent comment and activity row, while comment and task-activity reads return complete histories without pagination. Resource impact needs bounded local measurement. A separate task-field-size lead is rejected because Fastify 5.12.5 supplies a 1 MiB default body limit and task writes require Lead/Owner authority.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "tasks.comment-history-unbounded"
+    ],
+    "unresolved": [
+      "The persistence and response cost of bounded synthetic comment histories was not measured because the required OS-enforced sandbox and dummy database were unavailable."
+    ],
+    "hardening": [
+      "Consider a bounded history query and retention or quota policy if bounded measurements show material shared-resource impact."
+    ]
+  },
+  {
+    "coverage_id": "web%2Fjs%23server%20record%20JSON%20to%20template%20innerHTML%20sinks::web%2Fjs%2Fformat.js%23escapeHtml%20and%20DOM%20context::web::ATTACK-CLASSES.md%23Injection",
+    "canonical_refs": {
+      "surface": "web/js#server record JSON to template innerHTML sinks",
+      "boundary": "web/js/format.js#escapeHtml and DOM context",
+      "subsystem": "web",
+      "attack_class": "ATTACK-CLASSES.md#Injection"
+    },
+    "surface": "Authenticated API data and errors rendered into browser DOM",
+    "boundary": "Untrusted user-controlled content must not execute in another user's browser context",
+    "subsystem": "Browser rendering and session state",
+    "attack_class": "Stored and reflected DOM injection",
+    "starting_paths": [
+      "web/js/format.js",
+      "web/js/app.js",
+      "web/js/views/auth.js",
+      "web/js/views/tasks.js",
+      "web/js/views/announcements.js",
+      "web/js/views/finance-import.js"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+    "selected_companion_blocks": [
+      "CLIENT-SIDE.md#Core discipline",
+      "CLIENT-SIDE.md#DOM-based XSS",
+      "CLIENT-SIDE.md#Universal moves",
+      "CLIENT-SIDE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md#Core discipline",
+        "reason": "The repository contains no model prompt, agent, or model-tool trust boundary."
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md#Core discipline",
+        "reason": "The reviewed runtime paths are JavaScript and Dart and do not expose native memory or binary parsing code outside the bounded spreadsheet parser."
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [
+      {
+        "wave": 1,
+        "status": "candidate",
+        "agent_id": "hunter_client",
+        "reviewed_paths": [
+          "server/auth/service.js",
+          "server/members/service.js",
+          "server/routes/members.js",
+          "web/js/app.js",
+          "web/js/format.js",
+          "web/js/views/tasks.js"
+        ],
+        "local_checks": [
+          {
+            "agent_id": "hunter_client",
+            "reviewed_paths": [
+              "server/routes/members.js",
+              "server/members/service.js",
+              "server/auth/service.js",
+              "web/js/app.js",
+              "web/js/views/tasks.js",
+              "web/js/format.js"
+            ],
+            "invariant": "Untrusted user-controlled content must not execute in another user browser context.",
+            "method": "source",
+            "result": "Self-service profile updates accept a display name up to 100 characters and store it as text. Member records are copied into browser state. The task-create modal inserts each member display name unescaped inside an option element and parses the generated template with insertAdjacentHTML. A member can therefore supply persistent markup that reaches a Lead or Owner browser; browser parsing and script execution were not tested. Other reviewed persisted display templates generally use escapeHtml, and fixed server error messages did not produce another candidate.",
+            "artifact": null
+          }
+        ],
+        "result_fingerprints": [
+          "web.stored-display-name-html-injection"
+        ],
+        "unresolved": [
+          "A bounded browser reproduction is required to verify HTML parser behavior and script execution. The platform could not provide the required empty environment, network isolation, read-only source, scratch-only writes, or resource limits."
+        ],
+        "reassignment_reason": "The independent coverage critic requested another source pass across sibling browser HTML sinks before the broad DOM-rendering unit can close."
+      }
+    ],
+    "wave": 2,
+    "status": "candidate",
+    "agent_id": "hunter_web_second",
+    "reviewed_paths": [
+      "server/app.js",
+      "server/auth/routes.js",
+      "server/auth/service.js",
+      "server/members/service.js",
+      "server/routes/members.js",
+      "server/tasks/service.js",
+      "web/index.html",
+      "web/js/app.js",
+      "web/js/format.js",
+      "web/js/modal.js",
+      "web/js/views/announcements.js",
+      "web/js/views/auth.js",
+      "web/js/views/finance-forms.js",
+      "web/js/views/finance-import.js",
+      "web/js/views/finance-report.js",
+      "web/js/views/finance.js",
+      "web/js/views/members.js",
+      "web/js/views/overview.js",
+      "web/js/views/tasks.js"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter_web_second",
+        "reviewed_paths": [
+          "server/app.js",
+          "server/auth/routes.js",
+          "server/auth/service.js",
+          "server/members/service.js",
+          "server/routes/members.js",
+          "server/tasks/service.js",
+          "web/index.html",
+          "web/js/app.js",
+          "web/js/format.js",
+          "web/js/modal.js",
+          "web/js/views/announcements.js",
+          "web/js/views/auth.js",
+          "web/js/views/finance-forms.js",
+          "web/js/views/finance-import.js",
+          "web/js/views/finance-report.js",
+          "web/js/views/finance.js",
+          "web/js/views/members.js",
+          "web/js/views/overview.js",
+          "web/js/views/tasks.js"
+        ],
+        "invariant": "Stored or reflected lower-trust content must be safely encoded for each browser HTML context before parsing.",
+        "method": "source",
+        "result": "A member can store a displayName up to 100 characters; the service trims and stores it without restricting markup, and the member-list query returns it to organization users. The task-create modal interpolates each active member displayName directly into an option template and parses it with insertAdjacentHTML. Sibling raw displayName sinks occur in the current user navigation and profile form, and profile skills/interests also enter that user profile form without escaping; these paths are self-only. Member directory/detail names, task fields, announcements, finance values and errors are escaped. Auth/invitation errors inspected are fixed or schema-generated; local invitation email errors are same-user only; remaining raw role/status values are constrained enums. Browser parsing and event execution were not tested.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "web.stored-display-name-html-injection"
+    ],
+    "unresolved": [
+      "A bounded dummy-account browser check is needed to establish whether the task-create option fragment permits attacker-controlled markup or event execution; target execution was blocked by unavailable OS-enforced isolation."
+    ],
+    "hardening": [
+      "Escape displayName at the task-create text sink or build the option and assign textContent; encode current-user displayName, skills, and interests wherever profile or navigation HTML templates use them."
+    ]
+  }
+]

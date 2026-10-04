@@ -1,7 +1,7 @@
 # Specification index
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T20:37:09+08:00
+Updated: 2026-10-04T22:44:06+08:00
 
 | Category | ID | Current path | Revision | Status | Replaces |
 | --- | --- | --- | --- | --- | --- |
@@ -21,6 +21,7 @@ Updated: 2026-10-04T20:37:09+08:00
 | Plan | PLAN-003 | [plans/UI-REDESIGN-implementation.md](plans/UI-REDESIGN-implementation.md) | 1 | Approved; all six phases complete and committed locally | - |
 | Evidence | EVID-001 | [evidence/MVP-verification.md](evidence/MVP-verification.md) | 14 | PLAN-001 complete; PLAN-002 complete | - |
 | Evidence | EVID-002 | [evidence/UI-redesign-verification.md](evidence/UI-redesign-verification.md) | 1 | PLAN-003 complete and locally verified; physical-device and production checks pending | - |
+| Evidence | EVID-003 | [evidence/security-audit-2026-10-04/REPORT.md](evidence/security-audit-2026-10-04/REPORT.md) | 1 | Standard source-first security audit incomplete; ten candidates await independent validation | - |
 | Supporting handoff | DESIGN-001 | [product/UI_UX_HANDOFF_BRIEF.md](product/UI_UX_HANDOFF_BRIEF.md) | 1 | Informational; derived from approved specs and not authoritative | - |
 | Supporting handoff | DESIGN-002 | [product/UI_REDESIGN_LAGOON_HANDOFF.md](product/UI_REDESIGN_LAGOON_HANDOFF.md) | 2 | Supporting design reference; execution authorized by PROD-005 revision 4 and PLAN-003 revision 1 | - |
 
