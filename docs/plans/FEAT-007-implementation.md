@@ -1,7 +1,7 @@
 # Implementation Plan: FEAT-007 Security hardening from audit candidate leads
 
 Created: 2026-10-04T23:06:52+08:00
-Updated: 2026-10-04T23:32:17+08:00
+Updated: 2026-10-04T23:45:00+08:00
 Revision: 1
 Status: Approved
 Feature spec and revision: [FEAT-007 revision 1](../features/FEAT-007-security-hardening.md), Approved
@@ -54,7 +54,7 @@ The source traces describe audit leads and do not by themselves establish exploi
 
 Requirements: FEAT-007/REQ-001, FEAT-007/REQ-002, FEAT-007/REQ-003, FEAT-007/REQ-010
 
-State: Awaiting checkpoint commit
+State: Complete
 
 Candidate leads: auth.jwt-secret-fallback, bootstrap.seed-default-owner-credentials, db.migrate.test-url-alias, scripts.test-restore.environment-selected-target
 
@@ -85,9 +85,10 @@ Candidate leads: auth.jwt-secret-fallback, bootstrap.seed-default-owner-credenti
 - [x] Review correctness, scope, dependencies, secret redaction, and unrelated changes.
 - [x] Update this plan, evidence, and the current handoff with actual results.
 - [x] Stage only reviewed Phase 1 paths and inspect the staged diff.
-- [ ] Commit the reviewed phase and verify Git reports success.
+- [x] Commit the reviewed phase and verify Git reports success.
 
 Checkpoint message: fix(security): fail closed on production and test targets
+Checkpoint commit: `de94ccbf9503a171364e0a6b4bdbfca49e485ce6`.
 
 Phase completion requires all gates and a successful commit; the message identifies the checkpoint without needing its own hash inside the commit.
 
@@ -97,36 +98,36 @@ Continue automatically to the next approved phase.
 
 Requirements: FEAT-007/REQ-004, FEAT-007/REQ-005, FEAT-007/REQ-006, FEAT-007/REQ-010
 
-State: Not started
+State: Awaiting checkpoint commit
 
 Candidate leads: overview.archived-org-active-membership, finance.unbounded-xlsx-export, finance.xlsx-sparse-row-index
 
 ### Tasks
 
-- [ ] Reproduce the overview candidate using a synthetic archived organization, an active non-Owner membership, and synthetic organization data.
-- [ ] Enforce active organization status in the existing organization-scoped overview policy and persistence query; retain Owner behavior and active-organization behavior.
-- [ ] Add import fixtures with 5,000 data rows, 5,001 data rows, and a sparse nonblank row beyond worksheet row 5,001.
-- [ ] Seed the large finance fixtures in a single synthetic database setup step rather than issuing thousands of HTTP writes.
-- [ ] Reject a workbook whose worksheet row extent exceeds the supported header plus 5,000 data rows before iterating through the sparse gap; preserve the existing compressed upload, expanded workbook byte, formula, and validation checks.
-- [ ] Cap a single finance workbook export at 5,000 matching expenses and return an actionable validation response when more records match; never emit a silently truncated workbook.
-- [ ] Keep export organization and date-range filters in the finance feature boundary, and reuse existing SQL parameterization and workbook generation.
-- [ ] Reproduce or reject each candidate with test evidence and record all decisions in the verification ledger.
+- [x] Exercise the overview scenario with a synthetic archived organization, an active non-Owner membership, and synthetic organization data; the regression now verifies denial without records.
+- [x] Enforce active organization status in the existing organization-scoped overview policy and persistence query; retain Owner behavior and active-organization behavior.
+- [x] Add import fixtures with 5,000 data rows, 5,001 data rows, and a sparse nonblank row beyond worksheet row 5,001.
+- [x] Seed the large export fixture with one synthetic database operation rather than issuing thousands of HTTP writes.
+- [x] Reject a workbook whose worksheet row extent exceeds the supported header plus 5,000 data rows before iterating through the sparse gap; preserve the existing compressed upload, expanded workbook byte, formula, and validation checks.
+- [x] Cap a single finance workbook export at 5,000 matching expenses and return an actionable validation response when more records match; never emit a silently truncated workbook.
+- [x] Keep export organization and date-range filters in the finance feature boundary, and reuse existing SQL parameterization and workbook generation.
+- [x] Test each candidate path with synthetic fixtures and record reproduction limits in EVID-004.
 
 ### Verification
 
-- [ ] Run npm run test:security, npm run test:auth, and npm run test:finance with only the isolated loopback test database configured; expect archived scopes to deny without returning records.
-- [ ] Verify the 5,000-row import and export boundaries succeed completely, the next row is rejected, the export repository reads at most 5,001 matches before rejecting an over-limit request, the sparse high-index fixture is rejected without a scan through missing rows, and a rejected export has no workbook body.
-- [ ] Verify valid finance filters still return only the selected organization and date range.
-- [ ] Run npm test and npm run test:e2e against the isolated database; expect all existing API and browser workflows to pass.
-- [ ] Run git diff --check and record the fixture sizes, record counts, and observed results in the evidence file.
+- [x] Run npm run test:security, npm run test:auth, and npm run test:finance with only the isolated loopback test database configured; the archived scope regression denies without returning records.
+- [x] Verify the 5,000-row import and export boundaries succeed completely, the next row is rejected, the export repository reads at most 5,001 matches before rejecting an over-limit request, the sparse high-index fixture is rejected before scanning through missing rows, and a rejected export has no workbook body.
+- [x] Verify valid finance filters still return only the selected organization and date range.
+- [x] Run npm test and npm run test:e2e against the isolated database; all existing API and browser workflows passed.
+- [x] Run git diff --check and record fixture sizes, record counts, test results, and limitations in [EVID-004](../evidence/FEAT-007-security-hardening-verification.md).
 
 ### Review and checkpoint
 
-- [ ] Review that route handlers remain translators and the organization and finance rules remain with their existing feature services and data adapters.
-- [ ] Review correctness, scope, database migration necessity, dependencies, and unrelated changes.
-- [ ] Add a migration only if a required keyset or bounded query needs an index absent from the current schema; verify it against the disposable database.
-- [ ] Update this plan, evidence, and the current handoff with actual results.
-- [ ] Stage only reviewed Phase 2 paths and inspect the staged diff.
+- [x] Review that route handlers remain translators and the organization and finance rules remain with their existing feature services and data adapters.
+- [x] Review correctness, scope, database migration necessity, dependencies, and unrelated changes.
+- [x] Review the current schema and indexes; no migration was required for the row bounds or limited export query.
+- [x] Update this plan, evidence, and the current handoff with actual results.
+- [x] Stage only reviewed Phase 2 paths and inspect the staged diff.
 - [ ] Commit the reviewed phase and verify Git reports success.
 
 Checkpoint message: fix(finance): bound spreadsheet operations

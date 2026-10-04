@@ -44,7 +44,11 @@ export async function organizationRoutes(fastify, options) {
     } else {
       if (!user.isOwner) {
         const memCheck = await q(
-          `SELECT role FROM memberships WHERE user_id = $1 AND organization_id = $2 AND status = 'active'`,
+          `SELECT m.role
+           FROM memberships m
+           JOIN organizations o ON o.id = m.organization_id
+           WHERE m.user_id = $1 AND m.organization_id = $2
+             AND m.status = 'active' AND o.status = 'active'`,
           [user.id, scope]
         );
         if (memCheck.rows.length === 0) {

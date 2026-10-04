@@ -189,6 +189,13 @@ async function* xlsxRecords(buffer) {
 
   const worksheet = workbook.worksheets[0]; // Only the first worksheet is read.
   if (!worksheet) throw new ImportFileError('The workbook has no worksheets.');
+  if (worksheet.rowCount > MAX_DATA_ROWS + 1) {
+    const lastSupportedRow = MAX_DATA_ROWS + 1;
+    throw new ImportFileError(
+      `The workbook exceeds the supported range of one header row and ${MAX_DATA_ROWS} data rows. ` +
+      `Remove rows after worksheet row ${lastSupportedRow} or split larger imports.`
+    );
+  }
 
   for (let rowNumber = 1; rowNumber <= worksheet.rowCount; rowNumber++) {
     const row = worksheet.findRow(rowNumber);

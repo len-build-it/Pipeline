@@ -6,8 +6,10 @@
 import { getPool } from '../../db/client.js';
 import { manilaToday } from './validation.js';
 import { buildExportWorkbook, buildImportTemplate } from './spreadsheet.js';
-import { expenseFilters, requireFinanceAccess } from './service.js';
+import { expenseFilters, httpError, requireFinanceAccess } from './service.js';
 import * as repository from './repository.js';
+
+export const MAX_EXPORT_EXPENSES = 5000;
 
 /** Groups expenses by a label and sums exact centavos per group, sorted by label. */
 function totalsBy(expenses, labelOf) {
@@ -32,7 +34,10 @@ export async function exportExpenses(orgId, query, caller, customPool = null) {
   const organization = await requireFinanceAccess(db, caller, orgId, customPool);
 
   const filters = { ...expenseFilters(query), includeVoided: false };
-  const expenses = await repository.listAllExpenses(db, orgId, filters);
+  const expenses = await repository.listExpensesForExport(db, orgId, filters, MAX_EXPORT_EXPENSES + 1);
+  if (expenses.length > MAX_EXPORT_EXPENSES) {
+    throw httpError(400, `This export matches more than ${MAX_EXPORT_EXPENSES} expenses. Narrow the date range or category filter and try again.`);
+  }
   const generatedAt = new Date();
 
   const buffer = await buildExportWorkbook({

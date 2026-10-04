@@ -312,7 +312,21 @@ describe('PLAN-002 Phase 3: spreadsheet import (FEAT-006/REQ-007)', () => {
       });
       const res = await preview('sam', ORG_3, file, XLSX_MIME);
       assert.equal(res.status, 400);
-      assert.match(res.body.message, /more than 5000 data rows/);
+      assert.match(res.body.message, /supported range of one header row and 5000 data rows/);
+    });
+
+    test('a sparse row beyond the supported worksheet range is refused before scanning gaps', async () => {
+      const file = await xlsx(sheet => {
+        const row = sheet.getRow(MAX_DATA_ROWS + 2);
+        row.getCell(1).value = utc('2026-06-17');
+        row.getCell(2).value = 0.01;
+        row.getCell(3).value = 'Sparse';
+        row.getCell(4).value = 'Beyond supported row span';
+      });
+
+      const res = await preview('sam', ORG_3, file, XLSX_MIME);
+      assert.equal(res.status, 400);
+      assert.match(res.body.message, /supported range of one header row and 5000 data rows/);
     });
 
     test('a small upload that inflates past the workbook size cap is refused before parsing', async () => {

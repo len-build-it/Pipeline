@@ -1,9 +1,9 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T23:32:17+08:00
-State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, with Phase 1 checks complete and its checkpoint commit pending.
-Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; Phase 1 checks complete and its checkpoint commit pending.
+Updated: 2026-10-04T23:45:00+08:00
+State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, Phase 1 is committed, and Phase 2 has passed its gates and awaits its checkpoint commit.
+Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; Phase 2 has passed its gates and awaits its checkpoint commit.
 Intended executor: Codex, proceeding continuously under PLAN-004.
 
 ## Read first
@@ -266,7 +266,7 @@ Len approved FEAT-007 revision 1 and PLAN-004 revision 1 in chat on 2026-10-04T2
 
 The document package was committed as 7de56533f4422545197ab80a513c7828bdcf56e9 and pushed to origin/codex/organization-manager-mvp before approval was recorded.
 
-PLAN-004 Phase 1 implementation and checks are complete locally and are ready for the phase checkpoint commit.
+PLAN-004 Phase 1 implementation and checks are complete and committed as `de94ccbf9503a171364e0a6b4bdbfca49e485ce6` (`fix(security): fail closed on production and test targets`).
 
 Phase 1 added fail-closed production JWT validation, production seed refusal, parsed loopback test-target validation, and restore checks for PGHOSTADDR and PGSERVICE overrides.
 
@@ -274,7 +274,17 @@ Verification passed on the isolated loopback PostgreSQL 18.4 instance: npm run t
 
 The detailed [EVID-004 Phase 1 evidence](docs/evidence/FEAT-007-security-hardening-verification.md) records versions, synthetic fixture details, candidate coverage, and limits; production configuration and hosted behavior remain unverified.
 
-The Phase 1 changes and evidence have not yet been committed; the next action is to inspect and commit only the reviewed Phase 1 paths, then begin Phase 2.
+Phase 2 adds active-organization checks to non-Owner overview access, rejects XLSX worksheets beyond row 5,001 before import iteration, and limits exports to 5,000 expenses with one-row overflow detection.
+
+Phase 2 verification passed: npm run test:auth passed 27 tests, npm run test:finance passed 124 tests, npm run test:security passed 16 tests, npm test passed 247 tests, npm run test:e2e passed all 13 Playwright workflows, and git diff --check passed.
+
+The first npm run test:finance attempt found export fixture leakage into the later round-trip test; unconditional cleanup was added, and the focused export test plus full finance rerun passed.
+
+A later npm run test:finance attempt found two expected-message patterns had a numeric formatting mismatch; the assertions were corrected, and the final full finance run passed 124 tests.
+
+The E2E run modified tracked screenshot outputs under docs/evidence/screenshots; those test-generated files remain untouched and must stay outside the FEAT-007 checkpoint commit.
+
+Phase 2 checks and review are complete; stage only Phase 2 source, test, and plan/evidence paths, inspect the staged diff, commit as `fix(finance): bound spreadsheet operations`, then continue Phase 3.
 
 The session setup check npx len-toolkit start succeeded, installed zero files, and reported the existing .gitignore difference; that difference was preserved.
 

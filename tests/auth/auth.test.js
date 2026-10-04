@@ -654,6 +654,29 @@ describe('Phase 3: Authentication and Organization Isolation', () => {
       assert.deepEqual(data.actionableTasks.map(t => t.id), ['tsk-harbor-1']);
     });
 
+    test('archived organization overview is denied to members and remains available to Owner', async () => {
+      await pool.query(`UPDATE organizations SET status = 'archived' WHERE id = 'org-harbor'`);
+      try {
+        const memberRes = await app.inject({
+          method: 'GET',
+          url: '/api/overview?scope=org-harbor',
+          headers: { authorization: `Bearer ${samToken}` },
+        });
+        assert.equal(memberRes.statusCode, 403);
+        assert.doesNotMatch(memberRes.body, /tsk-harbor-1|Calibrate drive motors/);
+
+        const ownerRes = await app.inject({
+          method: 'GET',
+          url: '/api/overview?scope=org-harbor',
+          headers: { authorization: `Bearer ${ownerToken}` },
+        });
+        assert.equal(ownerRes.statusCode, 200);
+        assert.deepEqual(JSON.parse(ownerRes.body).actionableTasks.map(task => task.id), ['tsk-harbor-1']);
+      } finally {
+        await pool.query(`UPDATE organizations SET status = 'active' WHERE id = 'org-harbor'`);
+      }
+    });
+
     test('Non-member is forbidden from the third organization', async () => {
       const res = await app.inject({
         method: 'GET',

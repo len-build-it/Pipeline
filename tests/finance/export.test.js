@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import ExcelJS from 'exceljs';
 import { cleanupTestDatabase } from '../helpers/db-helper.js';
 import { setupFinanceTest, expenseInput, THIRD_ORG_ID } from './finance-helper.js';
+import { exportExpenses, MAX_EXPORT_EXPENSES } from '../../server/finance/export.js';
 import { XLSX_MIME } from '../../server/finance/spreadsheet.js';
 
 const ORG_1 = '/organizations/org-1/finance';
@@ -35,12 +36,13 @@ function allCells(workbook) {
 
 describe('PLAN-002 Phase 3: accountant workbook export (FEAT-006/REQ-008)', () => {
   let app;
+  let pool;
   let api;
   let upload;
   let download;
 
   before(async () => {
-    ({ app, api, upload, download } = await setupFinanceTest());
+    ({ app, pool, api, upload, download } = await setupFinanceTest());
 
     const record = (user, base, overrides) => api(user, 'POST', `${base}/expenses`, expenseInput(overrides));
     await record('alex', ORG_1, { occurredOn: '2026-08-03', amount: '0.10', category: 'Supplies', description: FORMULA_LIKE_TEXT[0], vendor: FORMULA_LIKE_TEXT[1], reference: FORMULA_LIKE_TEXT[2] });
@@ -160,6 +162,71 @@ describe('PLAN-002 Phase 3: accountant workbook export (FEAT-006/REQ-008)', () =
     assert.equal(org1Text.includes('Other organization'), false);
     assert.equal(summaryFacts(org2.getWorksheet('Summary')).Organization, 'Dev Guild');
     assert.equal(org2.getWorksheet('Expenses').actualRowCount, 2);
+  });
+
+  test('exports exactly 5,000 matching expenses and refuses 5,001 without a workbook', async () => {
+    await pool.query(`
+      INSERT INTO expenses (
+        id, organization_id, occurred_on, amount_centavos, category, description, created_by, updated_by
+      )
+      SELECT 'exp-export-cap-' || row_number,
+             $1,
+             '2026-08-03'::date,
+             1,
+             'Synthetic',
+             'Bounded export fixture',
+             'usr-sam',
+             'usr-sam'
+      FROM generate_series(1, $2) AS row_number
+    `, [THIRD_ORG_ID, MAX_EXPORT_EXPENSES]);
+
+    try {
+      const atLimit = await download('sam', `${ORG_3}/export.xlsx`);
+      assert.equal(atLimit.status, 200);
+      const workbook = await readWorkbook(atLimit.buffer);
+      assert.equal(workbook.getWorksheet('Expenses').actualRowCount, MAX_EXPORT_EXPENSES + 1);
+      assert.equal(summaryFacts(workbook.getWorksheet('Summary'))['Expense count'], String(MAX_EXPORT_EXPENSES));
+
+      await pool.query(`
+        INSERT INTO expenses (
+          id, organization_id, occurred_on, amount_centavos, category, description, created_by, updated_by
+        ) VALUES ('exp-export-filtered', $1, '2026-09-04', 1, 'Filtered', 'Date-filter fixture', 'usr-sam', 'usr-sam')
+      `, [THIRD_ORG_ID]);
+
+      const filtered = await download('sam', `${ORG_3}/export.xlsx?from=2026-09-04&to=2026-09-04`);
+      assert.equal(filtered.status, 200);
+      const filteredWorkbook = await readWorkbook(filtered.buffer);
+      assert.equal(filteredWorkbook.getWorksheet('Expenses').actualRowCount, 2);
+
+      let exportQuery = null;
+      const observedPool = {
+        async query(sql, params) {
+          const result = await pool.query(sql, params);
+          if (sql.includes('ORDER BY e.occurred_on ASC, e.created_at ASC, e.id ASC')) {
+            exportQuery = { sql, params, rowsRead: result.rows.length };
+          }
+          return result;
+        },
+      };
+      await assert.rejects(
+        () => exportExpenses(THIRD_ORG_ID, {}, { id: 'usr-sam', isOwner: false }, observedPool),
+        error => error.statusCode === 400 && /more than 5000 expenses/.test(error.message),
+      );
+      assert.ok(exportQuery);
+      assert.equal(exportQuery.rowsRead, MAX_EXPORT_EXPENSES + 1);
+      assert.equal(exportQuery.params.at(-1), MAX_EXPORT_EXPENSES + 1);
+      assert.match(exportQuery.sql, /LIMIT \$\d+/);
+
+      const overLimit = await download('sam', `${ORG_3}/export.xlsx`);
+      assert.equal(overLimit.status, 400);
+      assert.doesNotMatch(overLimit.headers['content-type'], /spreadsheetml/);
+      assert.match(JSON.parse(overLimit.buffer.toString('utf8')).message, /Narrow the date range or category filter/);
+    } finally {
+      await pool.query(
+        `DELETE FROM expenses WHERE organization_id = $1 AND (id LIKE 'exp-export-cap-%' OR id = 'exp-export-filtered')`,
+        [THIRD_ORG_ID],
+      );
+    }
   });
 
   test('export and template are denied to non-members and unauthenticated callers', async () => {
