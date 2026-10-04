@@ -1040,9 +1040,10 @@ body {
 
 .finance-preview-table {
   max-height: 45vh;
-  overflow-y: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  overflow: auto;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-callout);
 }
 
 .finance-pagination {
@@ -1086,6 +1087,81 @@ body {
   overflow-wrap: anywhere;
 }
 
+.finance-summary-grid {
+  grid-template-columns: minmax(0, 1.45fr) repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  margin: var(--spacing-5) 0 var(--spacing-4);
+}
+
+.finance-remaining-hero {
+  min-width: 0;
+  min-height: 220px;
+  gap: var(--spacing-2);
+}
+
+.finance-summary-grid .finance-remaining-hero .stat-card-value {
+  color: var(--color-text);
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.15;
+}
+
+.finance-summary-grid .finance-remaining-hero[data-status="over"] .stat-card-value {
+  color: var(--color-danger);
+}
+
+.finance-summary-grid .stat-card-support .stat-card-value {
+  font-size: clamp(22px, 2.2vw, 32px);
+}
+
+.finance-remaining-budget {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.finance-remaining-budget strong {
+  color: var(--color-text);
+}
+
+.finance-remaining-track {
+  width: 100%;
+  height: 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-aqua-tint);
+}
+
+.finance-remaining-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+}
+
+.finance-remaining-hero[data-status="over"] .finance-remaining-fill {
+  background-color: var(--color-danger);
+  background-image: repeating-linear-gradient(45deg, transparent 0 6px, rgb(255 255 255 / 45%) 6px 9px);
+}
+
+.finance-remaining-track.is-unbudgeted {
+  background-image: repeating-linear-gradient(135deg, transparent 0 7px, var(--color-divider) 7px 9px);
+}
+
+.finance-remaining-track.is-unbudgeted .finance-remaining-fill {
+  display: none;
+}
+
+.finance-remaining-detail {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.finance-over-budget-chip {
+  align-self: flex-start;
+}
+
 .finance-bars {
   list-style: none;
   display: flex;
@@ -1096,6 +1172,7 @@ body {
 
 .finance-bar-label {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--spacing-2);
@@ -1103,17 +1180,31 @@ body {
   margin-bottom: 4px;
 }
 
+.finance-bar-category {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.finance-bar-figures {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 .finance-bar-track {
   position: relative;
-  height: 14px;
-  background-color: #E2E8F0;
-  border-radius: var(--radius-sm);
+  height: 16px;
+  border: 1.5px solid var(--color-border);
+  background-color: var(--color-aqua-tint);
+  border-radius: var(--radius-pill);
 }
 
 .finance-bar-fill {
   height: 100%;
   background-color: var(--color-primary);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
 }
 
 /* Status is also stated in text; the pattern keeps over-budget bars distinct without color. */
@@ -1128,11 +1219,39 @@ body {
 
 .finance-bar-marker {
   position: absolute;
-  top: -4px;
+  top: -6px;
+  z-index: 1;
   width: 3px;
-  height: 22px;
+  height: 26px;
   margin-left: -1.5px;
   background-color: var(--color-text);
+}
+
+.finance-report-table .data-table {
+  min-width: 940px;
+}
+
+.finance-trend-table .data-table {
+  min-width: 520px;
+}
+
+.finance-register-table .data-table {
+  min-width: 1040px;
+}
+
+.finance-register-table td:last-child {
+  white-space: nowrap;
+}
+
+.finance-preview-table .data-table {
+  min-width: 1160px;
+}
+
+.finance-preview-table .data-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--color-surface);
 }
 
 .finance-trend {
@@ -1141,6 +1260,15 @@ body {
   height: auto;
   display: block;
   margin-bottom: var(--spacing-3);
+}
+
+.finance-trend-chart {
+  max-width: 720px;
+}
+
+.finance-trend-area {
+  fill: var(--color-aqua-tint);
+  opacity: 0.8;
 }
 
 .finance-trend-axis {
@@ -1152,12 +1280,24 @@ body {
   fill: none;
   stroke: var(--color-primary);
   stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.finance-trend-line-current {
+  stroke-dasharray: 4 6;
 }
 
 .finance-trend-point {
+  fill: var(--color-primary);
+  stroke: var(--color-surface);
+  stroke-width: 2.5;
+}
+
+.finance-trend-point-current {
   fill: var(--color-surface);
   stroke: var(--color-primary);
-  stroke-width: 2.5;
+  stroke-width: 3;
 }
 
 .finance-trend-value {
@@ -1169,6 +1309,63 @@ body {
 .finance-trend-month {
   font-size: 12px;
   fill: var(--color-text-muted);
+}
+
+.finance-trend-caption {
+  margin: 0 0 var(--spacing-3);
+}
+
+.finance-report-panel,
+.finance-report-panel .grid-cards {
+  min-width: 0;
+}
+
+.finance-report-header {
+  gap: var(--spacing-4);
+}
+
+.finance-report-period {
+  margin-bottom: var(--spacing-4);
+}
+
+@media (max-width: 1100px) {
+  .finance-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .finance-remaining-hero {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .finance-summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .finance-remaining-hero {
+    grid-column: auto;
+    min-height: 0;
+  }
+
+  .finance-report-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .finance-report-header .form-group,
+  .finance-report-header .filter-input {
+    width: 100%;
+  }
+
+  .finance-bar-label {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .finance-bar-figures {
+    text-align: left;
+  }
 }
 
 /* Operational page hierarchy (PROD-005 revision 4). */

@@ -1,9 +1,9 @@
 # Implementation plan: Lagoon UI redesign
 
 Created: 2026-10-04T16:08:31+08:00
-Updated: 2026-10-04T18:28:10+08:00
+Updated: 2026-10-04T18:58:33+08:00
 Revision: 1
-Status: Approved; Phase 1 complete; Phase 2 implementation, review, UI checks, and E2E checks complete; Phase 2 checkpoint pending.
+Status: Approved; Phases 1 and 2 complete at commits `2e60838` and `8caa32e`; Phase 3 implementation and required checks are complete, with its checkpoint commit pending.
 Feature spec and revision: [PROD-005 revision 4](../product/UI_UX_DESIGN.md), approved by Len together with this plan.
 Approved baseline and architecture revisions: PROD-001 revision 3, PROD-002 revision 3, PROD-003 revision 3, PROD-004 revision 4, and PROD-005 revision 4; FEAT-001 revision 3, FEAT-002 revision 2, FEAT-003 revision 2, FEAT-004 revision 3, FEAT-005 revision 2, and FEAT-006 revision 2 remain unchanged.
 Len's chat approval: Approved on 2026-10-04T16:19:21+08:00: "Approve PROD-005 revision 4 and PLAN-003 revision 1".
@@ -70,7 +70,7 @@ Screenshots for all four target widths are in `docs/evidence/screenshots/ui-rede
 
 Requirements: PROD-005 revision 4 Overview, Members, Tasks, and Lists rules; UI-REQ-001 through UI-REQ-009.
 
-State: Implementation, review, and required UI and E2E verification complete; checkpoint commit is pending.
+State: Complete; implementation, review, and required UI and E2E verification passed; committed as `feat(ui): restyle web organization pages` (`8caa32eef529abc0bbb771fe9063ce137ae1cdd4`).
 
 ### Tasks
 
@@ -94,35 +94,42 @@ State: Implementation, review, and required UI and E2E verification complete; ch
 
 - [x] Review information hierarchy, active filter chips, selection and close behavior, accessibility semantics, and unrelated changes.
 - [x] Update plan and current handoff with actual checks and limitations.
-- [ ] Stage only reviewed Phase 2 paths and inspect the staged diff.
-- [ ] Commit as `feat(ui): restyle web organization pages` and verify Git reports success.
+- [x] Stage only reviewed Phase 2 paths and inspect the staged diff.
+- [x] Commit as `feat(ui): restyle web organization pages` and verify Git reports success.
 
 ## Phase 3: Web finance and spreadsheet flows
 
 Requirements: PROD-005 revision 4 Finance, Tables, and Charts rules; UI-REQ-004, UI-REQ-006, UI-REQ-007, and UI-REQ-010 through UI-REQ-012.
 
-State: Not started.
+State: Implementation and required checks passed; checkpoint pending as `feat(ui): restyle web finance workflows`.
 
 ### Tasks
 
-- [ ] Reorder the existing Finance report to show a Remaining hero tile with its progress track, then Actual and Estimate tiles, followed by the existing category comparison, trend, and register.
-- [ ] Restyle category tracks and over-budget state with visible percentages, over amounts, text labels, and an equivalent table.
-- [ ] Restyle the monthly trend while retaining its equivalent table, point labels, in-progress month explanation, and existing data behavior.
-- [ ] Restyle the expense register and spreadsheet import preview without changing import validation, duplicate decisions, export contents, or commit behavior.
-- [ ] Keep semantic table markup, right-aligned money, and any narrow-screen horizontal scrolling inside the table panel only.
+- [x] Reorder the existing Finance report to show a Remaining hero tile with its progress track, then Actual and Estimate tiles, followed by the existing category comparison, trend, and register.
+- [x] Restyle category tracks and over-budget state with visible percentages, over amounts, text labels, and an equivalent table.
+- [x] Restyle the monthly trend while retaining its equivalent table, point labels, in-progress month explanation, and existing data behavior.
+- [x] Restyle the expense register and spreadsheet import preview without changing import validation, duplicate decisions, export contents, or commit behavior.
+- [x] Keep semantic table markup, right-aligned money, and any narrow-screen horizontal scrolling inside the table panel only.
 
 ### Verification
 
-- [ ] Run `npm test`, `npm run test:ui`, and `npm run test:e2e` from the repository root and expect existing finance, UI, and end-to-end assertions to pass.
-- [ ] Verify the report, register, and import-preview keyboard flows; confirm charts retain their text or table equivalent and import errors remain recoverable.
-- [ ] Inspect the Finance and import primary flows at 375, 768, 1024, and 1440 CSS-pixel widths; confirm page-level horizontal overflow is absent.
-- [ ] Save available Finance and import screenshots in `docs/evidence/screenshots/ui-redesign/` and record the viewport and browser.
+- [x] Run `npm test`, `npm run test:ui`, and `npm run test:e2e` from the repository root and expect existing finance, UI, and end-to-end assertions to pass.
+- [x] Verify the report, register, and import-preview keyboard flows; confirm charts retain their text or table equivalent and import errors remain recoverable.
+- [x] Inspect the Finance and import primary flows at 375, 768, 1024, and 1440 CSS-pixel widths; confirm page-level horizontal overflow is absent.
+- [x] Save available Finance and import screenshots in `docs/evidence/screenshots/ui-redesign/` and record the viewport and browser.
+
+On 2026-10-04T18:58:33+08:00, `npm test` passed 122/122, `npm run test:ui` passed 13/13 in 43.2 seconds, and the final `npm run test:e2e` passed 13/13 in 56.3 seconds against the isolated PostgreSQL 18 test cluster on `127.0.0.1:5433`.
+The suites ran with headless Microsoft Edge through Playwright 1.63.0; the responsive journeys covered 375, 768, 1024, and 1440 CSS-pixel widths without page-level horizontal overflow.
+The report journey checked exact money values, over-budget labels, matching category and trend tables, the in-progress month explanation, keyboard focus on the budget, trend, and register table regions, and an over-budget total while restoring its Travel budget fixture before existing assertions.
+The import journey confirmed keyboard focus on its preview region, recoverable row problems, duplicate choice, and atomic confirmation; the Finance E2E suite also exercised keyboard-only expense entry and checked accessible names.
+Reviewed screenshots are in `docs/evidence/screenshots/ui-redesign/`: Finance and import at 375 by 667, 768 by 1024, 1024 by 768, and 1440 by 900 CSS-pixel viewports, plus the report and over-budget report at 1440 pixels.
+The isolated PostgreSQL test cluster remained bound to `127.0.0.1:5433`; the service on port 5432 was not changed.
 
 ### Review and checkpoint
 
-- [ ] Review money labels, chart equivalents, import and export behavior, focus handling, and unrelated changes.
-- [ ] Update plan and current handoff with actual checks and limitations.
-- [ ] Stage only reviewed Phase 3 paths and inspect the staged diff.
+- [x] Review money labels, chart equivalents, import and export behavior, focus handling, and unrelated changes.
+- [x] Update plan and current handoff with actual checks and limitations.
+- [x] Stage only reviewed Phase 3 paths and inspect the staged diff.
 - [ ] Commit as `feat(ui): restyle web finance workflows` and verify Git reports success.
 
 ## Phase 4: Android theme and shell

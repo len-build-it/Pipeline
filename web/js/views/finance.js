@@ -236,7 +236,7 @@ function createFinancePage(container, state, orgId) {
         <p id="finance-expense-total"><strong>${total}</strong> expense(s) · Total of non-void expenses: <strong>${escapeHtml(formatPhp(totalAmount))}</strong></p>
         ${expenses.length === 0
           ? stateBox('No expenses match these filters', 'Change the dates or category, or record the first expense for this period.')
-          : `<div class="table-responsive">
+          : `<div class="table-responsive finance-register-table" tabindex="0" role="region" aria-label="Expense register, scrollable">
               <table class="data-table" aria-label="Expense register">
                 <thead>
                   <tr>
