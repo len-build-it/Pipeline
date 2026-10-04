@@ -1,7 +1,7 @@
 # Implementation Plan: FEAT-007 Security hardening from audit candidate leads
 
 Created: 2026-10-04T23:06:52+08:00
-Updated: 2026-10-05T01:10:50+08:00
+Updated: 2026-10-05T01:11:28+08:00
 Revision: 1
 Status: Approved
 Feature spec and revision: [FEAT-007 revision 1](../features/FEAT-007-security-hardening.md), Approved
@@ -221,7 +221,7 @@ Continue automatically to the next approved phase.
 
 Requirements: FEAT-007/REQ-009, FEAT-007/REQ-010
 
-State: Implementation and required checks passed; checkpoint review is in progress
+State: Complete
 
 Candidate lead: mobile.denial-keeps-memory-records
 
@@ -252,17 +252,19 @@ Candidate lead: mobile.denial-keeps-memory-records
 
 Checkpoint message: fix(mobile): clear protected state on denial
 
+Checkpoint commit: `697bfb27e90aa3bae32069a56ac5de16e437decf`.
+
 Phase completion requires all gates and a successful commit; the message identifies the checkpoint without needing its own hash inside the commit.
 
 ## Final review and evidence
 
-- [ ] Confirm every EVID-003 candidate has a reproduced, not-reproduced, or unable-to-validate disposition supported by actual evidence.
-- [ ] Confirm each reproduced candidate has its regression test and each remediation passes its phase gates.
-- [ ] Confirm the complete Node, browser, and Flutter check set passes after the last phase.
-- [ ] Record local verification separately from production, physical-device, and hosting evidence.
-- [ ] Record owner-only production checks as pending unless Len supplies actual evidence; never record a secret value.
-- [ ] Update EVID-003 or a linked addendum without converting unresolved candidates into confirmed findings by assumption.
-- [ ] Update docs/SPEC_INDEX.md, this plan, and HANDOFF.md with verified status and final checkpoint hashes.
+- [x] Confirm every EVID-003 candidate has a reproduced, not-reproduced, or unable-to-validate disposition supported by actual evidence in EVID-004.
+- [x] Confirm each locally reproduced candidate has its regression test and each planned remediation passes its phase gates.
+- [x] Confirm the complete Node, browser, and Flutter check set passes after the last phase.
+- [x] Record local verification separately from production, physical-device, and hosting evidence.
+- [x] Record owner-only production checks as pending; no secret values are recorded.
+- [x] Update EVID-003 and the linked EVID-004 addendum without converting unresolved candidates into confirmed findings by assumption.
+- [x] Update docs/SPEC_INDEX.md, this plan, and HANDOFF.md with verified status and final checkpoint hashes.
 
 ## Recovery
 
@@ -282,4 +284,4 @@ Len approved FEAT-007 revision 1 and PLAN-004 revision 1 in chat on 2026-10-04T2
 
 The approved document package was committed as 7de56533f4422545197ab80a513c7828bdcf56e9 and pushed to origin before approval was recorded.
 
-Phase 1 execution started after approval on 2026-10-04T23:21:09+08:00; Phases 1 through 4 are committed and Phase 5 checks are complete, with final checkpoint and evidence review in progress.
+Phase 1 execution started after approval on 2026-10-04T23:21:09+08:00; all five phases are complete and committed locally, and final local verification is recorded in EVID-004.

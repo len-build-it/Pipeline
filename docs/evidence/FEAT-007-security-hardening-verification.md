@@ -2,10 +2,10 @@
 
 Evidence ID: EVID-004.
 Created: 2026-10-04T23:32:17+08:00
-Updated: 2026-10-05T01:09:48+08:00
+Updated: 2026-10-05T01:11:28+08:00
 Feature and plan: FEAT-007 revision 1 and PLAN-004 revision 1, approved by Len in chat on 2026-10-04T23:19:00+08:00.
-Phase: PLAN-004 Phases 1 through 4 complete; Phase 5 implementation and required checks pass, with the checkpoint under review.
-Implementation revision: Phase 1 checkpoint `de94ccbf9503a171364e0a6b4bdbfca49e485ce6`; Phase 2 checkpoint `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`; Phase 3 checkpoint `27698745a0207b996259ea6de4edf3d1d0d806b5`; Phase 4 checkpoint `ddee080336c97abe0b4c35584165d1628ea7854f`; Phase 5 changes are in the working tree pending commit.
+Phase: PLAN-004 Phases 1 through 5 complete and committed locally.
+Implementation revision: Phase 1 checkpoint `de94ccbf9503a171364e0a6b4bdbfca49e485ce6`; Phase 2 checkpoint `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`; Phase 3 checkpoint `27698745a0207b996259ea6de4edf3d1d0d806b5`; Phase 4 checkpoint `ddee080336c97abe0b4c35584165d1628ea7854f`; Phase 5 checkpoint `697bfb27e90aa3bae32069a56ac5de16e437decf`.
 
 ## Scope and environment
 
@@ -230,4 +230,4 @@ Phase 3 passed its focused, complete Node, E2E, UI, and diff checks and is commi
 
 Phase 4 passed the focused stored-display UI regression, the complete 250-test Node gate, 15 E2E workflows, and its review; it is committed as `ddee080336c97abe0b4c35584165d1628ea7854f`.
 
-Phase 5 passed Flutter analysis, 59 Flutter tests with one existing live API skip, the complete 250-test Node gate, 15 E2E workflows, 15 UI workflows, the API 37 emulator scenarios, and the pending diff review. Its phase checkpoint is `fix(mobile): clear protected state on denial` and remains under review until Git confirms the commit.
+Phase 5 passed Flutter analysis, 59 Flutter tests with one existing live API skip, the complete 250-test Node gate, 15 E2E workflows, 15 UI workflows, the API 37 emulator scenarios, and staged diff review; it is committed as `697bfb27e90aa3bae32069a56ac5de16e437decf` (`fix(mobile): clear protected state on denial`).
