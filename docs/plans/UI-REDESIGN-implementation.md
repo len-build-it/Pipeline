@@ -1,9 +1,9 @@
 # Implementation plan: Lagoon UI redesign
 
 Created: 2026-10-04T16:08:31+08:00
-Updated: 2026-10-04T20:31:10+08:00
+Updated: 2026-10-04T20:34:32+08:00
 Revision: 1
-Status: Approved; Phases 1 through 4 complete at commits `2e60838`, `8caa32e`, `58a8d71`, and `e64c8c9`; Phase 5 implementation and checks passed, with its checkpoint commit pending; Phase 6 verification passed, with its evidence and checkpoint commit pending.
+Status: Approved; Phases 1 through 5 complete at commits `2e60838`, `8caa32e`, `58a8d71`, `e64c8c9`, and `75bed89`; Phase 6 verification and evidence are complete, with its checkpoint commit pending.
 Feature spec and revision: [PROD-005 revision 4](../product/UI_UX_DESIGN.md), approved by Len together with this plan.
 Approved baseline and architecture revisions: PROD-001 revision 3, PROD-002 revision 3, PROD-003 revision 3, PROD-004 revision 4, and PROD-005 revision 4; FEAT-001 revision 3, FEAT-002 revision 2, FEAT-003 revision 2, FEAT-004 revision 3, FEAT-005 revision 2, and FEAT-006 revision 2 remain unchanged.
 Len's chat approval: Approved on 2026-10-04T16:19:21+08:00: "Approve PROD-005 revision 4 and PLAN-003 revision 1".
@@ -167,7 +167,7 @@ The Retry action is covered by a widget test; a direct emulator tap was not veri
 
 Requirements: PROD-005 revision 4 Android, summary tile, list, table, and chart rules; UI-REQ-001 through UI-REQ-011.
 
-State: Implementation and verification passed on 2026-10-04; the Phase 5 checkpoint commit is pending.
+State: Complete; implementation and verification passed; committed as `feat(mobile): restyle lagoon android screens` (`75bed89f035e0a13acc9ad9103f3988697fe3ba6`).
 
 ### Tasks
 
@@ -195,36 +195,44 @@ No API, database schema, permission, validation, or dependency changes were made
 - [x] Review screen semantics, form recovery, touch targets, text scaling, existing workflows, and unrelated changes.
 - [x] Update plan and current handoff with actual checks and limitations.
 - [x] Stage only reviewed Phase 5 paths and inspect the staged diff.
-- [ ] Commit as `feat(mobile): restyle lagoon android screens` and verify Git reports success.
+- [x] Commit as `feat(mobile): restyle lagoon android screens` and verify Git reports success.
 
 ## Phase 6: Integrated verification, evidence, and handoff
 
 Requirements: PROD-005 revision 4 and UI-REQ-001 through UI-REQ-012, alongside all current approved feature behavior.
 
-State: Not started.
+State: Verification and evidence complete on 2026-10-04; the Phase 6 checkpoint commit is pending.
 
 ### Tasks
 
-- [ ] Run the existing web and Android verification gates without deleting or weakening assertions.
-- [ ] Verify every text and fill pairing used by the approved token table against WCAG 2.2 AA, and verify control boundaries and focus rings meet at least 3:1 contrast.
-- [ ] Verify the primary web flows at 375, 768, 1024, and 1440 CSS-pixel widths, with no page-level horizontal scrolling.
-- [ ] Verify keyboard traversal and ensure every visible focus target is unobscured by navigation, banners, or sheets.
-- [ ] Verify the available Android emulator at default and 200 percent text scales, including offline Tasks.
-- [ ] Create `docs/evidence/UI-redesign-verification.md` with actual commands, scenarios, results, timestamps, environment, screenshots, and limitations.
-- [ ] Keep physical-device, TalkBack, production, and field checks pending until Len supplies actual results.
-- [ ] Update `docs/SPEC_INDEX.md` and `HANDOFF.md` with approved revisions, evidence, phase checkpoints, and remaining limitations.
+- [x] Run the existing web and Android verification gates without deleting or weakening assertions.
+- [x] Verify every text and fill pairing used by the approved token table against WCAG 2.2 AA, and verify control boundaries and focus rings meet at least 3:1 contrast.
+- [x] Verify the primary web flows at 375, 768, 1024, and 1440 CSS-pixel widths, with no page-level horizontal scrolling.
+- [x] Verify keyboard traversal and ensure every visible focus target is unobscured by navigation, banners, or sheets.
+- [x] Verify the available Android emulator at default and 200 percent text scales, including offline Tasks.
+- [x] Create `docs/evidence/UI-redesign-verification.md` with actual commands, scenarios, results, timestamps, environment, screenshots, and limitations.
+- [x] Keep physical-device, TalkBack, production, and field checks pending until Len supplies actual results.
+- [x] Update `docs/SPEC_INDEX.md` and `HANDOFF.md` with approved revisions, evidence, phase checkpoints, and remaining limitations.
 
 ### Verification
 
-- [ ] Run `npm test`, `npm run test:ui`, `npm run test:e2e`, and `npm run test:performance` from the repository root; expect all existing gates to pass.
-- [ ] Run `flutter analyze`, `flutter test`, and `flutter build apk --debug` from `mobile/`; expect zero analyzer issues, all tests to pass, and a successful debug build.
-- [ ] Review evidence against the required responsive, keyboard, contrast, emulator, offline, and accessibility scenarios; distinguish emulator evidence from physical-device evidence.
-- [ ] Review the complete diff for behavior changes, unapproved dependencies, secrets, generated files, and unrelated work.
+- [x] Run `npm test`, `npm run test:ui`, `npm run test:e2e`, and `npm run test:performance` from the repository root; expect all existing gates to pass.
+- [x] Run `flutter analyze`, `flutter test`, and `flutter build apk --debug` from `mobile/`; analyzer and build passed, and 54 tests passed with one existing live API test skipped because `FINANCE_LIVE_API` was unset.
+- [x] Review evidence against the required responsive, keyboard, contrast, emulator, offline, and accessibility scenarios; distinguish emulator evidence from physical-device evidence.
+- [x] Review the complete diff for behavior changes, unapproved dependencies, secrets, generated files, and unrelated work.
+
+Web gates ran on 2026-10-04; their exact terminal start times were not retained, and their outputs and measured durations are recorded in [UI redesign verification](../evidence/UI-redesign-verification.md).
+
+The final Android gates ran from `mobile/` between 2026-10-04T20:30:40+08:00 and 20:31:10+08:00.
+
+The contrast review checked 34 text/fill pairs, with all text pairings at or above 4.5:1 and the approved control border and focus color at or above 3:1.
+
+The physical-device, TalkBack, API 24, real Safari, production, and field checks remain pending as recorded in the evidence file.
 
 ### Review and checkpoint
 
-- [ ] Confirm each prior phase has passed its required checks and has a verified local commit.
-- [ ] Stage only reviewed Phase 6 paths and inspect the staged diff.
+- [x] Confirm each prior phase has passed its required checks and has a verified local commit.
+- [x] Stage only reviewed Phase 6 paths and inspect the staged diff.
 - [ ] Commit as `test(ui): verify lagoon redesign release` and verify Git reports success.
 
 ## Recovery

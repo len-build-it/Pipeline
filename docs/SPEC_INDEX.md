@@ -1,7 +1,7 @@
 # Specification index
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T19:23:12+08:00
+Updated: 2026-10-04T20:34:32+08:00
 
 | Category | ID | Current path | Revision | Status | Replaces |
 | --- | --- | --- | --- | --- | --- |
@@ -18,8 +18,9 @@ Updated: 2026-10-04T19:23:12+08:00
 | Feature | FEAT-006 | [features/FEAT-006-configurable-finance.md](features/FEAT-006-configurable-finance.md) | 2 | Approved | - |
 | Plan | PLAN-001 | [plans/FEAT-001-implementation.md](plans/FEAT-001-implementation.md) | 1 | Approved; all eight phases complete | - |
 | Plan | PLAN-002 | [plans/FEAT-006-implementation.md](plans/FEAT-006-implementation.md) | 3 | Approved, complete | - |
-| Plan | PLAN-003 | [plans/UI-REDESIGN-implementation.md](plans/UI-REDESIGN-implementation.md) | 1 | Approved; Phases 1 through 3 complete at `2e60838`, `8caa32e`, and `58a8d71`; Phase 4 implementation and checks complete, checkpoint pending | - |
+| Plan | PLAN-003 | [plans/UI-REDESIGN-implementation.md](plans/UI-REDESIGN-implementation.md) | 1 | Approved; Phases 1 through 5 complete at `2e60838`, `8caa32e`, `58a8d71`, `e64c8c9`, and `75bed89`; Phase 6 verification and evidence complete, checkpoint commit pending | - |
 | Evidence | EVID-001 | [evidence/MVP-verification.md](evidence/MVP-verification.md) | 14 | PLAN-001 complete; PLAN-002 complete | - |
+| Evidence | EVID-002 | [evidence/UI-redesign-verification.md](evidence/UI-redesign-verification.md) | 1 | PLAN-003 Phases 1 through 6 locally verified; physical-device and production checks pending | - |
 | Supporting handoff | DESIGN-001 | [product/UI_UX_HANDOFF_BRIEF.md](product/UI_UX_HANDOFF_BRIEF.md) | 1 | Informational; derived from approved specs and not authoritative | - |
 | Supporting handoff | DESIGN-002 | [product/UI_REDESIGN_LAGOON_HANDOFF.md](product/UI_REDESIGN_LAGOON_HANDOFF.md) | 2 | Supporting design reference; execution authorized by PROD-005 revision 4 and PLAN-003 revision 1 | - |
 
@@ -29,7 +30,7 @@ Completed implementation plan: [PLAN-001 revision 1](plans/FEAT-001-implementati
 
 Current implementation plan: [PLAN-002 revision 3](plans/FEAT-006-implementation.md), covering FEAT-006 in six phases. It is approved and complete.
 
-Current implementation plan: [PLAN-003 revision 1](plans/UI-REDESIGN-implementation.md), covering the Lagoon UI redesign in six phases. It is approved and in progress; Phases 1 through 3 are committed and Phase 4 implementation and checks are complete, with its checkpoint pending.
+Current implementation plan: [PLAN-003 revision 1](plans/UI-REDESIGN-implementation.md), covering the Lagoon UI redesign in six phases. It is approved; Phases 1 through 5 are committed, and Phase 6 verification and evidence are complete with the final checkpoint commit pending.
 
 PLAN-001 execution was authorized by Len on 2026-09-16T21:57:07+08:00. PLAN-002 revision 3 and the previously approved baseline revisions were approved by Len on 2026-10-03T22:31:00+08:00.
 
