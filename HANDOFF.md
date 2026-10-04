@@ -1,9 +1,9 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T23:45:00+08:00
-State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, Phase 1 is committed, and Phase 2 has passed its gates and awaits its checkpoint commit.
-Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; Phase 2 has passed its gates and awaits its checkpoint commit.
+Updated: 2026-10-05T00:10:25+08:00
+State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, Phases 1 and 2 are committed, and Phase 3 checks pass with its checkpoint under review.
+Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; Phases 1 and 2 are committed and Phase 3 checks pass after implementation.
 Intended executor: Codex, proceeding continuously under PLAN-004.
 
 ## Read first
@@ -284,7 +284,9 @@ A later npm run test:finance attempt found two expected-message patterns had a n
 
 The E2E run modified tracked screenshot outputs under docs/evidence/screenshots; those test-generated files remain untouched and must stay outside the FEAT-007 checkpoint commit.
 
-Phase 2 checks and review are complete; stage only Phase 2 source, test, and plan/evidence paths, inspect the staged diff, commit as `fix(finance): bound spreadsheet operations`, then continue Phase 3.
+PLAN-004 Phase 2 implementation and checks are complete and committed as `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8` (`fix(finance): bound spreadsheet operations`).
+
+Phase 3 adds bounded keyset pagination to task comment and activity APIs and updates the web task detail reader; its implementation and verification are recorded below.
 
 The session setup check npx len-toolkit start succeeded, installed zero files, and reported the existing .gitignore difference; that difference was preserved.
 
@@ -297,3 +299,19 @@ The approved feature proposes a 5,000-expense per-workbook export cap and task-h
 The plan uses the existing architecture and toolchain and adds no dependency.
 
 The external production secret, deployment seed history, Android dependency provenance, and demo-server boundary remain outside local implementation evidence and must not be described as verified.
+
+PLAN-004 Phase 3 implementation and checks passed on 2026-10-05; its reviewed checkpoint commit is the next action.
+
+The task comment and activity APIs now return 50 records by default and no more than 100 per page, ordered newest-first with timestamp-and-ID keyset cursors and scoped authorization on every request.
+
+The web task detail modal loads comment and activity pages with accessible continuation controls, focused page-status announcements, retry feedback, total comment counts, and delegated edit and delete actions.
+
+Migration 003 adds ordered indexes for task comments and task activity because the previous schema indexes did not support the full cursor order.
+
+The synthetic task regression passed 36 tests; the full Node suite passed 250 tests; the full E2E suite passed 14 tests; and the full UI suite passed 14 tests on headless Microsoft Edge 138.0.3351.121 and Playwright 1.63.0.
+
+The 105-comment and 105-activity E2E fixture reached all three pages without missing or duplicated IDs, and the 375-pixel screenshot is [FEAT-007-task-history-375.png](docs/evidence/screenshots/FEAT-007-task-history-375.png).
+
+Browser runs changed existing tracked screenshot outputs under docs/evidence/screenshots and docs/evidence/screenshots/ui-redesign; these changes are preserved and excluded from the Phase 3 checkpoint, while the new FEAT-007 task history screenshot is part of the checkpoint.
+
+After verifying the Phase 3 commit hash, continue automatically to PLAN-004 Phase 4 and cover stored member-name rendering using the approved test and build gates.

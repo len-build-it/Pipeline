@@ -166,7 +166,7 @@ export function renderTasks(container, state, actions) {
                     <button type="button" class="record-title-link btn-open-task-detail" data-task-id="${escapeHtml(t.id)}">${escapeHtml(t.title)}</button>
                     ${t.archived ? `<span class="badge badge-archived" style="margin-left:4px;">Archived</span>` : ''}
                     <div class="record-card-subline">${escapeHtml(orgLabel(state, t.orgId))}</div>
-                    <div style="font-size:0.75rem; color:var(--color-text-muted);">${(t.comments || []).length} comments</div>
+                    <div style="font-size:0.75rem; color:var(--color-text-muted);">${t.commentCount ?? (t.comments || []).length} comments</div>
                   </td>
                   <td><span class="badge badge-${t.status.toLowerCase().replace(' ', '_')}">${escapeHtml(t.status)}</span></td>
                   <td><span class="badge badge-${t.priority.toLowerCase()}">${escapeHtml(t.priority)}</span></td>
@@ -206,7 +206,7 @@ export function renderTasks(container, state, actions) {
               <div class="record-card-meta">
                 <span>${escapeHtml(t.assigneeName || 'Unassigned')}</span>
                 <span>${escapeHtml(t.dueDate || 'No date')}${isOverdue ? ' (Overdue)' : ''}</span>
-                <span>${(t.comments || []).length} comments</span>
+                <span>${t.commentCount ?? (t.comments || []).length} comments</span>
               </div>
               ${(t.labels || []).length ? `
                 <div class="member-skill-list" aria-label="Task labels">
@@ -379,6 +379,7 @@ export function renderTasks(container, state, actions) {
 export function openTaskDetailModal(taskId, state, actions, triggerElement = null) {
   const task = state.tasks.find(t => t.id === taskId);
   if (!task) return;
+  if (!Array.isArray(task.comments)) task.comments = [];
 
   const { currentUser } = state;
   const isOwner = currentUser.isGlobalOwner;
@@ -496,10 +497,12 @@ export function openTaskDetailModal(taskId, state, actions, triggerElement = nul
 
           <!-- Comments Section -->
           <div style="margin-top:var(--spacing-6); padding-top:var(--spacing-4); border-top:1px solid var(--color-border);">
-            <h3 style="font-size:var(--font-size-base); font-weight:700; margin-bottom:var(--spacing-3);">Comments (${(task.comments || []).length})</h3>
+            <h3 id="task-comments-heading" style="font-size:var(--font-size-base); font-weight:700; margin-bottom:var(--spacing-3);">Comments (${state.isRealAuth ? (task.commentCount ?? 0) : (task.comments || []).length})</h3>
 
             <div id="task-comments-list" style="display:flex; flex-direction:column; gap:var(--spacing-3); margin-bottom:var(--spacing-4);">
-              ${(task.comments || []).length === 0 ? `
+              ${state.isRealAuth ? `
+                <p class="history-loading" role="status">Loading comments...</p>
+              ` : (task.comments || []).length === 0 ? `
                 <p style="font-size:var(--font-size-sm); color:var(--color-text-muted);">No comments yet.</p>
               ` : (task.comments || []).map(c => {
                 const canModerate = isLead || c.authorId === currentUser.id;
@@ -520,6 +523,10 @@ export function openTaskDetailModal(taskId, state, actions, triggerElement = nul
                 `;
               }).join('')}
             </div>
+            ${state.isRealAuth ? `
+              <p id="task-comments-history-status" role="status" aria-live="polite"></p>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-load-older-comments" hidden>Load older comments</button>
+            ` : ''}
 
             ${canComment ? `
               <div class="form-group">
@@ -529,6 +536,17 @@ export function openTaskDetailModal(taskId, state, actions, triggerElement = nul
               </div>
             ` : ''}
           </div>
+
+          ${state.isRealAuth ? `
+            <section aria-labelledby="task-activity-heading" style="margin-top:var(--spacing-6); padding-top:var(--spacing-4); border-top:1px solid var(--color-border);">
+              <h3 id="task-activity-heading" style="font-size:var(--font-size-base); font-weight:700; margin-bottom:var(--spacing-3);">Activity</h3>
+              <div id="task-activity-list" style="display:flex; flex-direction:column; gap:var(--spacing-3); margin-bottom:var(--spacing-4);">
+                <p role="status">Loading activity...</p>
+              </div>
+              <p id="task-activity-history-status" role="status" aria-live="polite"></p>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-load-older-activity" hidden>Load older activity</button>
+            </section>
+          ` : ''}
 
           <!-- Archive Action -->
           ${canEditFull && !task.archived ? `
@@ -555,6 +573,141 @@ export function openTaskDetailModal(taskId, state, actions, triggerElement = nul
   selectedRecord?.setAttribute('aria-current', 'true');
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   const modal = document.getElementById('task-detail-modal');
+
+  let commentsCursor = null;
+  let activityCursor = null;
+  let commentsLoading = false;
+  let activityLoading = false;
+  let activityItems = [];
+
+  function historyHeaders() {
+    return { 'Authorization': `Bearer ${state.token}` };
+  }
+
+  function renderCommentsHistory() {
+    const list = modal.querySelector('#task-comments-list');
+    const count = task.commentCount ?? task.comments.length;
+    modal.querySelector('#task-comments-heading').textContent = `Comments (${count})`;
+    list.innerHTML = task.comments.length === 0
+      ? '<p style="font-size:var(--font-size-sm); color:var(--color-text-muted);">No comments yet.</p>'
+      : task.comments.map(c => {
+        const canModerate = isLead || c.authorId === currentUser.id;
+        return `
+          <div class="responsive-record-card" style="padding:var(--spacing-3); background:var(--color-background);" id="comment-${escapeHtml(c.id)}">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-size:0.8125rem;">${escapeHtml(c.authorName || 'Team member')}</strong>
+              <span style="font-size:0.7rem; color:var(--color-text-muted);">${escapeHtml(c.createdAt?.slice(0, 16).replace('T', ' ') || '')}</span>
+            </div>
+            <p style="font-size:var(--font-size-sm); margin: var(--spacing-1) 0;" id="comment-body-${escapeHtml(c.id)}">${escapeHtml(c.body)}</p>
+            ${canModerate && !task.archived ? `
+              <div style="display:flex; gap:var(--spacing-2); justify-content:flex-end;">
+                ${c.authorId === currentUser.id ? `<button type="button" class="btn btn-secondary btn-sm btn-edit-comment" data-cmt-id="${escapeHtml(c.id)}" style="font-size:0.7rem; min-height:28px; padding:2px 8px;">Edit</button>` : ''}
+                <button type="button" class="btn btn-danger btn-sm btn-delete-comment" data-cmt-id="${escapeHtml(c.id)}" style="font-size:0.7rem; min-height:28px; padding:2px 8px;">Remove</button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+    const button = modal.querySelector('#btn-load-older-comments');
+    button.hidden = !commentsCursor && !button.dataset.retry;
+    button.disabled = commentsLoading;
+    button.textContent = button.dataset.retry ? 'Retry loading comments' : 'Load older comments';
+  }
+
+  async function loadCommentsPage() {
+    if (commentsLoading) return;
+    commentsLoading = true;
+    const status = modal.querySelector('#task-comments-history-status');
+    const button = modal.querySelector('#btn-load-older-comments');
+    if (button) button.disabled = true;
+    status.setAttribute('role', 'status');
+    status.textContent = commentsCursor ? 'Loading older comments...' : 'Loading comments...';
+    const loadingOlder = Boolean(commentsCursor);
+    try {
+      const query = new URLSearchParams({ limit: '50' });
+      if (commentsCursor) query.set('cursor', commentsCursor);
+      const response = await fetch(`/api/organizations/${encodeURIComponent(task.orgId)}/tasks/${encodeURIComponent(task.id)}/comments?${query}`, { headers: historyHeaders() });
+      const page = await response.json();
+      if (!response.ok) throw new Error(page.message || 'Could not load comments.');
+      task.comments = commentsCursor ? [...task.comments, ...page.comments] : page.comments;
+      task.commentCount ??= task.comments.length;
+      commentsCursor = page.nextCursor;
+      if (button) delete button.dataset.retry;
+      status.textContent = `Loaded ${page.comments.length} ${loadingOlder ? 'older' : 'newest'} comments.`;
+      renderCommentsHistory();
+    } catch (error) {
+      status.setAttribute('role', 'alert');
+      status.textContent = error.message || 'Could not load comments.';
+      if (button) {
+        button.dataset.retry = 'true';
+        button.hidden = false;
+        button.textContent = 'Retry loading comments';
+      }
+    } finally {
+      commentsLoading = false;
+      if (button) button.disabled = false;
+    }
+  }
+
+  function renderActivityHistory() {
+    const list = modal.querySelector('#task-activity-list');
+    list.innerHTML = activityItems.length === 0
+      ? '<p style="font-size:var(--font-size-sm); color:var(--color-text-muted);">No activity yet.</p>'
+      : activityItems.map(item => `
+        <article class="responsive-record-card" data-activity-id="${escapeHtml(item.id)}" style="padding:var(--spacing-3); background:var(--color-background);">
+          <strong style="font-size:0.8125rem;">${escapeHtml(item.actorName || 'Team member')}</strong>
+          <p style="font-size:var(--font-size-sm); margin:var(--spacing-1) 0;">${escapeHtml(String(item.action || '').replaceAll('_', ' '))}</p>
+          <time style="font-size:0.7rem; color:var(--color-text-muted);">${escapeHtml(item.createdAt?.slice(0, 16).replace('T', ' ') || '')}</time>
+        </article>
+      `).join('');
+
+    const button = modal.querySelector('#btn-load-older-activity');
+    button.hidden = !activityCursor && !button.dataset.retry;
+    button.disabled = activityLoading;
+    button.textContent = button.dataset.retry ? 'Retry loading activity' : 'Load older activity';
+  }
+
+  async function loadActivityPage() {
+    if (activityLoading) return;
+    activityLoading = true;
+    const status = modal.querySelector('#task-activity-history-status');
+    const button = modal.querySelector('#btn-load-older-activity');
+    if (button) button.disabled = true;
+    status.setAttribute('role', 'status');
+    status.textContent = activityCursor ? 'Loading older activity...' : 'Loading activity...';
+    const loadingOlder = Boolean(activityCursor);
+    try {
+      const query = new URLSearchParams({ limit: '50' });
+      if (activityCursor) query.set('cursor', activityCursor);
+      const response = await fetch(`/api/organizations/${encodeURIComponent(task.orgId)}/tasks/${encodeURIComponent(task.id)}/activity?${query}`, { headers: historyHeaders() });
+      const page = await response.json();
+      if (!response.ok) throw new Error(page.message || 'Could not load activity.');
+      activityItems = activityCursor ? [...activityItems, ...page.activity] : page.activity;
+      activityCursor = page.nextCursor;
+      if (button) delete button.dataset.retry;
+      status.textContent = `Loaded ${page.activity.length} ${loadingOlder ? 'older' : 'newest'} activity records.`;
+      renderActivityHistory();
+    } catch (error) {
+      status.setAttribute('role', 'alert');
+      status.textContent = error.message || 'Could not load activity.';
+      if (button) {
+        button.dataset.retry = 'true';
+        button.hidden = false;
+        button.textContent = 'Retry loading activity';
+      }
+    } finally {
+      activityLoading = false;
+      if (button) button.disabled = false;
+    }
+  }
+
+  if (state.isRealAuth && state.token) {
+    modal.querySelector('#btn-load-older-comments').addEventListener('click', loadCommentsPage);
+    modal.querySelector('#btn-load-older-activity').addEventListener('click', loadActivityPage);
+    loadCommentsPage();
+    loadActivityPage();
+  }
 
   function closeModal() {
     modal.remove();
@@ -752,6 +905,7 @@ export function openTaskDetailModal(taskId, state, actions, triggerElement = nul
         }
         const newCmt = await res.json();
         if (!task.comments) task.comments = [];
+        task.commentCount = Number(task.commentCount || 0) + 1;
         task.comments.push({
           id: newCmt.id,
           authorId: newCmt.authorId,
@@ -778,68 +932,54 @@ export function openTaskDetailModal(taskId, state, actions, triggerElement = nul
     refreshAndReopen();
   });
 
-  // Comment edit / delete
-  modal.querySelectorAll('.btn-delete-comment').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const cmtId = e.currentTarget.getAttribute('data-cmt-id');
+  // Delegate so comment actions continue to work on every loaded page.
+  modal.querySelector('#task-comments-list').addEventListener('click', async (event) => {
+    const button = event.target.closest('.btn-edit-comment, .btn-delete-comment');
+    if (!button) return;
+    const commentId = button.dataset.cmtId;
+    const comment = task.comments.find(item => item.id === commentId);
+    if (!comment) return;
 
+    if (button.matches('.btn-delete-comment')) {
       if (state.isRealAuth && state.token) {
-        fetch(`/api/organizations/${task.orgId}/tasks/${task.id}/comments/${cmtId}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${state.token}` },
-        }).then(async res => {
-          if (!res.ok) {
-            const err = await res.json();
-            alert(`Error: ${err.message || 'Failed to delete comment.'}`);
-            return;
-          }
-          task.comments = task.comments.filter(c => c.id !== cmtId);
-          refreshAndReopen();
-        }).catch(err => {
-          alert(`Network error: ${err.message}`);
-        });
-        return;
-      }
-
-      task.comments = task.comments.filter(c => c.id !== cmtId);
-      refreshAndReopen();
-    });
-  });
-
-  modal.querySelectorAll('.btn-edit-comment').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const cmtId = e.currentTarget.getAttribute('data-cmt-id');
-      const comment = task.comments.find(c => c.id === cmtId);
-      if (!comment) return;
-      const newBody = prompt('Edit comment:', comment.body);
-      if (newBody !== null && newBody.trim()) {
-        if (state.isRealAuth && state.token) {
-          fetch(`/api/organizations/${task.orgId}/tasks/${task.id}/comments/${cmtId}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${state.token}`,
-            },
-            body: JSON.stringify({ body: newBody.trim() }),
-          }).then(async res => {
-            if (!res.ok) {
-              const err = await res.json();
-              alert(`Error: ${err.message || 'Failed to update comment.'}`);
-              return;
-            }
-            const updated = await res.json();
-            comment.body = updated.body;
-            refreshAndReopen();
-          }).catch(err => {
-            alert(`Network error: ${err.message}`);
+        try {
+          const response = await fetch(`/api/organizations/${encodeURIComponent(task.orgId)}/tasks/${encodeURIComponent(task.id)}/comments/${encodeURIComponent(commentId)}`, {
+            method: 'DELETE',
+            headers: historyHeaders(),
           });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.message || 'Failed to delete comment.');
+        } catch (error) {
+          alert(`Error: ${error.message || 'Failed to delete comment.'}`);
           return;
         }
-
-        comment.body = newBody.trim();
-        refreshAndReopen();
       }
-    });
+      task.comments = task.comments.filter(item => item.id !== commentId);
+      if (task.commentCount !== undefined) task.commentCount = Math.max(0, Number(task.commentCount) - 1);
+      refreshAndReopen();
+      return;
+    }
+
+    const newBody = prompt('Edit comment:', comment.body);
+    if (newBody === null || !newBody.trim()) return;
+    if (state.isRealAuth && state.token) {
+      try {
+        const response = await fetch(`/api/organizations/${encodeURIComponent(task.orgId)}/tasks/${encodeURIComponent(task.id)}/comments/${encodeURIComponent(commentId)}`, {
+          method: 'PATCH',
+          headers: { ...historyHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body: newBody.trim() }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Failed to update comment.');
+        comment.body = result.body;
+      } catch (error) {
+        alert(`Error: ${error.message || 'Failed to update comment.'}`);
+        return;
+      }
+    } else {
+      comment.body = newBody.trim();
+    }
+    refreshAndReopen();
   });
 
   // Archive task

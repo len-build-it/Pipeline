@@ -89,6 +89,7 @@ class App {
         priority: t.priority,
         dueDate: t.dueDate,
         labels: t.labels || [],
+        commentCount: t.commentCount ?? 0,
         version: t.version,
         archived: Boolean(t.archivedAt),
         archivedAt: t.archivedAt,

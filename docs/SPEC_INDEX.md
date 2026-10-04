@@ -1,7 +1,7 @@
 # Specification index
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T23:45:00+08:00
+Updated: 2026-10-05T00:10:25+08:00
 
 | Category | ID | Current path | Revision | Status | Replaces |
 | --- | --- | --- | --- | --- | --- |
@@ -20,11 +20,11 @@ Updated: 2026-10-04T23:45:00+08:00
 | Plan | PLAN-001 | [plans/FEAT-001-implementation.md](plans/FEAT-001-implementation.md) | 1 | Approved; all eight phases complete | - |
 | Plan | PLAN-002 | [plans/FEAT-006-implementation.md](plans/FEAT-006-implementation.md) | 3 | Approved, complete | - |
 | Plan | PLAN-003 | [plans/UI-REDESIGN-implementation.md](plans/UI-REDESIGN-implementation.md) | 1 | Approved; all six phases complete and committed locally | - |
-| Plan | PLAN-004 | [plans/FEAT-007-implementation.md](plans/FEAT-007-implementation.md) | 1 | Approved by Len in chat on 2026-10-04T23:19:00+08:00; Phase 1 in progress | - |
+| Plan | PLAN-004 | [plans/FEAT-007-implementation.md](plans/FEAT-007-implementation.md) | 1 | Approved; Phases 1 and 2 committed; Phase 3 checks pass and checkpoint is under review | - |
 | Evidence | EVID-001 | [evidence/MVP-verification.md](evidence/MVP-verification.md) | 14 | PLAN-001 complete; PLAN-002 complete | - |
 | Evidence | EVID-002 | [evidence/UI-redesign-verification.md](evidence/UI-redesign-verification.md) | 1 | PLAN-003 complete and locally verified; physical-device and production checks pending | - |
 | Evidence | EVID-003 | [evidence/security-audit-2026-10-04/REPORT.md](evidence/security-audit-2026-10-04/REPORT.md) | 1 | Standard source-first security audit incomplete; ten candidates await independent validation | - |
-| Evidence | EVID-004 | [evidence/FEAT-007-security-hardening-verification.md](evidence/FEAT-007-security-hardening-verification.md) | 1 | PLAN-004 Phases 1 and 2 locally verified; Phase 2 checkpoint pending | - |
+| Evidence | EVID-004 | [evidence/FEAT-007-security-hardening-verification.md](evidence/FEAT-007-security-hardening-verification.md) | 1 | PLAN-004 Phases 1 and 2 committed and Phase 3 checks pass locally; production evidence remains pending | - |
 | Supporting handoff | DESIGN-001 | [product/UI_UX_HANDOFF_BRIEF.md](product/UI_UX_HANDOFF_BRIEF.md) | 1 | Informational; derived from approved specs and not authoritative | - |
 | Supporting handoff | DESIGN-002 | [product/UI_REDESIGN_LAGOON_HANDOFF.md](product/UI_REDESIGN_LAGOON_HANDOFF.md) | 2 | Supporting design reference; execution authorized by PROD-005 revision 4 and PLAN-003 revision 1 | - |
 
@@ -36,7 +36,7 @@ Completed implementation plan: [PLAN-002 revision 3](plans/FEAT-006-implementati
 
 Most recently completed implementation plan: [PLAN-003 revision 1](plans/UI-REDESIGN-implementation.md), covering the Lagoon UI redesign in six phases. It is approved, complete, and locally verified; physical-device and production checks remain pending.
 
-Current implementation plan: [PLAN-004 revision 1](plans/FEAT-007-implementation.md), covering [FEAT-007 revision 1](features/FEAT-007-security-hardening.md). Len approved both revisions in chat on 2026-10-04T23:19:00+08:00; Phase 1 is complete at `de94ccbf9503a171364e0a6b4bdbfca49e485ce6` and Phase 2 has passed its gates and awaits its checkpoint commit.
+Current implementation plan: [PLAN-004 revision 1](plans/FEAT-007-implementation.md), covering [FEAT-007 revision 1](features/FEAT-007-security-hardening.md). Len approved both revisions in chat on 2026-10-04T23:19:00+08:00; Phases 1 and 2 are complete at `de94ccbf9503a171364e0a6b4bdbfca49e485ce6` and `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`; Phase 3 checks pass and its checkpoint is under review.
 
 PLAN-001 execution was authorized by Len on 2026-09-16T21:57:07+08:00. PLAN-002 revision 3 and the previously approved baseline revisions were approved by Len on 2026-10-03T22:31:00+08:00.
 

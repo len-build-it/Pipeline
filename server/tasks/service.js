@@ -4,6 +4,105 @@ import { getCallerOrgPermission } from '../members/service.js';
 
 const VALID_STATUSES = ['Backlog', 'In progress', 'Blocked', 'Done'];
 const VALID_PRIORITIES = ['Low', 'Medium', 'High'];
+const DEFAULT_HISTORY_PAGE_SIZE = 50;
+const MAX_HISTORY_PAGE_SIZE = 100;
+const HISTORY_CURSOR_TIMESTAMP = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})(?:\.\d{1,6})?(Z|[+-](\d{2})(?::?(\d{2}))?)$/;
+
+function badRequest(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return error;
+}
+
+function historyPageSize(value) {
+  if (value === undefined) return DEFAULT_HISTORY_PAGE_SIZE;
+  if (typeof value !== 'string' || !/^[1-9]\d*$/.test(value)) {
+    throw badRequest('History limit must be a positive integer from 1 to 100.');
+  }
+
+  const limit = Number(value);
+  if (limit > MAX_HISTORY_PAGE_SIZE) {
+    throw badRequest('History limit must be a positive integer from 1 to 100.');
+  }
+  return limit;
+}
+
+function decodeHistoryCursor(value) {
+  if (value === undefined) return null;
+  const invalidCursor = () => badRequest('History cursor is invalid. Request the first page and try again.');
+  if (typeof value !== 'string' || value.length > 512 || !/^[A-Za-z0-9_-]+$/.test(value)) {
+    throw invalidCursor();
+  }
+
+  let payload;
+  try {
+    const json = Buffer.from(value, 'base64url').toString('utf8');
+    if (Buffer.from(json, 'utf8').toString('base64url') !== value) throw invalidCursor();
+    payload = JSON.parse(json);
+  } catch {
+    throw invalidCursor();
+  }
+
+  if (
+    !payload
+    || typeof payload !== 'object'
+    || Object.keys(payload).length !== 2
+    || typeof payload.createdAt !== 'string'
+    || !isValidHistoryTimestamp(payload.createdAt)
+    || typeof payload.id !== 'string'
+    || payload.id.length < 1
+    || payload.id.length > 200
+  ) {
+    throw invalidCursor();
+  }
+  return payload;
+}
+
+function encodeHistoryCursor(row) {
+  return Buffer.from(JSON.stringify({ createdAt: row.cursorCreatedAt, id: row.id }), 'utf8').toString('base64url');
+}
+
+function isValidHistoryTimestamp(value) {
+  const match = HISTORY_CURSOR_TIMESTAMP.exec(value);
+  if (!match) return false;
+
+  const [, yearText, monthText, dayText, hourText, minuteText, secondText, zone, zoneHourText, zoneMinuteText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+  const second = Number(secondText);
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (
+    year === 0
+    || month < 1
+    || month > 12
+    || day < 1
+    || day > daysInMonth[month - 1]
+    || hour > 23
+    || minute > 59
+    || second > 59
+  ) return false;
+
+  if (zone !== 'Z') {
+    const zoneHour = Number(zoneHourText);
+    const zoneMinute = Number(zoneMinuteText || 0);
+    if (zoneHour > 15 || zoneMinute > 59) return false;
+  }
+  return !Number.isNaN(Date.parse(value));
+}
+
+function historyPage(rows, limit, property) {
+  const hasMore = rows.length > limit;
+  const pageRows = rows.slice(0, limit);
+  const nextCursor = hasMore ? encodeHistoryCursor(pageRows[pageRows.length - 1]) : null;
+  return {
+    [property]: pageRows.map(({ cursorCreatedAt, ...row }) => row),
+    nextCursor,
+  };
+}
 
 /**
  * List tasks for an organization with rich search, filters, overdue calculation, and pagination.
@@ -587,7 +686,9 @@ export async function archiveTask(orgId, taskId, caller, customPool = null) {
 /**
  * List comments on a task.
  */
-export async function listComments(orgId, taskId, caller, customPool = null) {
+export async function listComments(orgId, taskId, filters, caller, customPool = null) {
+  const limit = historyPageSize(filters.limit);
+  const cursor = decodeHistoryCursor(filters.cursor);
   const perm = await getCallerOrgPermission(caller, orgId, customPool);
   if (!perm.hasAccess) {
     const error = new Error('Inaccessible organization.');
@@ -605,6 +706,14 @@ export async function listComments(orgId, taskId, caller, customPool = null) {
     throw error;
   }
 
+  const params = [taskId];
+  let cursorClause = '';
+  if (cursor) {
+    params.push(cursor.createdAt, cursor.id);
+    cursorClause = 'AND (tc.created_at, tc.id) < ($2::timestamptz, $3::text)';
+  }
+  params.push(limit + 1);
+
   const res = await q(
     `SELECT
        tc.id,
@@ -615,15 +724,17 @@ export async function listComments(orgId, taskId, caller, customPool = null) {
        u.email AS "authorEmail",
        tc.body,
        tc.created_at AS "createdAt",
-       tc.updated_at AS "updatedAt"
+       tc.updated_at AS "updatedAt",
+       tc.created_at::text AS "cursorCreatedAt"
      FROM task_comments tc
      JOIN users u ON tc.author_id = u.id
-     WHERE tc.task_id = $1
-     ORDER BY tc.created_at ASC`,
-    [taskId]
+     WHERE tc.task_id = $1 ${cursorClause}
+     ORDER BY tc.created_at DESC, tc.id DESC
+     LIMIT $${params.length}`,
+    params
   );
 
-  return res.rows;
+  return historyPage(res.rows, limit, 'comments');
 }
 
 /**
@@ -796,7 +907,9 @@ export async function deleteComment(orgId, taskId, commentId, caller, customPool
 /**
  * Get activity history for a specific task.
  */
-export async function getTaskActivity(orgId, taskId, caller, customPool = null) {
+export async function getTaskActivity(orgId, taskId, filters, caller, customPool = null) {
+  const limit = historyPageSize(filters.limit);
+  const cursor = decodeHistoryCursor(filters.cursor);
   const perm = await getCallerOrgPermission(caller, orgId, customPool);
   if (!perm.hasAccess) {
     const error = new Error('Inaccessible organization.');
@@ -806,20 +919,37 @@ export async function getTaskActivity(orgId, taskId, caller, customPool = null) 
 
   const q = customPool ? (t, p) => customPool.query(t, p) : query;
 
+  const taskRes = await q('SELECT id FROM tasks WHERE id = $1 AND organization_id = $2', [taskId, orgId]);
+  if (taskRes.rows.length === 0) {
+    const error = new Error('Task not found.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const params = [taskId, orgId];
+  let cursorClause = '';
+  if (cursor) {
+    params.push(cursor.createdAt, cursor.id);
+    cursorClause = 'AND (ae.created_at, ae.id) < ($3::timestamptz, $4::text)';
+  }
+  params.push(limit + 1);
+
   const res = await q(
     `SELECT
        ae.id,
        ae.action,
        ae.metadata,
        ae.created_at AS "createdAt",
+       ae.created_at::text AS "cursorCreatedAt",
        u.display_name AS "actorName",
        u.avatar_color AS "actorAvatarColor"
      FROM activity_events ae
      JOIN users u ON ae.actor_id = u.id
-     WHERE ae.entity_type = 'task' AND ae.entity_id = $1 AND ae.organization_id = $2
-     ORDER BY ae.created_at DESC`,
-    [taskId, orgId]
+     WHERE ae.entity_type = 'task' AND ae.entity_id = $1 AND ae.organization_id = $2 ${cursorClause}
+     ORDER BY ae.created_at DESC, ae.id DESC
+     LIMIT $${params.length}`,
+    params
   );
 
-  return res.rows;
+  return historyPage(res.rows, limit, 'activity');
 }

@@ -2,10 +2,10 @@
 
 Evidence ID: EVID-004.
 Created: 2026-10-04T23:32:17+08:00
-Updated: 2026-10-04T23:45:00+08:00
+Updated: 2026-10-05T00:10:25+08:00
 Feature and plan: FEAT-007 revision 1 and PLAN-004 revision 1, approved by Len in chat on 2026-10-04T23:19:00+08:00.
-Phase: PLAN-004 Phases 1 and 2, with Phase 2 awaiting its checkpoint commit.
-Implementation revision: Phase 1 checkpoint commit `de94ccbf9503a171364e0a6b4bdbfca49e485ce6`; Phase 2 changes are under review.
+Phase: PLAN-004 Phases 1 and 2 complete; Phase 3 checks pass and its checkpoint is under review.
+Implementation revision: Phase 1 checkpoint `de94ccbf9503a171364e0a6b4bdbfca49e485ce6`; Phase 2 checkpoint `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`; Phase 3 changes are in the working tree pending checkpoint commit.
 
 ## Scope and environment
 
@@ -75,6 +75,56 @@ A later finance run found two assertions expected a comma in the numeric row lim
 
 The test setup validated refusal paths synthetically and verified successful migration, truncation, seeding, and restore only on the isolated loopback test cluster.
 
+## Phase 3: Bounded task comment and activity history
+
+The baseline task service selected and returned complete comment and activity histories without a row limit; this source-level behavior motivated the candidate, but no pre-fix production benchmark or production exploitability claim is made.
+
+Both task history APIs now default to 50 rows, accept a validated maximum of 100 rows, and fetch one extra row to determine whether a continuation cursor is needed.
+
+The base64url cursor contains the last returned timestamp and unique row ID; the server bounds and canonicalizes the cursor, validates timestamp calendar and offset fields, and applies a lexicographic timestamp-and-ID predicate to each task-scoped query.
+
+The query order returns newest records first, while older pages continue from the final item in the previous page; a newer synthetic comment inserted between requests did not change the older-page traversal.
+
+The default history query bound is 51 rows for a 50-row page and 101 rows for a requested 100-row page; activity also performs one scoped task-existence lookup before its bounded history query.
+
+The existing list order was retained in the new API response objects, with `nextCursor` added to both `{ comments }` and `{ activity }` responses.
+
+The activity endpoint now confirms that the requested task belongs to the requested organization before returning activity, so a caller who belongs to the URL organization cannot use a foreign task ID to cross the boundary.
+
+Migration `003_task_history_pagination.sql` adds `(task_id, created_at DESC, id DESC)` for comments and a task-event partial index on `(organization_id, entity_id, created_at DESC, id DESC)` because the original indexes did not support the full bounded ordering.
+
+The web task detail modal now fetches its first comments and activity pages, shows the total comment count supplied by task listing, and adds accessible Load older controls with status and retry messaging.
+
+Comment row actions use event delegation so edits and deletes keep working on comments loaded from later pages; the activity section escapes stored actor, action, ID, and timestamp values before rendering.
+
+The shared `[hidden]` CSS rule was added after browser verification found that button display styling overrode the browser default and left exhausted Load older controls visible despite their hidden attribute.
+
+The focused task suite passed 36 tests, including equal-timestamp tie ordering, 50-row defaults, the 100-row maximum, invalid limits, malformed and impossible-date cursors, continuation with no gaps or duplicates, insertion between comment pages, and cross-organization task denial.
+
+The live E2E fixture inserted 105 synthetic comments and 105 synthetic activity events for one isolated test task; the browser read three pages for each history and verified all 105 IDs were unique and present.
+
+The E2E fixture uses PostgreSQL `NOW() + INTERVAL '1 day'` so its equal-timestamp rows sort ahead of the task's ordinary audit events; assertions count the 105 synthetic event IDs separately from those older normal events.
+
+The responsive UI fixture loaded mock cursor pages and verified keyboard activation, visible focus, restored opener focus, and no page-level horizontal overflow at 375, 768, 1024, and 1440 CSS pixels.
+
+The narrow task detail capture showing the continuation control is [FEAT-007-task-history-375.png](screenshots/FEAT-007-task-history-375.png).
+
+The test environment was Node.js v24.14.0, npm 11.9.0, PostgreSQL 18.4 on the isolated loopback test instance, Playwright 1.63.0, and headless Microsoft Edge 138.0.3351.121.
+
+On 2026-10-05 PHT, `npm run test:tasks` passed 36 tests and the complete `npm test` gate passed all 250 tests across six test groups.
+
+On 2026-10-05 PHT, `npm run test:e2e` passed 14 Playwright workflows in 53.3 seconds, including the 105-comment and 105-activity pagination journey.
+
+On 2026-10-05 PHT, `npm run test:ui` passed all 14 UI workflows in 40.1 seconds, including all four planned viewport widths.
+
+Focused screenshot refresh reruns of the task pagination UI and E2E specs also passed after moving the capture to the visible older-comments control; the E2E rerun produced the checked-in narrow screenshot.
+
+Resolved test setup issues were recorded rather than counted as passing attempts: the activity fixture initially used a timestamp older than ordinary audit events, the first phone UI selector targeted a hidden desktop table row, the E2E login began in demo mode, and the first phone E2E selector likewise targeted the hidden desktop row.
+
+The browser regression then exposed the actual hidden-button CSS behavior; a global hidden-state rule fixed the product behavior, and the focused E2E plus complete browser suites passed afterward.
+
+All history fixture data used synthetic task IDs, users, comments, and activity in the isolated `pipeline_test` database; no production account or customer record was accessed.
+
 ## Limitations
 
 Production runtime configuration, production deployment seed history, hosted database connection settings, and actual exploitability in any deployed instance were not verified.
@@ -83,10 +133,12 @@ The required OS-enforced audit reproduction sandbox was unavailable during EVID-
 
 The E2E run updated existing tracked screenshot outputs under `docs/evidence/screenshots`; those generated changes are preserved and excluded from the FEAT-007 phase checkpoint.
 
-No Flutter, physical-device, hosting, or production-service checks are in scope for Phases 1 and 2.
+No Flutter, physical-device, hosting, or production-service checks are in scope for Phases 1 through 3.
 
 ## Phase status
 
 Phase 1 passed its focused security tests, full Node test gate, isolated restore gate, diff check, code review, and checkpoint commit `de94ccbf9503a171364e0a6b4bdbfca49e485ce6`.
 
-Phase 2 passed its focused auth, finance, and security suites, the full Node gate, E2E gate, diff check, and code review; its checkpoint commit is pending.
+Phase 2 passed its focused auth, finance, and security suites, the full Node gate, E2E gate, diff check, code review, and checkpoint commit `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`.
+
+Phase 3 implementation and checks pass; task history pagination and its web consumers are ready for the checkpoint commit.

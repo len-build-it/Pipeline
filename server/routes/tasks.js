@@ -145,10 +145,16 @@ export async function taskRoutes(fastify, options) {
           taskId: { type: 'string' },
         },
       },
+      querystring: {
+        type: 'object',
+        properties: {
+          limit: { type: 'string', pattern: '^[1-9][0-9]{0,2}$', maxLength: 3 },
+          cursor: { type: 'string', maxLength: 512 },
+        },
+      },
     },
   }, async (request) => {
-    const comments = await listComments(request.params.orgId, request.params.taskId, request.user, pool);
-    return { comments };
+    return listComments(request.params.orgId, request.params.taskId, request.query, request.user, pool);
   });
 
   // POST /api/organizations/:orgId/tasks/:taskId/comments
@@ -230,9 +236,15 @@ export async function taskRoutes(fastify, options) {
           taskId: { type: 'string' },
         },
       },
+      querystring: {
+        type: 'object',
+        properties: {
+          limit: { type: 'string', pattern: '^[1-9][0-9]{0,2}$', maxLength: 3 },
+          cursor: { type: 'string', maxLength: 512 },
+        },
+      },
     },
   }, async (request) => {
-    const activity = await getTaskActivity(request.params.orgId, request.params.taskId, request.user, pool);
-    return { activity };
+    return getTaskActivity(request.params.orgId, request.params.taskId, request.query, request.user, pool);
   });
 }

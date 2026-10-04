@@ -1,7 +1,7 @@
 # Implementation Plan: FEAT-007 Security hardening from audit candidate leads
 
 Created: 2026-10-04T23:06:52+08:00
-Updated: 2026-10-04T23:45:00+08:00
+Updated: 2026-10-05T00:10:25+08:00
 Revision: 1
 Status: Approved
 Feature spec and revision: [FEAT-007 revision 1](../features/FEAT-007-security-hardening.md), Approved
@@ -98,7 +98,7 @@ Continue automatically to the next approved phase.
 
 Requirements: FEAT-007/REQ-004, FEAT-007/REQ-005, FEAT-007/REQ-006, FEAT-007/REQ-010
 
-State: Awaiting checkpoint commit
+State: Complete
 
 Candidate leads: overview.archived-org-active-membership, finance.unbounded-xlsx-export, finance.xlsx-sparse-row-index
 
@@ -128,9 +128,10 @@ Candidate leads: overview.archived-org-active-membership, finance.unbounded-xlsx
 - [x] Review the current schema and indexes; no migration was required for the row bounds or limited export query.
 - [x] Update this plan, evidence, and the current handoff with actual results.
 - [x] Stage only reviewed Phase 2 paths and inspect the staged diff.
-- [ ] Commit the reviewed phase and verify Git reports success.
+- [x] Commit the reviewed phase and verify Git reports success.
 
 Checkpoint message: fix(finance): bound spreadsheet operations
+Checkpoint commit: `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`.
 
 Phase completion requires all gates and a successful commit; the message identifies the checkpoint without needing its own hash inside the commit.
 
@@ -140,36 +141,36 @@ Continue automatically to the next approved phase.
 
 Requirements: FEAT-007/REQ-007, FEAT-007/REQ-010
 
-State: Not started
+State: Implementation and checks passed; checkpoint review is in progress
 
 Candidate lead: tasks.comment-history-unbounded
 
 ### Tasks
 
-- [ ] Reproduce full-history query and response growth with a synthetic task and comment/activity history.
-- [ ] Add validated page-size handling with a default of 50 and a maximum of 100 for both comment and task activity readers.
-- [ ] Use a stable keyset cursor based on the current history timestamp and unique record ID; scope every page by authorized organization and task.
-- [ ] Return the newest 50 records first and expose a continuation cursor for older records; do not silently discard older history.
-- [ ] Update existing web task detail readers to load the first page and provide an accessible control for loading older comments and activity.
-- [ ] Inspect all existing task-history consumers and update any consumer that currently assumes a complete unbounded response.
-- [ ] Add deterministic tests for page caps, ordering, continuation, no gaps or duplicates, invalid cursors, and cross-organization denial.
-- [ ] Add or reuse an index only when the existing schema does not support the bounded keyset query.
+- [x] Confirmed the baseline source selected complete comment and activity histories without a row limit; created synthetic 105-row histories for regression coverage without claiming a production benchmark.
+- [x] Added validated page-size handling with a default of 50 and a maximum of 100 for both comment and task activity readers.
+- [x] Used a stable keyset cursor based on the history timestamp and unique record ID; scoped every page by authorized organization and task.
+- [x] Returned newest records first and exposed a continuation cursor for older records without silently discarding older history.
+- [x] Updated the web task detail reader to load the first page and provide accessible controls for loading older comments and activity.
+- [x] Traced existing task-history consumers and updated the existing web reader; there were no other API consumers assuming complete unbounded responses.
+- [x] Added deterministic tests for default and maximum page sizes, ordering, continuation, no gaps or duplicates, invalid cursors, and cross-organization denial.
+- [x] Added composite comment and task-activity indexes because the existing indexes did not support the complete keyset order.
 
 ### Verification
 
-- [ ] Run npm run test:tasks with the isolated test database; expect each page to contain no more than 100 rows and authorized users to be able to reach all synthetic history pages.
-- [ ] Run npm test and npm run test:e2e with synthetic task history greater than 100 comments and activity rows; expect no unauthorized page and no missing or duplicated record across successive pages.
-- [ ] Run npm run test:ui and verify keyboard access, visible focus, and the older-history control at 375, 768, 1024, and 1440 CSS-pixel widths.
-- [ ] Capture a screenshot of the task detail with the older-history control at a narrow viewport when screenshot capture is available.
-- [ ] Run git diff --check and record query counts, page-size boundaries, browser versions, and screenshots in the evidence file.
+- [x] `npm run test:tasks` passed all 36 tests against the isolated database; API pages stayed within the requested cap and synthetic users reached every older page.
+- [x] `npm test` passed all 250 tests, and `npm run test:e2e` passed all 14 workflows with synthetic histories of 105 comments and 105 activity rows and no missing or duplicated row.
+- [x] `npm run test:ui` passed all 14 checks; keyboard activation and visible focus passed at 375, 768, 1024, and 1440 CSS-pixel widths.
+- [x] Captured and inspected [the 375-pixel task history screenshot](../evidence/screenshots/FEAT-007-task-history-375.png) with the older-comments control visible.
+- [x] `git diff --check` passed; versions, page bounds, fixture sizes, test attempts, and limitations are recorded in EVID-004.
 
 ### Review and checkpoint
 
-- [ ] Review keyset ordering and cursor validation for stable behavior when new comments are added between page requests.
-- [ ] Review that authorization runs for each request and data access remains in the task feature boundary.
-- [ ] Review correctness, accessibility, scope, dependencies, and unrelated changes.
-- [ ] Update this plan, evidence, and the current handoff with actual results.
-- [ ] Stage only reviewed Phase 3 paths and inspect the staged diff.
+- [x] Reviewed keyset ordering and cursor validation, including a newer comment inserted between page requests.
+- [x] Reviewed that authorization runs for every request and task-history queries remain in the task service boundary.
+- [x] Reviewed correctness, accessibility, scope, migration necessity, dependencies, and test-generated changes.
+- [x] Updated this plan, evidence, the specification index, and the current handoff with actual results.
+- [x] Stage only reviewed Phase 3 paths and inspect the staged diff; test-generated legacy screenshots are not staged.
 - [ ] Commit the reviewed phase and verify Git reports success.
 
 Checkpoint message: fix(tasks): paginate comment and activity history
