@@ -1,9 +1,9 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T23:21:09+08:00
-State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, with Phase 1 in progress.
-Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; Phase 1 in progress.
+Updated: 2026-10-04T23:32:17+08:00
+State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, with Phase 1 checks complete and its checkpoint commit pending.
+Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; Phase 1 checks complete and its checkpoint commit pending.
 Intended executor: Codex, proceeding continuously under PLAN-004.
 
 ## Read first
@@ -266,7 +266,15 @@ Len approved FEAT-007 revision 1 and PLAN-004 revision 1 in chat on 2026-10-04T2
 
 The document package was committed as 7de56533f4422545197ab80a513c7828bdcf56e9 and pushed to origin/codex/organization-manager-mvp before approval was recorded.
 
-PLAN-004 Phase 1 is in progress; no Phase 1 checks have run yet.
+PLAN-004 Phase 1 implementation and checks are complete locally and are ready for the phase checkpoint commit.
+
+Phase 1 added fail-closed production JWT validation, production seed refusal, parsed loopback test-target validation, and restore checks for PGHOSTADDR and PGSERVICE overrides.
+
+Verification passed on the isolated loopback PostgreSQL 18.4 instance: npm run test:security passed 16 tests, npm test passed all 244 tests, npm run test:restore matched and removed the disposable restore database, and git diff --check passed.
+
+The detailed [EVID-004 Phase 1 evidence](docs/evidence/FEAT-007-security-hardening-verification.md) records versions, synthetic fixture details, candidate coverage, and limits; production configuration and hosted behavior remain unverified.
+
+The Phase 1 changes and evidence have not yet been committed; the next action is to inspect and commit only the reviewed Phase 1 paths, then begin Phase 2.
 
 The session setup check npx len-toolkit start succeeded, installed zero files, and reported the existing .gitignore difference; that difference was preserved.
 

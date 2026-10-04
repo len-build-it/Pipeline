@@ -5,7 +5,7 @@ import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
 import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
-import { config as defaultConfig } from './config.js';
+import { assertRuntimeConfig, config as defaultConfig } from './config.js';
 import { authRoutes } from './auth/routes.js';
 import { organizationRoutes } from './routes/organizations.js';
 import { memberRoutes } from './routes/members.js';
@@ -19,6 +19,7 @@ const __dirname = path.dirname(__filename);
 
 export async function buildApp({ customPool = null, customConfig = {}, logger = false } = {}) {
   const appConfig = { ...defaultConfig, ...customConfig };
+  assertRuntimeConfig(appConfig);
 
   const fastify = Fastify({
     logger: logger ? {

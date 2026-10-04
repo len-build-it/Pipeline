@@ -1,7 +1,7 @@
 # Implementation Plan: FEAT-007 Security hardening from audit candidate leads
 
 Created: 2026-10-04T23:06:52+08:00
-Updated: 2026-10-04T23:21:09+08:00
+Updated: 2026-10-04T23:32:17+08:00
 Revision: 1
 Status: Approved
 Feature spec and revision: [FEAT-007 revision 1](../features/FEAT-007-security-hardening.md), Approved
@@ -54,37 +54,37 @@ The source traces describe audit leads and do not by themselves establish exploi
 
 Requirements: FEAT-007/REQ-001, FEAT-007/REQ-002, FEAT-007/REQ-003, FEAT-007/REQ-010
 
-State: In progress
+State: Awaiting checkpoint commit
 
 Candidate leads: auth.jwt-secret-fallback, bootstrap.seed-default-owner-credentials, db.migrate.test-url-alias, scripts.test-restore.environment-selected-target
 
 ### Tasks
 
-- [ ] Add focused Node security regression tests under tests/security for production configuration, seed invocation, test database target validation, and restore target validation.
-- [ ] Add a test:security package script and include it in npm test so the new policy tests run in the routine Node gate.
-- [ ] Reproduce each candidate with pure policy tests or a disposable loopback database; never use a production database, real account, or production secret.
-- [ ] Validate JWT configuration before server startup and before opening the database; require an explicit production secret of at least 32 characters that differs from the development fallback; preserve the local development default.
-- [ ] Keep environment reads and startup composition at the outer boundary; test secret validation as a pure function and ensure errors never include the supplied secret.
-- [ ] Reject direct production seed invocation before database connection; keep the existing seed fixture available for development and tests.
-- [ ] Validate the effective PostgreSQL target before test migration, truncation, or restore drop/create operations; normalize connection URL identity and reject non-loopback or non-test targets before issuing SQL.
-- [ ] Ensure refused database targets do not log passwords, query strings, or complete connection URLs.
-- [ ] Record any candidate that cannot be reproduced without silently changing unrelated setup behavior.
+- [x] Add focused Node security regression tests under tests/security for production configuration, seed invocation, test database target validation, and restore target validation.
+- [x] Add a test:security package script and include it in npm test so the new policy tests run in the routine Node gate.
+- [x] Exercise each candidate's refusal path with pure policy tests, subprocess checks, or the isolated loopback database; no production database, real account, or production secret was used.
+- [x] Validate JWT configuration before server startup and before opening the database; require an explicit production secret of at least 32 characters that differs from the development fallback; preserve the local development default.
+- [x] Keep environment reads and startup composition at the outer boundary; test secret validation as a pure function and ensure errors never include the supplied secret.
+- [x] Reject direct production seed invocation before database connection; keep the existing seed fixture available for development and tests.
+- [x] Validate the effective PostgreSQL target before test migration, truncation, or restore drop/create operations; normalize connection URL identity and reject non-loopback or non-test targets before issuing SQL.
+- [x] Ensure refused database targets do not log passwords, query strings, or complete connection URLs.
+- [x] Record candidate limitations without silently changing unrelated setup behavior.
 
 ### Verification
 
-- [ ] Run npm run test:security with pure configuration tests and database-target tests against synthetic inputs; expect all unsafe targets to be rejected before database access.
-- [ ] Run npm run test:auth and npm test with TEST_DATABASE_URL set only to the isolated loopback pipeline_test database; expect existing authentication, access, and product tests to pass.
-- [ ] Run npm run test:restore with PGHOST set to 127.0.0.1, PGPORT set to the isolated test server, PGUSER set to its local test role, TEST_DB_NAME set to pipeline_test, and PG_BIN_DIR set to the installed PostgreSQL 18 binaries; expect the restore fixture and disposable pipeline_restore_test database to be created, compared, and removed on that server only.
-- [ ] Verify an unsafe remote host, development database name, production database name, and normalized alias are rejected before any migration, truncate, drop, or create statement.
-- [ ] Run git diff --check; expect no whitespace errors.
-- [ ] Record actual commands, versions, fixture details, results, and limitations in docs/evidence/FEAT-007-security-hardening-verification.md.
+- [x] Run npm run test:security with pure configuration tests and database-target tests against synthetic inputs; all 16 checks passed and unsafe targets were rejected before database access.
+- [x] Run npm run test:auth and npm test with TEST_DATABASE_URL set only to the isolated loopback pipeline_test database; the full 244-test Node gate passed.
+- [x] Run npm run test:restore with PGHOST set to 127.0.0.1, PGPORT set to the isolated test server, PGUSER set to its local test role, TEST_DB_NAME set to pipeline_test, and PG_BIN_DIR set to the installed PostgreSQL 18 binaries; the source and disposable restore database were compared and removed on that server only.
+- [x] Verify unsafe remote host, development database name, production database name, normalized alias, PGHOSTADDR, and PGSERVICE overrides are rejected before migration, truncate, drop, or create statements.
+- [x] Run git diff --check; no whitespace errors were reported.
+- [x] Record actual commands, versions, fixture details, results, and limitations in [Phase 1 evidence](../evidence/FEAT-007-security-hardening-verification.md).
 
 ### Review and checkpoint
 
-- [ ] Review configuration, CLI, and database-target policy for inward dependencies and fail-closed ordering.
-- [ ] Review correctness, scope, dependencies, secret redaction, and unrelated changes.
-- [ ] Update this plan, evidence, and the current handoff with actual results.
-- [ ] Stage only reviewed Phase 1 paths and inspect the staged diff.
+- [x] Review configuration, CLI, and database-target policy for inward dependencies and fail-closed ordering.
+- [x] Review correctness, scope, dependencies, secret redaction, and unrelated changes.
+- [x] Update this plan, evidence, and the current handoff with actual results.
+- [x] Stage only reviewed Phase 1 paths and inspect the staged diff.
 - [ ] Commit the reviewed phase and verify Git reports success.
 
 Checkpoint message: fix(security): fail closed on production and test targets

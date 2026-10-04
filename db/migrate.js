@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPool, withTransaction } from './client.js';
+import { assertTestDatabaseTarget } from './test-target.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,9 +13,7 @@ export async function runMigrations({ isTest = false, customUrl = null } = {}) {
   if (isTest) {
     dbUrl = dbUrl || process.env.TEST_DATABASE_URL || 'postgres://postgres@127.0.0.1:5433/pipeline_test';
     const devUrl = process.env.DATABASE_URL || 'postgres://postgres@127.0.0.1:5433/pipeline_dev';
-    if (dbUrl === devUrl || dbUrl.includes('pipeline_dev') || dbUrl.includes('production')) {
-      throw new Error(`[migrate:test] Refusing to migrate development or production database: ${dbUrl}`);
-    }
+    assertTestDatabaseTarget(dbUrl, devUrl);
   } else {
     dbUrl = dbUrl || process.env.DATABASE_URL || 'postgres://postgres@127.0.0.1:5433/pipeline_dev';
   }
@@ -79,7 +78,7 @@ export async function runMigrations({ isTest = false, customUrl = null } = {}) {
       appliedCount++;
     }
 
-    console.log(`[migrate] Done. ${appliedCount} migration(s) applied to ${dbUrl.split('@')[1] || dbUrl}.`);
+    console.log(`[migrate] Done. ${appliedCount} migration(s) applied to the selected database.`);
   } finally {
     await pool.end();
   }

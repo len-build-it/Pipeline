@@ -1,8 +1,15 @@
 import { buildApp } from './app.js';
-import { config } from './config.js';
+import { assertRuntimeConfig, config } from './config.js';
 import { getPool } from '../db/client.js';
 
 async function start() {
+  try {
+    assertRuntimeConfig(config);
+  } catch (err) {
+    console.error('[server] Invalid runtime configuration:', err.message);
+    process.exit(1);
+  }
+
   const pool = getPool();
 
   try {
