@@ -1,9 +1,9 @@
 # Implementation plan: Lagoon UI redesign
 
 Created: 2026-10-04T16:08:31+08:00
-Updated: 2026-10-04T18:58:33+08:00
+Updated: 2026-10-04T19:23:12+08:00
 Revision: 1
-Status: Approved; Phases 1 and 2 complete at commits `2e60838` and `8caa32e`; Phase 3 implementation and required checks are complete, with its checkpoint commit pending.
+Status: Approved; Phases 1 through 3 complete at commits `2e60838`, `8caa32e`, and `58a8d71`; Phase 4 implementation and checks complete, checkpoint pending.
 Feature spec and revision: [PROD-005 revision 4](../product/UI_UX_DESIGN.md), approved by Len together with this plan.
 Approved baseline and architecture revisions: PROD-001 revision 3, PROD-002 revision 3, PROD-003 revision 3, PROD-004 revision 4, and PROD-005 revision 4; FEAT-001 revision 3, FEAT-002 revision 2, FEAT-003 revision 2, FEAT-004 revision 3, FEAT-005 revision 2, and FEAT-006 revision 2 remain unchanged.
 Len's chat approval: Approved on 2026-10-04T16:19:21+08:00: "Approve PROD-005 revision 4 and PLAN-003 revision 1".
@@ -101,7 +101,7 @@ State: Complete; implementation, review, and required UI and E2E verification pa
 
 Requirements: PROD-005 revision 4 Finance, Tables, and Charts rules; UI-REQ-004, UI-REQ-006, UI-REQ-007, and UI-REQ-010 through UI-REQ-012.
 
-State: Implementation and required checks passed; checkpoint pending as `feat(ui): restyle web finance workflows`.
+State: Complete; implementation and required checks passed; committed as `feat(ui): restyle web finance workflows` (`58a8d718790ceae2381d9a6336a966b64fec9937`).
 
 ### Tasks
 
@@ -130,31 +130,37 @@ The isolated PostgreSQL test cluster remained bound to `127.0.0.1:5433`; the ser
 - [x] Review money labels, chart equivalents, import and export behavior, focus handling, and unrelated changes.
 - [x] Update plan and current handoff with actual checks and limitations.
 - [x] Stage only reviewed Phase 3 paths and inspect the staged diff.
-- [ ] Commit as `feat(ui): restyle web finance workflows` and verify Git reports success.
+- [x] Commit as `feat(ui): restyle web finance workflows` and verify Git reports success.
 
 ## Phase 4: Android theme and shell
 
 Requirements: PROD-005 revision 4 Android and visual token rules; UI-REQ-001, UI-REQ-004, UI-REQ-006, UI-REQ-007, UI-REQ-008, and UI-REQ-009.
 
-State: Not started.
+State: Implementation and checks complete; checkpoint pending.
 
 ### Tasks
 
-- [ ] Apply the approved Lagoon colors, shape themes, typography, and elevations in `mobile/lib/theme.dart` without adding a package.
-- [ ] Restyle the app bar organization switcher, four-item bottom bar and selected lime marker, Finance entry on Overview, and offline banner and background.
-- [ ] Preserve back behavior, scope selection, accessibility labels, and the existing offline read and write behavior.
+- [x] Apply the approved Lagoon colors, shape themes, typography, and elevations in `mobile/lib/theme.dart` without adding a package.
+- [x] Restyle the app bar organization switcher, four-item bottom bar and selected lime marker, Finance entry on Overview, and offline banner and background.
+- [x] Preserve back behavior, scope selection, accessibility labels, and the existing offline read and write behavior.
 
 ### Verification
 
-- [ ] Run `flutter analyze` and `flutter test` from `mobile/` and expect zero analyzer issues and all existing tests to pass.
-- [ ] Launch on the available Android emulator at default text scale; inspect organization scope, selected destination, Finance entry, and offline state.
-- [ ] Save available emulator screenshots in `docs/evidence/screenshots/ui-redesign/` and record emulator model and API level.
+- [x] Run `flutter analyze` and `flutter test` from `mobile/` and expect zero analyzer issues and all existing tests to pass.
+- [x] Launch on the available Android emulator at default text scale; inspect organization scope, selected destination, Finance entry, and offline state.
+- [x] Save available emulator screenshots in `docs/evidence/screenshots/ui-redesign/` and record emulator model and API level.
+
+On 2026-10-04T19:21:51+08:00, `flutter analyze` reported no issues and `flutter test` passed 54 tests with one existing live API test skipped because `FINANCE_LIVE_API` was not set.
+The app was inspected on the Medium_Phone AVD, SDK gphone16k_x86_64, Android 17/API 37, at 1080 by 2400 pixels and 420 dpi using the default text scale.
+The overview screenshot was captured at 2026-10-04T19:13:45+08:00, the Finance entry at 19:14:45+08:00, and the simulated offline shell at 19:16:51+08:00.
+The offline image shows the demo simulation state; a real authenticated cache timestamp was not available in that session.
+The Retry action is covered by a widget test; a direct emulator tap was not verified.
 
 ### Review and checkpoint
 
-- [ ] Review Android shell semantics, tap targets, text scaling, offline messaging, and unrelated changes.
-- [ ] Update plan and current handoff with actual checks and limitations.
-- [ ] Stage only reviewed Phase 4 paths and inspect the staged diff.
+- [x] Review Android shell semantics, tap targets, text scaling, offline messaging, and unrelated changes.
+- [x] Update plan and current handoff with actual checks and limitations.
+- [x] Stage only reviewed Phase 4 paths and inspect the staged diff.
 - [ ] Commit as `feat(mobile): apply lagoon android shell` and verify Git reports success.
 
 ## Phase 5: Android screens and forms

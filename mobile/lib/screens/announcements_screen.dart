@@ -28,7 +28,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: widget.repo.isOffline ? AppColors.backgroundOffline : AppColors.background,
       floatingActionButton: isLead && !_showArchived
           ? FloatingActionButton.extended(
               heroTag: 'fab-announcements',
@@ -189,8 +189,12 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                         controller: titleController,
                         decoration: const InputDecoration(labelText: 'Title *'),
                         validator: (val) {
-                          if (val == null || val.trim().isEmpty) return 'Title is required';
-                          if (val.trim().length > 160) return 'Max 160 characters';
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Title is required';
+                          }
+                          if (val.trim().length > 160) {
+                            return 'Max 160 characters';
+                          }
                           return null;
                         },
                       ),
@@ -220,7 +224,9 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                         decoration: const InputDecoration(labelText: 'Body *'),
                         maxLines: 4,
                         validator: (val) {
-                          if (val == null || val.trim().isEmpty) return 'Body is required';
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Body is required';
+                          }
                           return null;
                         },
                       ),

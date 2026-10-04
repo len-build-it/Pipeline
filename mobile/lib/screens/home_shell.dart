@@ -25,6 +25,17 @@ class _HomeShellState extends State<HomeShell> {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => FinanceScreen(repo: widget.repo)));
   }
 
+  Future<void> _retryConnection() async {
+    if (widget.repo is AppRepository) {
+      final repo = widget.repo as AppRepository;
+      await repo.refreshCurrentScope();
+      if (!mounted || repo.errorMessage == null) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(repo.errorMessage!)));
+      return;
+    }
+    widget.repo.setOffline(false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -33,34 +44,41 @@ class _HomeShellState extends State<HomeShell> {
         final availableScopes = widget.repo.availableScopes;
 
         return Scaffold(
+          backgroundColor: widget.repo.isOffline ? AppColors.backgroundOffline : AppColors.background,
           appBar: AppBar(
             title: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Team Manager',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary),
+                    'Organization',
+                    style: TextStyle(fontSize: 11, height: 1.1, fontWeight: FontWeight.w600, color: AppColors.textMuted),
                   ),
-                  const SizedBox(width: 8),
-                  DropdownButton<String>(
-                    key: const Key('dropdown-scope'),
-                    value: widget.repo.currentScope,
-                    underline: const SizedBox(),
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.text),
-                    items: availableScopes.map((s) {
-                      return DropdownMenuItem(
-                        value: s.id,
-                        child: Text(s.name),
-                      );
-                    }).toList(),
-                    onChanged: (newScope) {
-                      if (newScope != null) {
-                        widget.repo.setScope(newScope);
-                      }
-                    },
+                  Semantics(
+                    label: 'Organization scope',
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        key: const Key('dropdown-scope'),
+                        value: widget.repo.currentScope,
+                        dropdownColor: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.text),
+                        items: availableScopes.map((s) {
+                          return DropdownMenuItem(
+                            value: s.id,
+                            child: Text(s.name),
+                          );
+                        }).toList(),
+                        onChanged: (newScope) {
+                          if (newScope != null) {
+                            widget.repo.setScope(newScope);
+                          }
+                        },
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -184,23 +202,37 @@ class _HomeShellState extends State<HomeShell> {
             ],
             bottom: widget.repo.isOffline
                 ? PreferredSize(
-                    preferredSize: const Size.fromHeight(32),
+                    preferredSize: Size.fromHeight(
+                      (MediaQuery.textScalerOf(context).scale(12) * 3 + 8).clamp(56.0, double.infinity).toDouble(),
+                    ),
                     child: Container(
-                      color: AppColors.warning,
+                      color: AppColors.warningBg,
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 8, 4),
                       child: Row(
                         children: [
-                          const Icon(Icons.wifi_off, size: 16, color: Colors.white),
+                          const Icon(Icons.wifi_off, size: 18, color: AppColors.warning),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               widget.repo is AppRepository && (widget.repo as AppRepository).cacheAge != null
                                   ? 'Offline: Showing cached reads (${(widget.repo as AppRepository).cacheAge}). Mutations disabled.'
                                   : 'Offline: Showing cached reads. Mutations disabled.',
-                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+                              style: const TextStyle(color: AppColors.warning, fontSize: 12, height: 1.3, fontWeight: FontWeight.w700),
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
+                          ),
+                          const SizedBox(width: 4),
+                          TextButton(
+                            key: const Key('btn-retry-sync'),
+                            onPressed: _retryConnection,
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.warning,
+                              minimumSize: const Size(48, 48),
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                            child: const Text('Retry'),
                           ),
                         ],
                       ),
@@ -222,31 +254,34 @@ class _HomeShellState extends State<HomeShell> {
               AnnouncementsScreen(repo: widget.repo),
             ],
           ),
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: (index) => setState(() => _currentIndex = index),
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.dashboard_outlined),
-                selectedIcon: Icon(Icons.dashboard),
-                label: 'Overview',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.people_outline),
-                selectedIcon: Icon(Icons.people),
-                label: 'Members',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.check_box_outlined),
-                selectedIcon: Icon(Icons.check_box),
-                label: 'Tasks',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.campaign_outlined),
-                selectedIcon: Icon(Icons.campaign),
-                label: 'Announcements',
-              ),
-            ],
+          bottomNavigationBar: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (index) => setState(() => _currentIndex = index),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.dashboard_outlined),
+                  selectedIcon: Icon(Icons.dashboard),
+                  label: 'Overview',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.people_outline),
+                  selectedIcon: Icon(Icons.people),
+                  label: 'Members',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.check_box_outlined),
+                  selectedIcon: Icon(Icons.check_box),
+                  label: 'Tasks',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.campaign_outlined),
+                  selectedIcon: Icon(Icons.campaign),
+                  label: 'Announcements',
+                ),
+              ],
+            ),
           ),
         );
       },

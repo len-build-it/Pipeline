@@ -38,7 +38,7 @@ class _MembersScreenState extends State<MembersScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: widget.repo.isOffline ? AppColors.backgroundOffline : AppColors.background,
       floatingActionButton: isLead
           ? FloatingActionButton.extended(
               heroTag: 'fab-members',
@@ -334,6 +334,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     final canDeactivate = isLead && !isSelf && widget.member.role != 'Owner';
 
     return Scaffold(
+      backgroundColor: widget.repo.isOffline ? AppColors.backgroundOffline : AppColors.background,
       appBar: AppBar(
         title: Text(widget.member.displayName),
       ),

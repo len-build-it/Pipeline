@@ -48,7 +48,7 @@ class _TasksScreenState extends State<TasksScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: widget.repo.isOffline ? AppColors.backgroundOffline : AppColors.background,
       floatingActionButton: isLead && !_showArchived
           ? FloatingActionButton.extended(
               heroTag: 'fab-tasks',
@@ -117,7 +117,9 @@ class _TasksScreenState extends State<TasksScreen> {
                           DropdownMenuItem(value: 'High', child: Text('High')),
                         ],
                         onChanged: (val) {
-                          if (val != null) setState(() => _priorityFilter = val);
+                          if (val != null) {
+                            setState(() => _priorityFilter = val);
+                          }
                         },
                       ),
                     ),
@@ -301,7 +303,9 @@ class _TasksScreenState extends State<TasksScreen> {
                     controller: titleController,
                     decoration: const InputDecoration(labelText: 'Task Title *'),
                     validator: (val) {
-                      if (val == null || val.trim().isEmpty) return 'Title is required';
+                      if (val == null || val.trim().isEmpty) {
+                        return 'Title is required';
+                      }
                       if (val.trim().length > 160) return 'Max 160 characters';
                       return null;
                     },
@@ -405,6 +409,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     final canComment = !widget.task.archived;
 
     return Scaffold(
+      backgroundColor: widget.repo.isOffline ? AppColors.backgroundOffline : AppColors.background,
       appBar: AppBar(
         title: Text(widget.task.title),
       ),

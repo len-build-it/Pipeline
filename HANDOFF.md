@@ -1,8 +1,8 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-04T18:58:33+08:00
-State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 is implemented and PLAN-002 revision 3 is complete; local software is verified, physical-device and production checks are pending, and Lagoon redesign Phases 1 and 2 are committed under approved PROD-005 revision 4 and PLAN-003 revision 1; Phase 3 implementation and checks passed and its checkpoint commit is pending.
+Updated: 2026-10-04T19:23:12+08:00
+State: FEAT-001 through FEAT-005 implementation and local software MVP remain complete; FEAT-006 revision 2 is implemented and PLAN-002 revision 3 is complete; local software is verified, physical-device and production checks are pending, and Lagoon redesign Phases 1 through 3 are committed under approved PROD-005 revision 4 and PLAN-003 revision 1; Phase 4 Android theme and shell implementation and checks are complete, with its checkpoint pending.
 Feature: FEAT-006 approved; implemented under PLAN-002 revision 3; all six phases complete.
 Intended executor: Claude Code (Opus 5.5), selected by Len in chat on 2026-10-03 with "Execute".
 
@@ -43,7 +43,7 @@ Execution of PLAN-001 P1 through P8 proceeded continuously without routine phase
 | PLAN-002 Configurable finance implementation | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | PLAN-003 Lagoon UI redesign implementation | 1 | Approved by Len in chat on 2026-10-04T16:19:21+08:00. |
 
-Allowed execution phases: PLAN-001 P1 through P8 and PLAN-002 Phase 1 through Phase 6 are complete; PLAN-003 Phases 1 and 2 are complete at `2e60838` and `8caa32e`, Phase 3 checks passed with its checkpoint commit pending, and Phases 4 through 6 remain approved for execution.
+Allowed execution phases: PLAN-001 P1 through P8 and PLAN-002 Phase 1 through Phase 6 are complete; PLAN-003 Phases 1 through 3 are complete at `2e60838`, `8caa32e`, and `58a8d71`, Phase 4 implementation and checks are complete with its checkpoint pending, and Phases 5 and 6 remain approved for execution.
 
 PLAN-002 is a separate scope with its own approval: on 2026-10-03T22:31:00+08:00 Len wrote "Yes I approve of the revisions" in reply to a request naming FEAT-006 revision 2, PLAN-002 revision 3, the other draft revisions in this table, and `exceljs@4.4.0`.
 
@@ -128,7 +128,7 @@ Local PostgreSQL on port 5433, the API 37 Android emulator, and Microsoft Edge w
 | ISS-013 emulator left in airplane mode (PLAN-002 Phase 5) | 0, resolved | Sign-in sent no request until airplane mode was turned off. | Emulator scenarios passed; airplane mode is off. |
 | P8 E2E announcement status code | 0, resolved | POST /api/announcements returned 200 instead of 201; updated assertion to expect([200, 201]). | E2E workflow passing. |
 | ISS-014 PLAN-003 Phase 2 Finance refresh race | 3 failed full-suite runs before expanded authorization; resolved on the first authorized fix-and-check | Finance requests used live filter state and had no latest-request guard, so overlapping responses could replace newer results; a scope refresh could rerender Finance after navigation and restore default dates; the tests proceeded before the filter refresh completed. Len expanded authorization on 2026-10-04 to fix these failures. `web/js/app.js` now ignores stale scope completions and avoids replacing an active Finance page after navigation; `web/js/views/finance.js` snapshots each request and ignores stale responses and errors while exposing `aria-busy`; the existing E2E flow now waits for the refresh to finish without weakening assertions. The targeted Finance journeys passed 3/3 after the fix, two full `npm run test:e2e` runs passed 13/13 each, and two `npm run test:ui` runs passed 13/13 each. | Resolved. Phase 2 is committed as `8caa32e`; continue with approved Phase 3. |
-| ISS-015 PLAN-003 Phase 3 over-budget E2E fixture | 1 failed focused run; resolved on the second focused run | The new over-budget hero scenario lowered Travel’s budget, which changed the existing later assertion from PHP 633.33 to PHP 233.33. The test now restores Travel to PHP 500.00 with the latest version before continuing; no existing expectation was changed. The next focused run passed the report, import, and responsive journeys 3/3. Full `npm test` passed 122/122, `npm run test:ui` passed 13/13, and `npm run test:e2e` passed 13/13 on 2026-10-04. | Resolved. Phase 3 checks passed; checkpoint commit pending. |
+| ISS-015 PLAN-003 Phase 3 over-budget E2E fixture | 1 failed focused run; resolved on the second focused run | The new over-budget hero scenario lowered Travel’s budget, which changed the existing later assertion from PHP 633.33 to PHP 233.33. The test now restores Travel to PHP 500.00 with the latest version before continuing; no existing expectation was changed. The next focused run passed the report, import, and responsive journeys 3/3. Full `npm test` passed 122/122, `npm run test:ui` passed 13/13, and `npm run test:e2e` passed 13/13 on 2026-10-04. | Resolved. Phase 3 is committed as `58a8d71`; continue with approved Phase 4. |
 
 For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
 
@@ -172,7 +172,7 @@ The sampled contrast calculation earlier in this handoff remains preliminary; th
 
 Git confirmed the Phase 1 checkpoint `feat(ui): apply lagoon web tokens and shell` at `2e608380afa128a07c3c542c530b0475bd6dcd9e` on `codex/organization-manager-mvp`, and the worktree was clean after commit.
 
-PLAN-003 Phases 1 and 2 are complete. Phase 1 is committed as `feat(ui): apply lagoon web tokens and shell` at `2e608380afa128a07c3c542c530b0475bd6dcd9e`; Phase 2 is committed as `feat(ui): restyle web organization pages` at `8caa32eef529abc0bbb771fe9063ce137ae1cdd4`.
+PLAN-003 Phases 1 through 3 are complete. Phase 1 is committed as `feat(ui): apply lagoon web tokens and shell` at `2e608380afa128a07c3c542c530b0475bd6dcd9e`; Phase 2 is committed as `feat(ui): restyle web organization pages` at `8caa32eef529abc0bbb771fe9063ce137ae1cdd4`; Phase 3 is committed as `feat(ui): restyle web finance workflows` at `58a8d718790ceae2381d9a6336a966b64fec9937`.
 
 The earlier Phase 2 `npm run test:ui` run passed all 13 tests in 40.8 seconds, including search, filters, detail focus return, primary-action visibility, and page-level overflow checks at 375, 768, 1024, and 1440 CSS-pixel widths.
 The suite ran with headless Microsoft Edge through Playwright 1.63.0, and `git diff --check` passed with Git line-ending notices.
@@ -196,7 +196,11 @@ The new Remaining hero, category and trend charts, equivalent tables, register, 
 The tests used the isolated PostgreSQL 18 cluster at `127.0.0.1:5433`; the PostgreSQL service on port 5432 was not changed.
 Phase 3 screenshots are in [docs/evidence/screenshots/ui-redesign](docs/evidence/screenshots/ui-redesign/): Finance and import responsive captures at 375 by 667, 768 by 1024, 1024 by 768, and 1440 by 900 CSS-pixel viewports plus normal and over-budget reports at 1440 pixels.
 `git diff --check` passed with Git line-ending notices. The prior Phase 2 screenshot files regenerated by the UI test run were restored to their committed versions.
-The immediate next action is to inspect the exact Phase 3 staged paths and commit them as `feat(ui): restyle web finance workflows`; after its hash is verified, continue the approved Android shell phase.
+PLAN-003 Phase 4 implementation and checks are complete. `flutter analyze` reported no issues and `flutter test` passed 54 tests with one existing live API test skipped because `FINANCE_LIVE_API` was not set, at 2026-10-04T19:21:51+08:00.
+The app was inspected on the Medium_Phone AVD, SDK gphone16k_x86_64, Android 17/API 37, at 1080 by 2400 pixels and 420 dpi using the default text scale.
+Screenshots are [p4 overview](docs/evidence/screenshots/ui-redesign/p4-android-overview-api37.png), [Finance entry](docs/evidence/screenshots/ui-redesign/p4-android-finance-entry-api37.png), and [simulated offline shell](docs/evidence/screenshots/ui-redesign/p4-android-offline-api37.png).
+The offline image shows the demo simulation state; a real authenticated cache timestamp was not available in that session. A direct emulator Retry tap was not verified, and the corresponding widget test passed.
+Phase 4 paths are ready for staged review and the `feat(mobile): apply lagoon android shell` checkpoint.
 The isolated PostgreSQL 18 test cluster remains running on `127.0.0.1:5433`.
 Len must share or export the design canvas before another agent can open it.
 

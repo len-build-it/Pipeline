@@ -64,11 +64,46 @@ class OverviewScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: SizedBox(
                 width: double.infinity,
-                child: OutlinedButton.icon(
-                  key: const Key('btn-open-finance'),
-                  onPressed: onOpenFinance,
-                  icon: const Icon(Icons.account_balance_wallet_outlined),
-                  label: const Text('Finance: budgets and expenses'),
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  elevation: 1,
+                  shadowColor: AppColors.primary.withAlpha(36),
+                  child: InkWell(
+                    key: const Key('btn-open-finance'),
+                    onTap: onOpenFinance,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          DecoratedBox(
+                            decoration: const BoxDecoration(
+                              color: AppColors.lime,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.elliptical(26, 20),
+                                topRight: Radius.elliptical(18, 28),
+                                bottomRight: Radius.elliptical(28, 16),
+                                bottomLeft: Radius.elliptical(16, 26),
+                              ),
+                            ),
+                            child: const SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: Icon(Icons.account_balance_wallet_outlined, color: AppColors.onLime),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Text(
+                              'Finance: budgets and expenses',
+                              style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward, color: AppColors.primary),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
