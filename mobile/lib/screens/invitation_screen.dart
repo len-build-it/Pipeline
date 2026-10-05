@@ -219,18 +219,22 @@ class _InvitationScreenState extends State<InvitationScreen> {
       children: [
         if (_error != null) AuthMessage(_error!),
         if (preview == null) ...[
-          TextField(
-            key: const Key('invitation-code'),
-            controller: _code,
-            focusNode: _codeFocus,
-            enabled: !_busy,
-            autocorrect: false,
-            enableSuggestions: false,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _previewInvitation(),
-            decoration: const InputDecoration(
-              labelText: 'Invitation code or link',
-              errorMaxLines: 3,
+          Semantics(
+            container: true,
+            label: 'Invitation code or link',
+            child: TextField(
+              key: const Key('invitation-code'),
+              controller: _code,
+              focusNode: _codeFocus,
+              enabled: !_busy,
+              autocorrect: false,
+              enableSuggestions: false,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _previewInvitation(),
+              decoration: const InputDecoration(
+                labelText: 'Invitation code or link',
+                errorMaxLines: 3,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -266,32 +270,40 @@ class _InvitationScreenState extends State<InvitationScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFormField(
-                      controller: _email,
-                      focusNode: _emailFocus,
-                      enabled: !_busy,
-                      validator: _validateRecipient,
-                      keyboardType: TextInputType.emailAddress,
-                      autofillHints: const [AutofillHints.email],
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) => _nameFocus.requestFocus(),
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        errorMaxLines: 3,
+                    Semantics(
+                      container: true,
+                      label: 'Email',
+                      child: TextFormField(
+                        controller: _email,
+                        focusNode: _emailFocus,
+                        enabled: !_busy,
+                        validator: _validateRecipient,
+                        keyboardType: TextInputType.emailAddress,
+                        autofillHints: const [AutofillHints.email],
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => _nameFocus.requestFocus(),
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          errorMaxLines: 3,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _name,
-                      focusNode: _nameFocus,
-                      enabled: !_busy,
-                      validator: _validateName,
-                      autofillHints: const [AutofillHints.name],
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
-                      decoration: const InputDecoration(
-                        labelText: 'Your name',
-                        errorMaxLines: 3,
+                    Semantics(
+                      container: true,
+                      label: 'Your name',
+                      child: TextFormField(
+                        controller: _name,
+                        focusNode: _nameFocus,
+                        enabled: !_busy,
+                        validator: _validateName,
+                        autofillHints: const [AutofillHints.name],
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+                        decoration: const InputDecoration(
+                          labelText: 'Your name',
+                          errorMaxLines: 3,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),

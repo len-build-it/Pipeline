@@ -26,25 +26,33 @@ class _MembersScreenState extends State<MembersScreen> {
 
     if (_search.trim().isNotEmpty) {
       final q = _search.trim().toLowerCase();
-      members = members.where((m) =>
-        m.displayName.toLowerCase().contains(q) || m.email.toLowerCase().contains(q)
-      ).toList();
+      members = members
+          .where(
+            (m) =>
+                m.displayName.toLowerCase().contains(q) ||
+                m.email.toLowerCase().contains(q),
+          )
+          .toList();
     }
 
     if (_roleFilter != 'all') {
-      members = members.where((m) => m.role.toLowerCase() == _roleFilter.toLowerCase()).toList();
+      members = members
+          .where((m) => m.role.toLowerCase() == _roleFilter.toLowerCase())
+          .toList();
     }
 
     if (_statusFilter != 'all') {
-      members = members.where((m) => m.status.toLowerCase() == _statusFilter.toLowerCase()).toList();
+      members = members
+          .where((m) => m.status.toLowerCase() == _statusFilter.toLowerCase())
+          .toList();
     }
 
     return Scaffold(
       backgroundColor: widget.repo.isOffline
           ? AppColors.backgroundOffline
           : widget.repo.currentScope == 'all'
-              ? AppColors.backgroundCombined
-              : AppColors.background,
+          ? AppColors.backgroundCombined
+          : AppColors.background,
       floatingActionButton: isLead
           ? AdaptiveActionFab(
               heroTag: 'fab-members',
@@ -115,7 +123,10 @@ class _MembersScreenState extends State<MembersScreen> {
                       return Card(
                         clipBehavior: Clip.antiAlias,
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                           minVerticalPadding: 12,
                           title: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,21 +134,33 @@ class _MembersScreenState extends State<MembersScreen> {
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
-                                children: [_buildRoleBadge(m.role), _buildStatusBadge(m.status)],
+                                children: [
+                                  _buildRoleBadge(m.role),
+                                  _buildStatusBadge(m.status),
+                                ],
                               ),
                               const SizedBox(height: 8),
-                              Text(m.displayName, style: Theme.of(context).textTheme.titleMedium),
+                              Text(
+                                m.displayName,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
                             ],
                           ),
                           subtitle: Text(
                             '${widget.repo.orgName(m.orgId)} • ${m.email}',
-                            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textMuted,
+                            ),
                           ),
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => MemberDetailScreen(repo: widget.repo, member: m),
+                                builder: (_) => MemberDetailScreen(
+                                  repo: widget.repo,
+                                  member: m,
+                                ),
                               ),
                             );
                           },
@@ -157,8 +180,14 @@ class _MembersScreenState extends State<MembersScreen> {
     final fg = isLead ? AppColors.info : AppColors.neutral;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
-      child: Text(role, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: fg)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        role,
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: fg),
+      ),
     );
   }
 
@@ -167,21 +196,28 @@ class _MembersScreenState extends State<MembersScreen> {
     final bg = normalized == 'active'
         ? AppColors.successBg
         : normalized == 'pending'
-            ? AppColors.warningBg
-            : AppColors.neutralBg;
+        ? AppColors.warningBg
+        : AppColors.neutralBg;
     final fg = normalized == 'active'
         ? AppColors.success
         : normalized == 'pending'
-            ? AppColors.warning
-            : AppColors.neutral;
+        ? AppColors.warning
+        : AppColors.neutral;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
-      child: Text(status, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: fg)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: fg),
+      ),
     );
   }
 
   Widget _roleFilterField() => DropdownButtonFormField<String>(
+    isExpanded: true,
     initialValue: _roleFilter,
     isDense: true,
     decoration: const InputDecoration(labelText: 'Role'),
@@ -197,6 +233,7 @@ class _MembersScreenState extends State<MembersScreen> {
   );
 
   Widget _statusFilterField() => DropdownButtonFormField<String>(
+    isExpanded: true,
     initialValue: _statusFilter,
     isDense: true,
     decoration: const InputDecoration(labelText: 'Status'),
@@ -229,7 +266,9 @@ class _MembersScreenState extends State<MembersScreen> {
               children: [
                 TextFormField(
                   controller: emailController,
-                  decoration: const InputDecoration(labelText: 'Email Address *'),
+                  decoration: const InputDecoration(
+                    labelText: 'Email Address *',
+                  ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (val) {
                     if (val == null || !val.contains('@')) {
@@ -241,7 +280,9 @@ class _MembersScreenState extends State<MembersScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: selectedOrg,
-                  decoration: const InputDecoration(labelText: 'Organization *'),
+                  decoration: const InputDecoration(
+                    labelText: 'Organization *',
+                  ),
                   items: widget.repo.organizations.map((o) {
                     return DropdownMenuItem(value: o.id, child: Text(o.name));
                   }).toList(),
@@ -254,9 +295,15 @@ class _MembersScreenState extends State<MembersScreen> {
                   initialValue: selectedRole,
                   decoration: const InputDecoration(labelText: 'Role *'),
                   items: [
-                    const DropdownMenuItem(value: 'Member', child: Text('Member')),
+                    const DropdownMenuItem(
+                      value: 'Member',
+                      child: Text('Member'),
+                    ),
                     if (widget.repo.isGlobalOwner)
-                      const DropdownMenuItem(value: 'Lead', child: Text('Lead')),
+                      const DropdownMenuItem(
+                        value: 'Lead',
+                        child: Text('Lead'),
+                      ),
                   ],
                   onChanged: (val) {
                     if (val != null) selectedRole = val;
@@ -274,7 +321,11 @@ class _MembersScreenState extends State<MembersScreen> {
               onPressed: () {
                 if (widget.repo.isOffline) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Cannot invite members while offline (UI-REQ-008).')),
+                    const SnackBar(
+                      content: Text(
+                        'Cannot invite members while offline (UI-REQ-008).',
+                      ),
+                    ),
                   );
                   Navigator.pop(dialogCtx);
                   return;
@@ -287,7 +338,11 @@ class _MembersScreenState extends State<MembersScreen> {
                   );
                   Navigator.pop(dialogCtx);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Invitation sent to ${emailController.text}')),
+                    SnackBar(
+                      content: Text(
+                        'Invitation sent to ${emailController.text}',
+                      ),
+                    ),
                   );
                   setState(() {});
                 }
@@ -305,7 +360,11 @@ class MemberDetailScreen extends StatefulWidget {
   final SyntheticDataRepository repo;
   final MemberRecord member;
 
-  const MemberDetailScreen({super.key, required this.repo, required this.member});
+  const MemberDetailScreen({
+    super.key,
+    required this.repo,
+    required this.member,
+  });
 
   @override
   State<MemberDetailScreen> createState() => _MemberDetailScreenState();
@@ -339,11 +398,9 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
       backgroundColor: widget.repo.isOffline
           ? AppColors.backgroundOffline
           : widget.repo.currentScope == 'all'
-              ? AppColors.backgroundCombined
-              : AppColors.background,
-      appBar: AppBar(
-        title: Text(widget.member.displayName),
-      ),
+          ? AppColors.backgroundCombined
+          : AppColors.background,
+      appBar: AppBar(title: Text(widget.member.displayName)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -354,8 +411,14 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                 radius: 36,
                 backgroundColor: widget.member.avatarColor,
                 child: Text(
-                  widget.member.displayName.length >= 2 ? widget.member.displayName.substring(0, 2).toUpperCase() : '',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                  widget.member.displayName.length >= 2
+                      ? widget.member.displayName.substring(0, 2).toUpperCase()
+                      : '',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -363,13 +426,19 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
             Center(
               child: Text(
                 widget.member.displayName,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
             Center(
               child: Text(
                 widget.member.email,
-                style: const TextStyle(fontSize: 14, color: AppColors.textMuted),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textMuted,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -379,7 +448,10 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    _buildInfoRow('Organization', widget.repo.orgName(widget.member.orgId)),
+                    _buildInfoRow(
+                      'Organization',
+                      widget.repo.orgName(widget.member.orgId),
+                    ),
                     const Divider(height: 24),
                     _buildInfoRow('Role', widget.member.role),
                     const Divider(height: 24),
@@ -400,13 +472,33 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Skills', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                    const Text(
+                      'Skills',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(height: 6),
-                    Text(widget.member.skills.isNotEmpty ? widget.member.skills.join(', ') : 'None listed'),
+                    Text(
+                      widget.member.skills.isNotEmpty
+                          ? widget.member.skills.join(', ')
+                          : 'None listed',
+                    ),
                     const Divider(height: 24),
-                    const Text('Interests', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                    const Text(
+                      'Interests',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(height: 6),
-                    Text(widget.member.interests.isNotEmpty ? widget.member.interests.join(', ') : 'None listed'),
+                    Text(
+                      widget.member.interests.isNotEmpty
+                          ? widget.member.interests.join(', ')
+                          : 'None listed',
+                    ),
                   ],
                 ),
               ),
@@ -424,39 +516,72 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                     children: [
                       Row(
                         children: [
-                          const Text('Private Organization Notes', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                          const Text(
+                            'Private Organization Notes',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.warningBg,
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text('Lead/Owner Only', style: TextStyle(fontSize: 10, color: AppColors.warning, fontWeight: FontWeight.bold)),
+                            child: const Text(
+                              'Lead/Owner Only',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: AppColors.warning,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      const Text('Visible only to organization leads and global owner.', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                      const Text(
+                        'Visible only to organization leads and global owner.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       TextField(
                         key: const Key('input-member-notes'),
                         controller: _notesController,
                         maxLines: 3,
-                        decoration: const InputDecoration(hintText: 'Enter internal notes...'),
+                        decoration: const InputDecoration(
+                          hintText: 'Enter internal notes...',
+                        ),
                       ),
                       const SizedBox(height: 8),
                       ElevatedButton(
                         onPressed: () {
                           if (widget.repo.isOffline) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Cannot save notes while offline (UI-REQ-008).')),
+                              const SnackBar(
+                                content: Text(
+                                  'Cannot save notes while offline (UI-REQ-008).',
+                                ),
+                              ),
                             );
                             return;
                           }
-                          widget.repo.updateMemberNotes(widget.member.id, _notesController.text.trim());
+                          widget.repo.updateMemberNotes(
+                            widget.member.id,
+                            _notesController.text.trim(),
+                          );
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Notes updated successfully.')),
+                            const SnackBar(
+                              content: Text('Notes updated successfully.'),
+                            ),
                           );
                         },
                         child: const Text('Save Notes'),
@@ -470,36 +595,52 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
             if (canDeactivate) ...[
               const SizedBox(height: 16),
               Card(
-                color: widget.member.status == 'active' ? AppColors.dangerBg : AppColors.surface,
+                color: widget.member.status == 'active'
+                    ? AppColors.dangerBg
+                    : AppColors.surface,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.member.status == 'active' ? 'Deactivate Membership' : 'Reactivate Membership',
+                        widget.member.status == 'active'
+                            ? 'Deactivate Membership'
+                            : 'Reactivate Membership',
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
-                          color: widget.member.status == 'active' ? AppColors.danger : AppColors.text,
+                          color: widget.member.status == 'active'
+                              ? AppColors.danger
+                              : AppColors.text,
                         ),
                       ),
                       const SizedBox(height: 4),
                       const Text(
                         'Deactivating immediately revokes access and unassigns all open tasks.',
-                        style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMuted,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: widget.member.status == 'active' ? AppColors.danger : AppColors.primary,
+                          backgroundColor: widget.member.status == 'active'
+                              ? AppColors.danger
+                              : AppColors.primary,
                         ),
                         onPressed: () {
-                          final isCurrentlyActive = widget.member.status == 'active';
+                          final isCurrentlyActive =
+                              widget.member.status == 'active';
                           showDialog(
                             context: context,
                             builder: (ctx) => AlertDialog(
-                              title: Text(isCurrentlyActive ? 'Confirm Deactivation' : 'Confirm Reactivation'),
+                              title: Text(
+                                isCurrentlyActive
+                                    ? 'Confirm Deactivation'
+                                    : 'Confirm Reactivation',
+                              ),
                               content: Text(
                                 isCurrentlyActive
                                     ? 'Are you sure you want to deactivate ${widget.member.displayName}? Open task assignments will be cleared atomically.'
@@ -513,7 +654,9 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                                 ElevatedButton(
                                   onPressed: () {
                                     Navigator.pop(ctx);
-                                    widget.repo.toggleMemberDeactivation(widget.member.id);
+                                    widget.repo.toggleMemberDeactivation(
+                                      widget.member.id,
+                                    );
                                     setState(() {});
                                   },
                                   child: const Text('Confirm'),
@@ -522,7 +665,11 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                             ),
                           );
                         },
-                        child: Text(widget.member.status == 'active' ? 'Deactivate' : 'Reactivate'),
+                        child: Text(
+                          widget.member.status == 'active'
+                              ? 'Deactivate'
+                              : 'Reactivate',
+                        ),
                       ),
                     ],
                   ),
@@ -539,7 +686,13 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textMuted)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textMuted,
+          ),
+        ),
         Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
       ],
     );

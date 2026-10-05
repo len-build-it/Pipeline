@@ -88,7 +88,13 @@ class _SignInScreenState extends State<SignInScreen> {
         title: 'Sign in',
         subtitle: 'Welcome back. Sign in to manage your team.',
         children: [
-          if (_error ?? widget.notice case final String message)
+          if (_error ??
+                  widget.notice ??
+                  (widget.repository.requiresSignIn ||
+                          widget.repository.requiresAuthorization
+                      ? widget.repository.errorMessage
+                      : null)
+              case final String message)
             AuthMessage(message),
           AutofillGroup(
             child: Form(
@@ -96,23 +102,27 @@ class _SignInScreenState extends State<SignInScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextFormField(
-                    key: const Key('sign-in-email'),
-                    controller: _email,
-                    focusNode: _emailFocus,
-                    enabled: !busy,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    autocorrect: false,
-                    autofillHints: const [
-                      AutofillHints.username,
-                      AutofillHints.email,
-                    ],
-                    validator: validateEmail,
-                    onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      errorMaxLines: 3,
+                  Semantics(
+                    container: true,
+                    label: 'Email',
+                    child: TextFormField(
+                      key: const Key('sign-in-email'),
+                      controller: _email,
+                      focusNode: _emailFocus,
+                      enabled: !busy,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      autocorrect: false,
+                      autofillHints: const [
+                        AutofillHints.username,
+                        AutofillHints.email,
+                      ],
+                      validator: validateEmail,
+                      onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        errorMaxLines: 3,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),

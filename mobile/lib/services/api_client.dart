@@ -45,6 +45,7 @@ class ApiClient {
 
   String? _accessToken;
   Future<String?>? _refreshFuture;
+  int _credentialVersion = 0;
 
   ApiClient({
     String? baseUrl,
@@ -89,6 +90,7 @@ class ApiClient {
   }
 
   Future<void> clearTokens() async {
+    _credentialVersion++;
     _accessToken = null;
     await storage.delete(key: 'auth_access_token');
     await storage.delete(key: 'auth_refresh_token');
@@ -114,6 +116,7 @@ class ApiClient {
   }
 
   Future<String?> _refreshAccessToken() async {
+    final version = _credentialVersion;
     final refreshToken = await getRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) {
       await clearTokens();
@@ -126,6 +129,7 @@ class ApiClient {
         {'Content-Type': 'application/json', 'Accept': 'application/json'},
         {'refreshToken': refreshToken, 'sessionId': await getSessionId()},
       );
+      if (version != _credentialVersion) return null;
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final access = data['accessToken'] as String?;

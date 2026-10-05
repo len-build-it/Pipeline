@@ -73,47 +73,54 @@ class _TasksScreenState extends State<TasksScreen> {
           Container(
             color: AppColors.surface,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              children: [
-                TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Search tasks by title...',
-                    prefixIcon: Icon(Icons.search, size: 20),
-                    isDense: true,
+            // Large text on a short phone: the filters scroll instead of
+            // pushing the task list off screen.
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.3,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Search tasks by title...',
+                      prefixIcon: Icon(Icons.search, size: 20),
+                      isDense: true,
+                    ),
+                    onChanged: (val) => setState(() => _search = val),
                   ),
-                  onChanged: (val) => setState(() => _search = val),
-                ),
-                const SizedBox(height: 8),
-                if (largeText) ...[
-                  _statusFilterField(),
                   const SizedBox(height: 8),
-                  _priorityFilterField(),
-                ] else
-                  Row(
+                  if (largeText) ...[
+                    _statusFilterField(),
+                    const SizedBox(height: 8),
+                    _priorityFilterField(),
+                  ] else
+                    Row(
+                      children: [
+                        Expanded(child: _statusFilterField()),
+                        const SizedBox(width: 8),
+                        Expanded(child: _priorityFilterField()),
+                      ],
+                    ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
-                      Expanded(child: _statusFilterField()),
-                      const SizedBox(width: 8),
-                      Expanded(child: _priorityFilterField()),
+                      FilterChip(
+                        label: const Text('Overdue only', style: TextStyle(fontSize: 12)),
+                        selected: _overdueOnly,
+                        onSelected: (val) => setState(() => _overdueOnly = val),
+                      ),
+                      FilterChip(
+                        label: const Text('Show archived', style: TextStyle(fontSize: 12)),
+                        selected: _showArchived,
+                        onSelected: (val) => setState(() => _showArchived = val),
+                      ),
                     ],
                   ),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    FilterChip(
-                      label: const Text('Overdue only', style: TextStyle(fontSize: 12)),
-                      selected: _overdueOnly,
-                      onSelected: (val) => setState(() => _overdueOnly = val),
-                    ),
-                    FilterChip(
-                      label: const Text('Show archived', style: TextStyle(fontSize: 12)),
-                      selected: _showArchived,
-                      onSelected: (val) => setState(() => _showArchived = val),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 

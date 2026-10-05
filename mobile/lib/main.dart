@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'data/app_repository.dart';
 import 'data/synthetic_data.dart';
 import 'screens/home_shell.dart';
@@ -21,6 +22,10 @@ class _TeamManagerAppState extends State<TeamManagerApp> {
   late final AppRepository _account;
   SyntheticDataRepository? _demo;
   _Entry _entry = _Entry.restoring;
+  final _navigators = {
+    for (final entry in _Entry.values) entry: GlobalKey<NavigatorState>(),
+  };
+  GlobalKey<NavigatorState> get _navigator => _navigators[_entry]!;
 
   @override
   void initState() {
@@ -52,10 +57,29 @@ class _TeamManagerAppState extends State<TeamManagerApp> {
     }
   }
 
+  void _tryDemo() {
+    setState(() {
+      _demo = SyntheticDataRepository();
+      _entry = _Entry.demo;
+    });
+  }
+
+  void _leaveDemo() {
+    final demo = _demo;
+    setState(() {
+      _demo = null;
+      _entry = _Entry.signedOut;
+    });
+    if (demo != widget.initialRepo) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => demo?.dispose());
+    }
+  }
+
   @override
   void dispose() {
     _account.removeListener(_sessionChanged);
     if (widget.initialRepo != _account) _account.dispose();
+    if (_demo != widget.initialRepo) _demo?.dispose();
     super.dispose();
   }
 
@@ -87,6 +111,7 @@ class _TeamManagerAppState extends State<TeamManagerApp> {
       repository: _account,
       notice: _account.errorMessage,
       onRestore: _restore,
+      onTryDemo: _tryDemo,
       onCreateAccount: () => _openInvitation(context),
       onAuthenticated: () => setState(() => _entry = _Entry.authenticated),
     ),
@@ -94,8 +119,21 @@ class _TeamManagerAppState extends State<TeamManagerApp> {
       repo: _account,
       onInvitation: () => _openInvitation(context),
     ),
-    _Entry.demo => HomeShell(repo: _demo!),
+    _Entry.demo => HomeShell(repo: _demo!, onLeaveDemo: _leaveDemo),
   };
+
+  Widget _navigation() => KeyedSubtree(
+    key: ValueKey(_entry),
+    // Child notifications must not disable Android back handling at entry.
+    child: NotificationListener<NavigationNotification>(
+      onNotification: (_) => true,
+      child: Navigator(
+        key: _navigator,
+        onGenerateRoute: (_) =>
+            MaterialPageRoute<void>(builder: (context) => _entryPage(context)),
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -103,10 +141,46 @@ class _TeamManagerAppState extends State<TeamManagerApp> {
     debugShowCheckedModeBanner: false,
     theme: buildAppTheme(),
     // Replacing this navigator drops protected detail routes after sign-out.
-    home: Navigator(
-      key: ValueKey(_entry),
-      onGenerateRoute: (_) =>
-          MaterialPageRoute<void>(builder: (context) => _entryPage(context)),
+    home: PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (await _navigator.currentState!.maybePop()) return;
+        if (!mounted) return;
+        if (_entry == _Entry.demo) {
+          _leaveDemo();
+        } else {
+          await SystemNavigator.pop();
+        }
+      },
+      child: _entry == _Entry.demo
+          ? Material(
+              color: AppColors.aquaTint,
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  children: [
+                    Container(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: const Text(
+                        'Demo - sample data',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    Expanded(child: _navigation()),
+                  ],
+                ),
+              ),
+            )
+          : _navigation(),
     ),
   );
 }

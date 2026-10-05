@@ -1,9 +1,9 @@
 # FEAT-001 Android account entry verification
 
 Created: 2026-10-05T08:41:51+08:00
-Updated: 2026-10-05T08:41:51+08:00
+Updated: 2026-10-05T09:56:00+08:00
 Feature: FEAT-001 revision 4
-Plan: PLAN-005 revision 1
+Plan: PLAN-005 revision 2
 
 ## Environment and boundaries
 
@@ -12,7 +12,7 @@ Flutter 3.44.7, Dart 3.12.2, Node 24.14.0, and npm 11.9.0 are the installed tool
 The authentication test helper validates a disposable pipeline_test PostgreSQL 18 database at loopback port 5433 against the separate pipeline_dev target before migration, truncation, and synthetic seeding.
 Tests use the existing test email capture, not live delivery.
 No new dependency or schema migration was introduced.
-The installed Medium_Phone AVD uses API 37.1; approved API 24 and API 36 emulator scenarios remain pending for Phase 3.
+The installed Medium_Phone AVD uses API 37.1; the API 24 and API 36 emulator scenarios were dropped by Len in PLAN-005 revision 2 and are unverified, as recorded under Phase 3.
 
 ## Phase 1
 
@@ -60,3 +60,50 @@ Existing-account identity comes only from verified authentication, not the reque
 The web acceptance caller now supplies its existing in-memory bearer token when authenticated.
 Phase 1 checkpoint is a3d9e9648abadede8b11dacaede1d9e14ffab325.
 Phase 2 checkpoint message: feat(auth): add invitation account setup flow.
+
+## Phase 3
+
+Recorded: 2026-10-05T09:56:00+08:00
+Phase 2 checkpoint is de653b9b52728842ba7e5ebde6660ecc1eb5ac55.
+
+### Software checks
+
+Between 09:50 and 09:54 on 2026-10-05, from `mobile/`, flutter analyze passed with no issues.
+The full flutter test suite passed 77 tests and skipped the two opt-in live API tests.
+The flutter build apk --debug command built `app-debug.apk`; the APK was not installed on any emulator or device after this build.
+From the repository root, npm test passed 251 tests across auth 28, members 22, tasks 36, announcements 25, finance 124, and security 16, on the local PostgreSQL 18 test database at loopback port 5433.
+The git diff --check command passed.
+
+The new demo_entry_test.dart covers explicit demo entry with zero API requests and no secure-storage writes, the Demo banner, reset of a local demo change after leaving and re-entering, Android back closing a secondary route before leaving demo, and the four demo destinations at 200 percent text on a 360 by 640 logical-pixel viewport.
+These are widget results, not emulator or physical-device evidence.
+
+The first full Flutter run of this session failed one test: the demo navigation test at 200 percent text reported a 28-pixel bottom overflow in the Tasks screen filter bar.
+The earlier session's log shows the same test failing at 09:14; how many corrections that session attempted is not recorded.
+One correction capped the Tasks filter bar at 30 percent of the screen height and made it scroll, and the next full run passed.
+No unresolved Phase 3 software failure remains.
+
+### Emulator results and limits
+
+Len deleted the workspace-local Android SDK and the `Pipeline_API_24` and `Pipeline_API_36` emulators at about 09:50 on 2026-10-05 to reclaim disk space, and dropped the API 24 and API 36 emulator gates in PLAN-005 revision 2.
+The complete signed-out, demo, invitation, sign-in, session-restore, offline-cache, account-switch, and sign-out journey was not completed on either emulator.
+The last automated scenario run on each emulator, at 09:15, stopped with an unexpected screen state while waiting for the Demo banner; it was not rerun after later corrections.
+The earlier session's handoff note reports that the normal-size demo exit, re-entry, and Android back journey passed on API 36 at 09:07; this session did not reproduce it.
+No emulator check was made at 200 percent text scale, and no authenticated landing screenshot was captured.
+API 24 and API 36 behavior for this feature is therefore unverified, and physical-device validation remains with Len.
+
+### Screenshots
+
+The earlier session captured these on the two emulators at normal text scale through its ignored scenario script; this session inspected each image.
+
+| Screenshot | Emulator | Shows |
+| --- | --- | --- |
+| [api24-sign-in-100.png](screenshots/FEAT-001-auth-entry/api24-sign-in-100.png) | Pipeline_API_24 | Sign-in page with empty fields, invitation link, and Try demo. |
+| [api24-demo-100.png](screenshots/FEAT-001-auth-entry/api24-demo-100.png) | Pipeline_API_24 | Demo overview with the Demo - sample data banner and four destinations. |
+| [api36-sign-in-100.png](screenshots/FEAT-001-auth-entry/api36-sign-in-100.png) | Pipeline_API_36 | Sign-in page with empty fields, invitation link, and Try demo. |
+| [api36-invitation-100.png](screenshots/FEAT-001-auth-entry/api36-invitation-100.png) | Pipeline_API_36 | Invitation setup for a synthetic example.com recipient. |
+| [api36-demo-100.png](screenshots/FEAT-001-auth-entry/api36-demo-100.png) | Pipeline_API_36 | Demo overview with the Demo - sample data banner and four destinations. |
+
+The screenshots predate the final semantics and Tasks filter corrections, so they show appearance at capture time only.
+
+Review confirmed that demo runs on a fresh in-memory repository outside the authenticated repository, that demo-only controls stay in the demo account menu, and that no dependency was added.
+Phase 3 checkpoint message: feat(mobile): isolate demo access from live accounts.

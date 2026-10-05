@@ -12,8 +12,14 @@ import 'sign_in_screen.dart';
 class HomeShell extends StatefulWidget {
   final SyntheticDataRepository repo;
   final VoidCallback? onInvitation;
+  final VoidCallback? onLeaveDemo;
 
-  const HomeShell({super.key, required this.repo, this.onInvitation});
+  const HomeShell({
+    super.key,
+    required this.repo,
+    this.onInvitation,
+    this.onLeaveDemo,
+  });
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -65,9 +71,10 @@ class _HomeShellState extends State<HomeShell> {
         final availableScopes = widget.repo.availableScopes;
         final textScaler = MediaQuery.textScalerOf(context);
         final largeText = textScaler.scale(1) > 1.3;
-        final offlineMessage =
-            widget.repo is AppRepository &&
-                (widget.repo as AppRepository).cacheAge != null
+        final offlineMessage = appRepo == null
+            ? 'Demo offline simulation. Changes disabled.'
+            : widget.repo is AppRepository &&
+                  (widget.repo as AppRepository).cacheAge != null
             ? 'Offline: Showing cached reads (${(widget.repo as AppRepository).cacheAge}). Mutations disabled.'
             : 'Offline: Showing cached reads. Mutations disabled.';
         const offlineTextStyle = TextStyle(
@@ -101,6 +108,7 @@ class _HomeShellState extends State<HomeShell> {
               ? AppColors.backgroundCombined
               : AppColors.background,
           appBar: AppBar(
+            toolbarHeight: largeText ? 96 : 64,
             title: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.sizeOf(context).width * 0.58,
@@ -141,15 +149,17 @@ class _HomeShellState extends State<HomeShell> {
                             ),
                           );
                         }).toList(),
-                        onChanged: (newScope) {
-                          if (newScope != null) {
-                            if (appRepo != null) {
-                              appRepo.selectScope(newScope);
-                            } else {
-                              widget.repo.setScope(newScope);
-                            }
-                          }
-                        },
+                        onChanged: appRepo?.isLoading == true
+                            ? null
+                            : (newScope) {
+                                if (newScope != null) {
+                                  if (appRepo != null) {
+                                    appRepo.selectScope(newScope);
+                                  } else {
+                                    widget.repo.setScope(newScope);
+                                  }
+                                }
+                              },
                       ),
                     ),
                   ),
@@ -180,19 +190,23 @@ class _HomeShellState extends State<HomeShell> {
               // Persona Switcher Popup
               PopupMenuButton<String>(
                 key: const Key('popup-persona'),
-                icon: CircleAvatar(
-                  radius: 14,
-                  backgroundColor: widget.repo.currentUser.avatarColor,
-                  child: Text(
-                    widget.repo.currentUser.displayName.isEmpty
-                        ? '?'
-                        : widget.repo.currentUser.displayName
-                              .substring(0, 1)
-                              .toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                icon: Semantics(
+                  label: appRepo == null ? 'Demo account' : 'Account',
+                  excludeSemantics: true,
+                  child: CircleAvatar(
+                    radius: 14,
+                    backgroundColor: widget.repo.currentUser.avatarColor,
+                    child: Text(
+                      widget.repo.currentUser.displayName.isEmpty
+                          ? '?'
+                          : widget.repo.currentUser.displayName
+                                .substring(0, 1)
+                                .toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -209,7 +223,11 @@ class _HomeShellState extends State<HomeShell> {
                       if (widget.repo is AppRepository) {
                         (widget.repo as AppRepository).logout();
                       } else {
-                        widget.repo.resetToInitial();
+                        if (widget.onLeaveDemo != null) {
+                          widget.onLeaveDemo!();
+                        } else {
+                          widget.repo.resetToInitial();
+                        }
                       }
                       break;
                     case 'len':
@@ -247,9 +265,9 @@ class _HomeShellState extends State<HomeShell> {
                       value: 'accept_invite',
                       child: Text('Accept invitation'),
                     ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'sign_out',
-                    child: Text('Sign Out'),
+                    child: Text(appRepo == null ? 'Leave demo' : 'Sign out'),
                   ),
                   if (appRepo == null) ...[
                     const PopupMenuDivider(),
@@ -397,6 +415,7 @@ class _HomeShellState extends State<HomeShell> {
           bottomNavigationBar: ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             child: NavigationBar(
+              height: largeText ? 112 : 80,
               selectedIndex: _currentIndex,
               onDestinationSelected: (index) =>
                   setState(() => _currentIndex = index),

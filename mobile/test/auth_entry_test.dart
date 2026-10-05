@@ -4,64 +4,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 import 'package:mobile/main.dart';
-import 'package:mobile/data/app_repository.dart';
-import 'package:mobile/services/api_client.dart';
 import 'package:mobile/services/secure_cache_service.dart';
 import 'package:mobile/services/session_context_store.dart';
-
-const organizations = [
-  {
-    'id': 'org-live',
-    'name': 'Live Team',
-    'status': 'active',
-    'role': 'Member',
-    'membership_status': 'active',
-  },
-];
-Map<String, dynamic> account() => {
-  'user': {
-    'id': 'user-live',
-    'email': 'test@example.com',
-    'displayName': 'Test Member',
-    'status': 'active',
-    'isOwner': false,
-  },
-  'organizations': organizations,
-};
-http.Response json(Map<String, dynamic> data, [int status = 200]) =>
-    http.Response(jsonEncode(data), status);
-
-AppRepository repository(
-  InMemoryStorageAdapter storage,
-  Future<http.Response> Function(http.Request) handler,
-) => AppRepository(
-  apiClient: ApiClient(
-    storageAdapter: storage,
-    httpClient: MockClient(handler),
-  ),
-  cacheService: SecureCacheService(storageAdapter: storage),
-);
-Future<http.Response> live(http.Request request) async {
-  if (request.url.path.endsWith('/auth/login') ||
-      request.url.path.endsWith('/auth/refresh')) {
-    return json({
-      ...account(),
-      'accessToken': 'access',
-      'refreshToken': 'refresh',
-      'sessionId': 'session',
-      'expiresAt': DateTime.now()
-          .add(const Duration(days: 7))
-          .toIso8601String(),
-    });
-  }
-  if (request.url.path.endsWith('/auth/me')) {
-    if (!request.headers.containsKey('authorization')) return json({}, 401);
-    return json(account());
-  }
-  return json({'members': [], 'tasks': [], 'announcements': []});
-}
+import 'support/auth_entry_fixtures.dart';
 
 void main() {
   test(
@@ -165,6 +111,45 @@ void main() {
       });
       expect(await restarted.restoreSession(), isTrue);
       expect(restarted.currentScope, 'org-new');
+    },
+  );
+
+  test(
+    'a refresh finishing after sign-out cannot restore account data or credentials',
+    () async {
+      final storage = InMemoryStorageAdapter();
+      final response = Completer<http.Response>();
+      final started = Completer<void>();
+      var delay = false;
+      final repo = repository(storage, (request) async {
+        if (delay && request.url.path.endsWith('/auth/me')) {
+          started.complete();
+          return response.future;
+        }
+        return live(request);
+      });
+      await repo.login('test@example.com', 'fixture password');
+      delay = true;
+      final refresh = repo.refreshCurrentScope();
+      await started.future;
+      final logout = repo.logout();
+      expect(repo.hasSession, isFalse);
+      expect(repo.currentUser.id, isEmpty);
+      response.complete(json(account()));
+      await refresh;
+      await logout;
+      expect(repo.currentUser.id, isEmpty);
+      expect(repo.allTasks, isEmpty);
+      expect(await repo.apiClient.getAccessToken(), isNull);
+      expect(await repo.apiClient.getRefreshToken(), isNull);
+      expect(
+        await repo.cacheService.getSnapshot(
+          accountId: 'user-live',
+          scope: 'org-live',
+          destination: 'tasks',
+        ),
+        isNull,
+      );
     },
   );
 
@@ -284,6 +269,20 @@ void main() {
         greaterThanOrEqualTo(48),
       );
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'entry actions and fields meet Android tap target and labeling guidelines',
+    (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        TeamManagerApp(initialRepo: repository(InMemoryStorageAdapter(), live)),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
     },
   );
 

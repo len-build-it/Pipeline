@@ -18,6 +18,8 @@ class AppRepository extends SyntheticDataRepository {
   bool _requiresSignIn = false;
   bool _requiresAuthorization = false;
   final Set<String> _deniedScopes = {};
+  Future<void>? _refreshOperation;
+  int _sessionVersion = 0;
 
   AppRepository({
     ApiClient? apiClient,
@@ -73,6 +75,7 @@ class AppRepository extends SyntheticDataRepository {
           !_requiresAuthorization &&
           currentUser.id.isNotEmpty &&
           (!isOffline || _cacheAge != null);
+      if (!_hasSession) clearProtectedData();
       return _hasSession;
     } catch (_) {
       clearProtectedData();
@@ -120,6 +123,7 @@ class AppRepository extends SyntheticDataRepository {
     if (!availableScopes.any((organization) => organization.id == scope)) {
       return;
     }
+    if (_isLoading) return;
     setScope(scope);
     await refreshCurrentScope();
   }
@@ -188,6 +192,7 @@ class AppRepository extends SyntheticDataRepository {
   /// Sign out and clear protected cached data (REQ-005, REQ-007)
   Future<void> logout() async {
     final accountId = currentUser.id;
+    _sessionVersion++;
     _setLoading(true);
     _hasSession = false;
     _requiresSignIn = true;
@@ -197,6 +202,7 @@ class AppRepository extends SyntheticDataRepository {
     _deniedScopes.clear();
     clearProtectedData();
     try {
+      await _refreshOperation;
       if (accountId.isNotEmpty) await cacheService.clearAccount(accountId);
       await SessionContextStore(apiClient.storage).clear();
     } finally {
@@ -216,7 +222,14 @@ class AppRepository extends SyntheticDataRepository {
   }
 
   /// Refresh / synchronize data for the currently selected scope
-  Future<void> refreshCurrentScope() async {
+  Future<void> refreshCurrentScope() {
+    return _refreshOperation ??= _refreshCurrentScope().whenComplete(
+      () => _refreshOperation = null,
+    );
+  }
+
+  Future<void> _refreshCurrentScope() async {
+    final version = _sessionVersion;
     if (isDemoOnly) {
       notifyListeners();
       return;
@@ -233,6 +246,7 @@ class AppRepository extends SyntheticDataRepository {
 
       // 1. Revalidate user account & memberships (REQ-004, REQ-007)
       final meRes = await apiClient.getCurrentUser();
+      if (version != _sessionVersion) return;
       final freshUser = _accountFrom(meRes);
       _storeOrganizationsFrom(meRes);
 
@@ -308,6 +322,7 @@ class AppRepository extends SyntheticDataRepository {
             [],
       );
 
+      if (version != _sessionVersion) return;
       // Replace local state
       _updateScopedData(membersList, tasksList, annList);
 
@@ -335,6 +350,7 @@ class AppRepository extends SyntheticDataRepository {
         sessionExpiry: sessionExpiry,
       );
 
+      if (version != _sessionVersion) return;
       // Online success: remove stale indicator
       setOffline(false);
       _isStale = false;
@@ -342,9 +358,11 @@ class AppRepository extends SyntheticDataRepository {
       _errorMessage = null;
       await _rememberSession();
     } on NetworkException catch (_) {
+      if (version != _sessionVersion) return;
       // Offline fallback: load cached read snapshots (REQ-002, REQ-008)
       await _loadFromCacheFallback();
     } on AuthorizationException catch (e) {
+      if (version != _sessionVersion) return;
       // Gate a selected organization and remove its memory data before awaiting cache storage.
       if (readingOrganizationData &&
           readingScope.isNotEmpty &&
@@ -380,6 +398,7 @@ class AppRepository extends SyntheticDataRepository {
         await _rememberSession();
       }
     } on AuthenticationException catch (_) {
+      if (version != _sessionVersion) return;
       // A final 401 arrives after the API client's refresh and single retry fail.
       final accountId = currentUser.id;
       _requiresSignIn = true;
@@ -393,9 +412,10 @@ class AppRepository extends SyntheticDataRepository {
       _errorMessage = 'Session expired (401). Please sign in again.';
       setOffline(false);
     } catch (_) {
+      if (version != _sessionVersion) return;
       _errorMessage = 'Unable to load this view. Please retry.';
     } finally {
-      _setLoading(false);
+      if (version == _sessionVersion) _setLoading(false);
     }
   }
 

@@ -1,10 +1,10 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-05T08:23:40+08:00
-State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases and all five approved PLAN-004 phases are committed and locally verified; FEAT-001 revision 4 and PLAN-005 revision 1 are now approved for execution, and Phase 1 is committed; Phase 2 is verified; Phase 3 is next.
-Feature: FEAT-001 Android sign-in, invitation-based account setup, safe session restoration, and isolated demo access; revision 4 and PLAN-005 revision 1 are approved; Phase 1 is committed; Phase 2 is verified; Phase 3 is next.
-Intended executor: Codex, executing the approved PLAN-005 phases continuously.
+Updated: 2026-10-05T09:56:00+08:00
+State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases and all five approved PLAN-004 phases are committed and locally verified; PLAN-005 Phases 1 and 2 are committed; Phase 3 passed its software checks and its API 24 and API 36 emulator gates were dropped by Len in PLAN-005 revision 2.
+Feature: FEAT-001 Android sign-in, invitation-based account setup, safe session restoration, and isolated demo access; revision 4 and PLAN-005 revision 2 are approved; all three phases are implemented; emulator and physical-device behavior for this feature is unverified.
+Intended executor: Codex executed Phases 1 through 3; Claude Code finished the Phase 3 checks and checkpoint on 2026-10-05.
 
 ## Read first
 
@@ -47,7 +47,7 @@ Execution of PLAN-001 P1 through P8 proceeded continuously without routine phase
 | PLAN-002 Configurable finance implementation | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | PLAN-003 Lagoon UI redesign implementation | 1 | Approved by Len in chat on 2026-10-04T16:19:21+08:00. |
 | PLAN-004 Security hardening implementation | 1 | Approved by Len in chat on 2026-10-04T23:19:00+08:00: "Approve FEAT-007 revision 1 and PLAN-004 revision 1". |
-| PLAN-005 Android sign-in and account setup | 1 | Approved with FEAT-001 revision 4 by Len in chat: "Execute the implementation plan $clean-code"; recorded 2026-10-05T08:34:42+08:00. |
+| PLAN-005 Android sign-in and account setup | 2 | Revision 1 approved with FEAT-001 revision 4 by Len in chat: "Execute the implementation plan $clean-code"; recorded 2026-10-05T08:34:42+08:00. Revision 2 drops the API 24 and API 36 emulator gates and authorizes committing and pushing, approved by Len in chat: "Yes proceed. Commit these changes then push to github. Yes you can delete now and accept dropping"; recorded 2026-10-05T09:56:00+08:00. |
 
 Allowed execution phases: PLAN-001 P1 through P8, PLAN-002 Phase 1 through Phase 6, PLAN-003 Phase 1 through Phase 6, and PLAN-004 Phase 1 through Phase 5 are complete and committed locally; PLAN-005 is approved for continuous execution of its three phases.
 
@@ -136,6 +136,7 @@ Local PostgreSQL on port 5433, the API 37 Android emulator, and Microsoft Edge w
 | P8 E2E announcement status code | 0, resolved | POST /api/announcements returned 200 instead of 201; updated assertion to expect([200, 201]). | E2E workflow passing. |
 | ISS-014 PLAN-003 Phase 2 Finance refresh race | 3 failed full-suite runs before expanded authorization; resolved on the first authorized fix-and-check | Finance requests used live filter state and had no latest-request guard, so overlapping responses could replace newer results; a scope refresh could rerender Finance after navigation and restore default dates; the tests proceeded before the filter refresh completed. Len expanded authorization on 2026-10-04 to fix these failures. `web/js/app.js` now ignores stale scope completions and avoids replacing an active Finance page after navigation; `web/js/views/finance.js` snapshots each request and ignores stale responses and errors while exposing `aria-busy`; the existing E2E flow now waits for the refresh to finish without weakening assertions. The targeted Finance journeys passed 3/3 after the fix, two full `npm run test:e2e` runs passed 13/13 each, and two `npm run test:ui` runs passed 13/13 each. | Resolved. Phase 2 is committed as `8caa32e`; continue with approved Phase 3. |
 | ISS-015 PLAN-003 Phase 3 over-budget E2E fixture | 1 failed focused run; resolved on the second focused run | The new over-budget hero scenario lowered Travel’s budget, which changed the existing later assertion from PHP 633.33 to PHP 233.33. The test now restores Travel to PHP 500.00 with the latest version before continuing; no existing expectation was changed. The next focused run passed the report, import, and responsive journeys 3/3. Full `npm test` passed 122/122, `npm run test:ui` passed 13/13, and `npm run test:e2e` passed 13/13 on 2026-10-04. | Resolved. Phase 3 is committed as `58a8d71`; continue with approved Phase 4. |
+| ISS-016 Tasks filter bar overflow at 200 percent text in demo (PLAN-005 Phase 3) | Earlier session count not recorded; resolved on the first attempt of the 2026-10-05 Claude Code session | `flutter test` failed the demo navigation test with a 28-pixel bottom overflow in `tasks_screen.dart`; the filter bar is now capped at 30 percent of screen height and scrolls. | `flutter test` passing 77 tests with two opt-in live tests skipped. |
 
 For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
 
@@ -145,7 +146,9 @@ PLAN-002, since revision 2, replaces this three-attempt stop at Len's direction 
 
 ## Next action
 
-Commit the verified PLAN-005 Phase 2 and continue to Phase 3 demo isolation and integrated Android verification.
+No approved PLAN-005 implementation work remains after the Phase 3 checkpoint `feat(mobile): isolate demo access from live accounts`; verify its hash and the push from Git.
+Len handles physical-device validation of sign-in, invitation setup, demo, and 200 percent text.
+If API 24 or API 36 emulator evidence is wanted later, install those system images through Android Studio's SDK Manager into the shared SDK, not into this workspace.
 
 Len authorized FEAT-001 revision 4 and PLAN-005 revision 1 in chat with "Execute the implementation plan $clean-code"; approval was recorded at 2026-10-05T08:34:42+08:00.
 
@@ -389,3 +392,45 @@ Phase 2 Flutter analysis, 71 Flutter tests, 28 auth tests, and the real local Fl
 One correction/check resolved an invalid test token fixture; analyzer findings were resolved independently.
 No unresolved Phase 2 failure remains.
 The reviewed Phase 2 checkpoint is next, followed by Phase 3 without routine approval.
+
+### PLAN-005 Phase 3 verification in progress
+
+Recorded: 2026-10-05T08:54:39+08:00
+Phase 2 checkpoint verified from Git: de653b9b52728842ba7e5ebde6660ecc1eb5ac55.
+Demo is now isolated and its exit/re-entry and Android back widget checks pass.
+The initial analyzer error referenced a nonexistent theme color and was corrected with the existing aquaTint token.
+The initial full suite found two outdated widget expectations after adding the Demo banner.
+One correction resolved the offline wording expectation; a second correction removed an invalid first-finder assumption and the four-destination navigation test passed.
+No third unsuccessful attempt occurred.
+The 73-test full Flutter run passed before final session-race coverage; final checks are being rerun.
+The debug APK build passed and all 251 Node tests passed on the disposable database.
+The approved API 24 and API 36 system images were initially unavailable.
+The SDK manager could not finish package discovery; official archives are now downloaded into ignored workspace storage with repository checksums and are being extracted for the approved emulator matrix.
+Phase 3 remains uncommitted until the required checks, scenarios, screenshots, and review pass.
+
+### PLAN-005 native verification findings
+
+Recorded: 2026-10-05T09:07:47+08:00
+API 24 and API 36 targets now exist in ignored workspace AVD storage, verified with flutter devices and actual Android API properties.
+Android back on API 36 initially exited demo because child navigation notifications disabled the entry route's back ownership.
+One correction stopped child notifications from overriding entry handling, and the normal-size native demo journey then passed explicit exit, re-entry, and Android back.
+API 24 field hints were absent from native accessibility output.
+Explicit semantic labels were added; a follow-up inspection found ancestor labels merging into the invitation field, so separate semantics containers are now being checked.
+A streamed API 24 APK update hung; the owned install process was cancelled and the emulator rebooted, after which a push install passed.
+The automation also encountered a transient accessibility dump interruption and now retries that native dump without changing application behavior.
+The four-destination widget test was made tolerant of lazy list construction and duplicated Alex labels, and the targeted suite passed.
+A newly added accessibility test passed its guidelines but initially failed handle cleanup; an unapplied edit left the first correction unsuccessful, and the second correction disposed the handle before test-end checks, passing all ten auth-entry tests.
+No application checkpoint has been made for Phase 3.
+
+### PLAN-005 Phase 3 checkpoint
+
+Recorded: 2026-10-05T09:56:00+08:00
+Len asked Claude Code to reclaim disk space, and approved deleting the workspace-local Android tooling and dropping the API 24 and API 36 emulator gates with: "Yes proceed. Commit these changes then push to github. Yes you can delete now and accept dropping".
+Both project emulators were shut down, then `.db/android-sdk`, `.db/android-avds`, the three Android installer archives in `.db/`, and `mobile/build` were deleted; about 27 GB was reclaimed.
+The local PostgreSQL data in `.db/data` and the scenario scripts and logs in `.db/` were kept.
+The first `flutter test` run failed one test, recorded as ISS-016; one correction in `mobile/lib/screens/tasks_screen.dart` resolved it.
+Final checks: `flutter analyze` passed, `flutter test` passed 77 tests with two opt-in live tests skipped, `flutter build apk --debug` passed, `npm test` passed 251 tests, and `git diff --check` passed.
+The emulator journey was not completed on API 24 or API 36 before deletion, and nothing was checked on an emulator at 200 percent text; see [account entry evidence](docs/evidence/FEAT-001-auth-entry-verification.md).
+The Codex session that started Phase 3 may still be open and should re-read this handoff before doing anything further.
+Phase 3 checkpoint message: feat(mobile): isolate demo access from live accounts.
+The same message from Len authorized pushing `codex/organization-manager-mvp` to GitHub.

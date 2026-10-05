@@ -7,7 +7,7 @@ import 'package:mobile/data/app_repository.dart';
 import 'package:mobile/main.dart';
 import 'package:mobile/screens/invitation_screen.dart';
 import 'package:mobile/services/secure_cache_service.dart';
-import 'auth_entry_test.dart' as fixtures;
+import 'support/auth_entry_fixtures.dart' as fixtures;
 
 const token =
     'abababababababababababababababababababababababababababababababab';
@@ -141,6 +141,42 @@ void main() {
       expect(acceptance!.headers['authorization'], 'Bearer access');
       expect(jsonDecode(acceptance!.body).containsKey('password'), isFalse);
       expect(find.text('Overview'), findsWidgets);
+    },
+  );
+
+  testWidgets(
+    'a mismatched signed-in account cannot submit invitation acceptance',
+    (tester) async {
+      var acceptances = 0;
+      final repo = fixtures.repository(InMemoryStorageAdapter(), (
+        request,
+      ) async {
+        if (request.url.path.endsWith('/invitation/$token')) {
+          return fixtures.json({
+            ...preview(),
+            'email': 'invited-other@example.com',
+          });
+        }
+        if (request.url.path.endsWith('/invitation/accept')) acceptances++;
+        return fixtures.live(request);
+      });
+      await openInvitation(tester, repo);
+      await repo.login('test@example.com', 'fixture password');
+      await tester.pumpAndSettle();
+      // The page is rebuilt after returning from its sign-in route in normal use.
+      await tester.ensureVisible(find.text('Already have an account? Sign in'));
+      await tester.tap(find.text('Already have an account? Sign in'));
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Accept invitation'));
+      await tester.tap(find.text('Accept invitation'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Sign in with the email address shown in your invitation.'),
+        findsOneWidget,
+      );
+      expect(acceptances, 0);
     },
   );
 

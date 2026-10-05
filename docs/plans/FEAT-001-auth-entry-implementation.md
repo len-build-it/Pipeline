@@ -1,15 +1,24 @@
 # PLAN-005: FEAT-001 Android sign-in, invitation setup, and demo access
 
 Created: 2026-10-05T08:18:39+08:00
-Updated: 2026-10-05T08:34:42+08:00
+Updated: 2026-10-05T09:56:00+08:00
 Plan ID: PLAN-005
-Revision: 1
-Status: Approved - Phases 1 and 2 verified; Phase 3 next
+Revision: 2
+Status: Approved - Phases 1 through 3 verified by software checks; the API 24 and API 36 emulator gates were dropped by Len in revision 2
 Feature spec and revision: [FEAT-001 revision 4](../features/FEAT-001-access-dashboard.md), Approved
 Approved baseline and architecture revisions: PROD-001 revision 3, PROD-002 revision 3, PROD-003 revision 3, PROD-004 revision 4, PROD-005 revision 4, FEAT-005 revision 2, and FEAT-007 revision 1
 Len's chat approval: Len authorized the current FEAT-001 revision 4 and PLAN-005 revision 1 package in chat with: "Execute the implementation plan $clean-code".
 Approval recorded: 2026-10-05T08:34:42+08:00
 Target branch: codex/organization-manager-mvp
+
+## Revision 2 scope change
+
+Recorded: 2026-10-05T09:56:00+08:00
+Len removed the workspace-local Android SDK and the `Pipeline_API_24` and `Pipeline_API_36` emulators to reclaim disk space, and accepted dropping the API 24 and API 36 emulator gates from Phase 3.
+Len's chat approval of this change: "Yes proceed. Commit these changes then push to github. Yes you can delete now and accept dropping".
+The same message authorized committing the Phase 3 work and pushing the branch to GitHub.
+The dropped gates are marked below as dropped, not passed; no behavior, requirement, or acceptance criterion in FEAT-001 revision 4 changed.
+API 24 and API 36 emulator behavior, and 200 percent text scale on any emulator, remain unverified for this feature.
 
 ## Scope
 
@@ -143,36 +152,36 @@ Continue automatically to Phase 3 after Phase 2 completes.
 
 Requirements: FEAT-001/REQ-009, FEAT-001/REQ-012, FEAT-001/REQ-013, FEAT-005/REQ-005, and PROD-005 revision 4 Android navigation and accessibility rules.
 
-State: Approved - pending execution.
+State: Software checks verified; emulator gates dropped by Len in revision 2.
 
 ### Tasks
 
-- [ ] Add an explicit `Try demo` action on the signed-out page and show a persistent, text-labeled Demo indicator while sample data is open.
-- [ ] Open demo with a fresh in-memory `SyntheticDataRepository`, keeping it outside the authenticated `AppRepository`, secure account cache, and live API mutation path.
-- [ ] Keep demo-only persona switching, offline simulation, and sample reset controls inside the labeled demo session, and keep them out of signed-in account controls.
-- [ ] Make leaving demo discard its temporary changes and return to sign-in; re-entering demo starts from the original sample state.
-- [ ] Preserve the four approved bottom destinations, secondary Finance entry, existing Lagoon tokens, Android back behavior, and normal signed-in account menu.
-- [ ] Add tests that create a local demo mutation, leave and re-enter demo, and prove the mutation resets without network requests, live tokens, or protected-cache writes.
-- [ ] Run the complete signed-out, demo, invitation, sign-in, session-restore, offline-cache, account-switch, and sign-out journey on the approved Android API 24 and API 36 emulator targets, using the actual available AVDs and recording any missing target as pending.
-- [ ] Capture and inspect screenshots for sign-in, invitation setup, visibly labeled demo data, and authenticated landing at normal text and 200 percent text scale.
+- [x] Add an explicit `Try demo` action on the signed-out page and show a persistent, text-labeled Demo indicator while sample data is open.
+- [x] Open demo with a fresh in-memory `SyntheticDataRepository`, keeping it outside the authenticated `AppRepository`, secure account cache, and live API mutation path.
+- [x] Keep demo-only persona switching, offline simulation, and sample reset controls inside the labeled demo session, and keep them out of signed-in account controls.
+- [x] Make leaving demo discard its temporary changes and return to sign-in; re-entering demo starts from the original sample state.
+- [x] Preserve the four approved bottom destinations, secondary Finance entry, existing Lagoon tokens, Android back behavior, and normal signed-in account menu.
+- [x] Add tests that create a local demo mutation, leave and re-enter demo, and prove the mutation resets without network requests, live tokens, or protected-cache writes.
+- [ ] Dropped in revision 2, not completed: run the complete signed-out, demo, invitation, sign-in, session-restore, offline-cache, account-switch, and sign-out journey on the Android API 24 and API 36 emulator targets.
+- [ ] Dropped in revision 2, partly done: five normal-text screenshots were captured and inspected; authenticated landing and every 200 percent screenshot were not captured.
 
 ### Verification
 
-- [ ] Run `flutter analyze`, `flutter test`, and `flutter build apk --debug` from `mobile/`; expect all checks to pass.
-- [ ] Run `npm run test:auth` and `npm test` from the repository root against the isolated loopback PostgreSQL 18 test database; expect the auth suite and full Node suite to pass.
-- [ ] Run `flutter emulators` and `flutter devices`, install the debug APK on the available API 24 and API 36 emulator targets, and execute the scenario sequence listed above; record each actual API level and device name.
-- [ ] At 200 percent text scale, verify no primary action is clipped by the software keyboard or device navigation and all error, loading, and stale-cache messages remain readable.
-- [ ] Store the inspected screenshots under `docs/evidence/screenshots/FEAT-001-auth-entry/` and record their scenario, emulator, scale, verification command, and limitation in `docs/evidence/FEAT-001-auth-entry-verification.md`.
-- [ ] Run `git diff --check`; expect no whitespace errors.
+- [x] Run `flutter analyze`, `flutter test`, and `flutter build apk --debug` from `mobile/`; expect all checks to pass.
+- [x] Run `npm run test:auth` and `npm test` from the repository root against the isolated loopback PostgreSQL 18 test database; expect the auth suite and full Node suite to pass.
+- [ ] Dropped in revision 2, not completed: install the debug APK on the API 24 and API 36 emulator targets and execute the scenario sequence listed above.
+- [ ] Dropped in revision 2 for emulators: 200 percent text scale was checked only in widget tests, not on an emulator or device.
+- [x] Store the inspected screenshots under `docs/evidence/screenshots/FEAT-001-auth-entry/` and record their scenario, emulator, scale, verification command, and limitation in `docs/evidence/FEAT-001-auth-entry-verification.md`.
+- [x] Run `git diff --check`; expect no whitespace errors.
 
 ### Review and checkpoint
 
-- [ ] Review demo isolation, account boundaries, first-run and return-user navigation, accessibility, screenshots, correctness, scope, dependencies, and unrelated changes.
-- [ ] Update this plan, the evidence record, the specification index, and the current handoff with actual results.
-- [ ] Stage only reviewed Phase 3 paths and inspect the staged diff; preserve any unrelated test-generated screenshot changes.
-- [ ] Commit the reviewed phase as `feat(mobile): isolate demo access from live accounts` and verify Git reports success.
+- [x] Review demo isolation, account boundaries, first-run and return-user navigation, accessibility, screenshots, correctness, scope, dependencies, and unrelated changes.
+- [x] Update this plan, the evidence record, the specification index, and the current handoff with actual results.
+- [x] Stage only reviewed Phase 3 paths and inspect the staged diff; preserve any unrelated test-generated screenshot changes.
+- [ ] Commit the reviewed phase as `feat(mobile): isolate demo access from live accounts` and verify Git reports success; verify the hash from Git, since this file cannot hold its own commit hash.
 
-Phase completion requires all listed gates and a successful local commit.
+Phase completion requires all listed gates that revision 2 did not drop and a successful local commit.
 
 ## Recovery
 

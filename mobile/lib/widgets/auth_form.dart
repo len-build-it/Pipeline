@@ -124,28 +124,34 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
   bool _obscured = true;
 
   @override
-  Widget build(BuildContext context) => TextFormField(
-    controller: widget.controller,
-    focusNode: widget.focusNode,
-    enabled: widget.enabled,
-    validator: widget.validator,
-    obscureText: _obscured,
-    enableSuggestions: false,
-    autocorrect: false,
-    autofillHints: [widget.autofillHint],
-    textInputAction: TextInputAction.done,
-    onFieldSubmitted: (_) => widget.onSubmit(),
-    decoration: InputDecoration(
-      labelText: widget.label,
-      errorMaxLines: 3,
-      suffixIcon: IconButton(
-        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-        tooltip: _obscured ? 'Show password' : 'Hide password',
-        onPressed: widget.enabled
-            ? () => setState(() => _obscured = !_obscured)
-            : null,
-        icon: Icon(
-          _obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+  Widget build(BuildContext context) => Semantics(
+    container: true,
+    label: widget.label,
+    child: TextFormField(
+      controller: widget.controller,
+      focusNode: widget.focusNode,
+      enabled: widget.enabled,
+      validator: widget.validator,
+      obscureText: _obscured,
+      enableSuggestions: false,
+      autocorrect: false,
+      autofillHints: [widget.autofillHint],
+      textInputAction: TextInputAction.done,
+      onFieldSubmitted: (_) => widget.onSubmit(),
+      decoration: InputDecoration(
+        labelText: widget.label,
+        errorMaxLines: 3,
+        suffixIcon: IconButton(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          tooltip: _obscured ? 'Show password' : 'Hide password',
+          onPressed: widget.enabled
+              ? () => setState(() => _obscured = !_obscured)
+              : null,
+          icon: Icon(
+            _obscured
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
+          ),
         ),
       ),
     ),
