@@ -464,6 +464,17 @@ describe('Phase 3: Authentication and Organization Isolation', () => {
       assert.match(reuseData.message, /already been accepted/i);
     });
 
+    test('Invalid token grants no account or membership', async () => {
+      const beforeUsers = await pool.query('SELECT COUNT(*) FROM users');
+      const beforeMemberships = await pool.query('SELECT COUNT(*) FROM memberships');
+      const response = await app.inject({ method: 'POST', url: '/api/auth/invitation/accept', payload: {
+        token: generateRandomToken(32), email: 'invalid_invitee@example.com', password: 'password123456',
+      } });
+      assert.equal(response.statusCode, 404);
+      assert.deepEqual((await pool.query('SELECT COUNT(*) FROM users')).rows, beforeUsers.rows);
+      assert.deepEqual((await pool.query('SELECT COUNT(*) FROM memberships')).rows, beforeMemberships.rows);
+    });
+
     test('Email mismatch rejects invitation acceptance', async () => {
       const inviteToken = generateRandomToken(32);
       const inviteDigest = sha256Digest(inviteToken);
@@ -487,6 +498,8 @@ describe('Phase 3: Authentication and Organization Isolation', () => {
       assert.equal(res.statusCode, 400);
       const body = JSON.parse(res.body);
       assert.match(body.message, /email does not match/i);
+      assert.equal((await pool.query("SELECT id FROM users WHERE email = 'attacker@example.com'")).rows.length, 0);
+      assert.equal((await pool.query("SELECT status FROM invitations WHERE id = 'inv-test-2'")).rows[0].status, 'pending');
     });
 
     test('Expired invitation is rejected', async () => {
@@ -512,6 +525,7 @@ describe('Phase 3: Authentication and Organization Isolation', () => {
       assert.equal(res.statusCode, 400);
       const body = JSON.parse(res.body);
       assert.match(body.message, /expired/i);
+      assert.equal((await pool.query("SELECT id FROM users WHERE email = 'expired@example.com'")).rows.length, 0);
     });
 
     test('Existing user can accept invitation to second organization', async () => {
@@ -525,9 +539,22 @@ describe('Phase 3: Authentication and Organization Isolation', () => {
         [inviteDigest]
       );
 
+      const loginRes = await app.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'jordan@example.com', password: 'password123456' } });
+      const accessToken = JSON.parse(loginRes.body).accessToken;
+      const denied = await app.inject({ method: 'POST', url: '/api/auth/invitation/accept', payload: { token: inviteToken, email: 'jordan@example.com', authenticatedUserId: 'usr-jordan' } });
+      assert.equal(denied.statusCode, 403);
+      const wrongLogin = await app.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'sam@example.com', password: 'password123456' } });
+      const wrongToken = JSON.parse(wrongLogin.body).accessToken;
+      const mismatch = await app.inject({ method: 'POST', url: '/api/auth/invitation/accept', headers: { authorization: `Bearer ${wrongToken}` }, payload: { token: inviteToken, email: 'jordan@example.com' } });
+      assert.equal(mismatch.statusCode, 403);
+      const before = await pool.query("SELECT COUNT(*) FROM memberships WHERE user_id = 'usr-jordan' AND organization_id = 'org-1'");
+      assert.equal(Number(before.rows[0].count), 0);
+      const pending = await pool.query("SELECT status FROM invitations WHERE id = 'inv-test-4'");
+      assert.equal(pending.rows[0].status, 'pending');
       const res = await app.inject({
         method: 'POST',
         url: '/api/auth/invitation/accept',
+        headers: { authorization: `Bearer ${accessToken}` },
         payload: {
           token: inviteToken,
           email: 'jordan@example.com',

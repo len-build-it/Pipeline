@@ -21,7 +21,7 @@ Updated: 2026-10-05T08:20:35+08:00
 | Plan | PLAN-002 | [plans/FEAT-006-implementation.md](plans/FEAT-006-implementation.md) | 3 | Approved, complete | - |
 | Plan | PLAN-003 | [plans/UI-REDESIGN-implementation.md](plans/UI-REDESIGN-implementation.md) | 1 | Approved; all six phases complete and committed locally | - |
 | Plan | PLAN-004 | [plans/FEAT-007-implementation.md](plans/FEAT-007-implementation.md) | 1 | Approved; all five phases complete and committed locally; EVID-003 audit remains incomplete | - |
-| Plan | PLAN-005 | [plans/FEAT-001-auth-entry-implementation.md](plans/FEAT-001-auth-entry-implementation.md) | 1 | Approved with FEAT-001 revision 4; Phase 1 in progress | - |
+| Plan | PLAN-005 | [plans/FEAT-001-auth-entry-implementation.md](plans/FEAT-001-auth-entry-implementation.md) | 1 | Approved with FEAT-001 revision 4; Phases 1 and 2 verified; Phase 3 next | - |
 | Evidence | EVID-001 | [evidence/MVP-verification.md](evidence/MVP-verification.md) | 14 | PLAN-001 complete; PLAN-002 complete | - |
 | Evidence | EVID-002 | [evidence/UI-redesign-verification.md](evidence/UI-redesign-verification.md) | 1 | PLAN-003 complete and locally verified; physical-device and production checks pending | - |
 | Evidence | EVID-003 | [evidence/security-audit-2026-10-04/REPORT.md](evidence/security-audit-2026-10-04/REPORT.md) | 1 | Audit remains incomplete with no confirmed findings; PLAN-004 local remediation dispositions are linked in EVID-004 and independent validation remains pending | - |
@@ -39,7 +39,7 @@ Most recently completed implementation plan: [PLAN-003 revision 1](plans/UI-REDE
 
 Most recently completed implementation plan: [PLAN-004 revision 1](plans/FEAT-007-implementation.md), covering [FEAT-007 revision 1](features/FEAT-007-security-hardening.md). Len approved both revisions in chat on 2026-10-04T23:19:00+08:00; Phases 1 through 5 are complete and committed at `de94ccbf9503a171364e0a6b4bdbfca49e485ce6`, `a201fb3a2dd5cfc86ceb0321df6bc5a0bf286ce8`, `27698745a0207b996259ea6de4edf3d1d0d806b5`, `ddee080336c97abe0b4c35584165d1628ea7854f`, and `697bfb27e90aa3bae32069a56ac5de16e437decf`.
 
-Draft approval package: [FEAT-001 revision 4](features/FEAT-001-access-dashboard.md) and [PLAN-005 revision 1](plans/FEAT-001-auth-entry-implementation.md) propose Android sign-in, invitation-based account setup, session restoration, and isolated demo access; Len authorized both exact revisions in chat with "Execute the implementation plan $clean-code"; Phase 1 is in progress.
+Current approved package: [FEAT-001 revision 4](features/FEAT-001-access-dashboard.md) and [PLAN-005 revision 1](plans/FEAT-001-auth-entry-implementation.md) propose Android sign-in, invitation-based account setup, session restoration, and isolated demo access; Len authorized both exact revisions in chat with "Execute the implementation plan $clean-code"; Phases 1 and 2 verified; Phase 3 next.
 
 PLAN-001 execution was authorized by Len on 2026-09-16T21:57:07+08:00. PLAN-002 revision 3 and the previously approved baseline revisions were approved by Len on 2026-10-03T22:31:00+08:00.
 

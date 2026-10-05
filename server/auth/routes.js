@@ -211,6 +211,9 @@ export async function authRoutes(fastify, options) {
 
   // POST /api/auth/invitation/accept
   fastify.post('/invitation/accept', {
+    preHandler: async (request, reply) => {
+      if (request.headers.authorization) await fastify.authenticate(request, reply);
+    },
     config: {
       rateLimit: {
         max: 10,
@@ -230,7 +233,7 @@ export async function authRoutes(fastify, options) {
       },
     },
   }, async (request) => {
-    const result = await acceptInvitation(request.body, pool);
+    const result = await acceptInvitation(request.body, pool, request.user?.id);
     return result;
   });
 }

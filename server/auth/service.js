@@ -191,7 +191,7 @@ export async function getUserOrganizations(userId, isOwner = false, customPool =
   return res.rows;
 }
 
-export async function acceptInvitation({ token, email, password, displayName }, customPool = null) {
+export async function acceptInvitation({ token, email, password, displayName }, customPool = null, authenticatedUserId = null) {
   if (!token || !email) {
     const error = new Error('Token and email are required.');
     error.statusCode = 400;
@@ -246,6 +246,11 @@ export async function acceptInvitation({ token, email, password, displayName }, 
 
     if (userRes.rows.length > 0) {
       const existingUser = userRes.rows[0];
+      if (authenticatedUserId !== existingUser.id) {
+        const error = new Error('Sign in with the invitation email before accepting.');
+        error.statusCode = 403;
+        throw error;
+      }
       if (existingUser.status !== 'active') {
         const error = new Error('Account is inactive.');
         error.statusCode = 403;
@@ -253,6 +258,11 @@ export async function acceptInvitation({ token, email, password, displayName }, 
       }
       userId = existingUser.id;
     } else {
+      if (authenticatedUserId) {
+        const error = new Error('Sign in with the invitation email before accepting.');
+        error.statusCode = 403;
+        throw error;
+      }
       if (!password || password.length < 12 || password.length > 128) {
         const error = new Error('Password must be between 12 and 128 characters.');
         error.statusCode = 400;

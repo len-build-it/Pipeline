@@ -208,48 +208,10 @@ class AppRepository extends SyntheticDataRepository {
     }
   }
 
-  /// Accept an invitation token (REQ-001)
-  Future<bool> acceptInvitation({
-    required String token,
-    required String email,
-    required String password,
-    required String displayName,
-  }) async {
-    if (isOffline) {
-      _errorMessage = 'Cannot accept invitations while offline (UI-REQ-008).';
-      notifyListeners();
-      return false;
-    }
-
-    _setLoading(true);
-    try {
-      final res = await apiClient.acceptInvitation(
-        token: token,
-        email: email,
-        password: password,
-        displayName: displayName,
-      );
-      final user = _accountFrom(res);
-      _storeOrganizationsFrom(res);
-
-      _hasSession = true;
-      _requiresSignIn = false;
-      _requiresAuthorization = false;
-      _deniedScopes.clear();
-      switchPersona(user);
-      await refreshCurrentScope();
-      if (!_requiresSignIn && !_requiresAuthorization) _errorMessage = null;
-      return !_requiresSignIn && !_requiresAuthorization;
-    } on ApiException catch (e) {
-      _errorMessage = e.message;
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _errorMessage = 'Invitation acceptance failed: $e';
-      notifyListeners();
-      return false;
-    } finally {
-      _setLoading(false);
+  Future<void> openInvitedOrganization(String organizationId) async {
+    await refreshCurrentScope();
+    if (availableScopes.any((scope) => scope.id == organizationId)) {
+      await selectScope(organizationId);
     }
   }
 

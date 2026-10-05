@@ -24,6 +24,16 @@ export async function buildApp({ customPool = null, customConfig = {}, logger = 
   const fastify = Fastify({
     logger: logger ? {
       level: 'info',
+      serializers: {
+        req(request) {
+          return {
+            method: request.method,
+            url: request.url.replace(/(\/api\/auth\/invitation\/)(?!accept(?:$|\?))[^/?]+/, '$1[redacted]'),
+            hostname: request.hostname,
+            remoteAddress: request.ip,
+          };
+        },
+      },
       redact: [
         'req.headers.authorization',
         'req.headers.cookie',

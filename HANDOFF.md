@@ -2,8 +2,8 @@
 
 Created: 2026-09-16T21:15:03+08:00
 Updated: 2026-10-05T08:23:40+08:00
-State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases and all five approved PLAN-004 phases are committed and locally verified; FEAT-001 revision 4 and PLAN-005 revision 1 are now approved for execution, and Phase 1 is in progress.
-Feature: FEAT-001 Android sign-in, invitation-based account setup, safe session restoration, and isolated demo access; revision 4 and PLAN-005 revision 1 are approved; Phase 1 is in progress.
+State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases and all five approved PLAN-004 phases are committed and locally verified; FEAT-001 revision 4 and PLAN-005 revision 1 are now approved for execution, and Phase 1 is committed; Phase 2 is verified; Phase 3 is next.
+Feature: FEAT-001 Android sign-in, invitation-based account setup, safe session restoration, and isolated demo access; revision 4 and PLAN-005 revision 1 are approved; Phase 1 is committed; Phase 2 is verified; Phase 3 is next.
 Intended executor: Codex, executing the approved PLAN-005 phases continuously.
 
 ## Read first
@@ -111,7 +111,7 @@ Local PostgreSQL on port 5433, the API 37 Android emulator, and Microsoft Edge w
 | Plan and revised specification package await approval | 0, resolved | Approved by Len on 2026-09-16T21:57:07+08:00. | PLAN-001 execution complete through P8. |
 | PLAN-002 specification and execution approval | 0, resolved | Approved by Len on 2026-10-03T22:31:00+08:00; no implementation has started. | Execution started by Claude Code. |
 | Initial toolkit startup EACCES | 0, resolved | Required elevated retry succeeded. | No further action in this session. |
-| PLAN-005 package approval | 0, pending | FEAT-001 revision 4 and PLAN-005 revision 1 are drafts; no application code or checks have been run. | Len reviews and explicitly approves both exact revisions before execution. |
+| PLAN-005 package approval | Resolved | Len authorized FEAT-001 revision 4 and PLAN-005 revision 1 with Execute the implementation plan $clean-code. | Execute the approved phases continuously. |
 | Flutter version check stalled in sandbox | 0, resolved | Elevated check returned installed versions; stalled probe interrupted. | No further action in this session. |
 | Docker engine unavailable | 0, resolved | Local PostgreSQL cluster independently initialized on port 5433 (.db/data). | Running locally for dev and test databases. |
 | P3 test login rate limit | 0, resolved | IP rate limit triggered 429 during sequential test runs; relaxed rate limit when nodeEnv === 'test'. | All 22 auth tests passing. |
@@ -145,7 +145,7 @@ PLAN-002, since revision 2, replaces this three-attempt stop at Len's direction 
 
 ## Next action
 
-Execute PLAN-005 Phase 1, verify its required checks, review the scoped diff, record evidence, and commit before advancing to Phase 2.
+Commit the verified PLAN-005 Phase 2 and continue to Phase 3 demo isolation and integrated Android verification.
 
 Len authorized FEAT-001 revision 4 and PLAN-005 revision 1 in chat with "Execute the implementation plan $clean-code"; approval was recorded at 2026-10-05T08:34:42+08:00.
 
@@ -380,3 +380,12 @@ Flutter analysis passed and the complete Flutter suite passed 67 tests with one 
 The server auth suite passed 27 tests on the validated disposable loopback database.
 See [account entry evidence](docs/evidence/FEAT-001-auth-entry-verification.md) for the scenarios and limits.
 Next action: make the reviewed Phase 1 checkpoint and execute Phase 2 invitation setup continuously.
+
+### PLAN-005 Phase 2 checkpoint
+
+Recorded: 2026-10-05T08:47:58+08:00
+Phase 1 checkpoint verified from Git: a3d9e9648abadede8b11dacaede1d9e14ffab325.
+Phase 2 Flutter analysis, 71 Flutter tests, 28 auth tests, and the real local Flutter auth-route contract scenario pass.
+One correction/check resolved an invalid test token fixture; analyzer findings were resolved independently.
+No unresolved Phase 2 failure remains.
+The reviewed Phase 2 checkpoint is next, followed by Phase 3 without routine approval.

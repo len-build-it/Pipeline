@@ -340,24 +340,33 @@ class ApiClient {
     }
   }
 
+  Future<Map<String, dynamic>> previewInvitation(String token) async {
+    final response = await request(
+      method: 'GET',
+      path: '/auth/invitation/${Uri.encodeComponent(token)}',
+      requiresAuth: false,
+    );
+    return response as Map<String, dynamic>;
+  }
+
   Future<Map<String, dynamic>> acceptInvitation({
     required String token,
     required String email,
-    required String password,
-    required String displayName,
+    String? password,
+    String? displayName,
   }) async {
-    final res = await request(
+    final response = await request(
       method: 'POST',
-      path: '/auth/invitations/accept',
+      path: '/auth/invitation/accept',
       body: {
         'token': token,
         'email': email,
-        'password': password,
-        'displayName': displayName,
+        'password': ?password,
+        'displayName': ?displayName,
       },
-      requiresAuth: false,
+      requiresAuth: await getAccessToken() != null,
     );
-    return res as Map<String, dynamic>;
+    return response as Map<String, dynamic>;
   }
 
   // Overview endpoint

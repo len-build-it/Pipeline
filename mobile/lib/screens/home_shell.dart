@@ -11,8 +11,9 @@ import 'sign_in_screen.dart';
 
 class HomeShell extends StatefulWidget {
   final SyntheticDataRepository repo;
+  final VoidCallback? onInvitation;
 
-  const HomeShell({super.key, required this.repo});
+  const HomeShell({super.key, required this.repo, this.onInvitation});
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -198,6 +199,9 @@ class _HomeShellState extends State<HomeShell> {
                 tooltip: appRepo == null ? 'Demo account' : 'Account',
                 onSelected: (persona) {
                   switch (persona) {
+                    case 'accept_invite':
+                      widget.onInvitation?.call();
+                      break;
                     case 'finance':
                       _openFinance();
                       break;
@@ -238,6 +242,11 @@ class _HomeShellState extends State<HomeShell> {
                 },
                 itemBuilder: (context) => [
                   const PopupMenuItem(value: 'finance', child: Text('Finance')),
+                  if (widget.onInvitation != null)
+                    const PopupMenuItem(
+                      value: 'accept_invite',
+                      child: Text('Accept invitation'),
+                    ),
                   const PopupMenuItem(
                     value: 'sign_out',
                     child: Text('Sign Out'),

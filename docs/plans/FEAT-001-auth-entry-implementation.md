@@ -4,7 +4,7 @@ Created: 2026-10-05T08:18:39+08:00
 Updated: 2026-10-05T08:34:42+08:00
 Plan ID: PLAN-005
 Revision: 1
-Status: Approved - Phase 1 verified; Phase 2 next
+Status: Approved - Phases 1 and 2 verified; Phase 3 next
 Feature spec and revision: [FEAT-001 revision 4](../features/FEAT-001-access-dashboard.md), Approved
 Approved baseline and architecture revisions: PROD-001 revision 3, PROD-002 revision 3, PROD-003 revision 3, PROD-004 revision 4, PROD-005 revision 4, FEAT-005 revision 2, and FEAT-007 revision 1
 Len's chat approval: Len authorized the current FEAT-001 revision 4 and PLAN-005 revision 1 package in chat with: "Execute the implementation plan $clean-code".
@@ -68,7 +68,7 @@ After Len approves both exact revisions, execute each phase continuously when it
 
 Requirements: FEAT-001/REQ-002, FEAT-001/REQ-003, FEAT-001/REQ-006, FEAT-001/REQ-009, FEAT-001/REQ-010, FEAT-001/REQ-013, and FEAT-005/REQ-005 through FEAT-005/REQ-008.
 
-State: Verified - checkpoint commit pending.
+State: Complete - checkpoint a3d9e9648abadede8b11dacaede1d9e14ffab325.
 
 ### Tasks
 
@@ -106,34 +106,34 @@ Continue automatically to Phase 2 after Phase 1 completes.
 
 Requirements: FEAT-001/REQ-001, FEAT-001/REQ-007, FEAT-001/REQ-011, and FEAT-001/REQ-013.
 
-State: Approved - pending execution.
+State: Verified - checkpoint commit pending.
 
 ### Tasks
 
-- [ ] Add a clearly labeled `Have an invitation? Create account` entry from sign-in that accepts an invitation code or a pasted existing invitation URL, then previews the invited organization, role, and recipient email before account setup.
-- [ ] Add a Flutter client method for the existing `GET /api/auth/invitation/:token` endpoint and keep the bearer invitation token out of logs, analytics, error text, and persistent storage.
-- [ ] Build invitation form states for valid, invalid, expired, already used, mismatched email, loading, network failure, and retry, with a clear path back to sign-in.
-- [ ] Let a new invitee set a display name and a 12-to-128-character password with visibility and password-manager paste, and explain that the invitation email must match without arbitrary password character rules.
-- [ ] Offer an `Already have an account? Sign in` route that preserves the pending invitation only in memory and accepts membership only after the signed-in account matches the invitation email.
-- [ ] Correct the mobile acceptance request to the existing singular `/api/auth/invitation/accept` route and adapt the client to the server's actual acceptance response; after new account creation, sign in with the supplied credentials before opening the invited organization.
-- [ ] Enforce the existing-account sign-in requirement at the server boundary as well as in the UI, without changing the invitation lifecycle, public signup policy, database schema, or generic account-existence protections.
-- [ ] Add Flutter and Node authentication regressions proving that a valid invitation creates the intended new user and membership, a matching signed-in existing account may accept, and a mismatched or unauthenticated existing account cannot gain membership.
-- [ ] Prove invalid, expired, consumed, and email-mismatched invitations grant no account or membership, and that successful acceptance cannot be replayed.
+- [x] Add a clearly labeled `Have an invitation? Create account` entry from sign-in that accepts an invitation code or a pasted existing invitation URL, then previews the invited organization, role, and recipient email before account setup.
+- [x] Add a Flutter client method for the existing `GET /api/auth/invitation/:token` endpoint and keep the bearer invitation token out of logs, analytics, error text, and persistent storage.
+- [x] Build invitation form states for valid, invalid, expired, already used, mismatched email, loading, network failure, and retry, with a clear path back to sign-in.
+- [x] Let a new invitee set a display name and a 12-to-128-character password with visibility and password-manager paste, and explain that the invitation email must match without arbitrary password character rules.
+- [x] Offer an `Already have an account? Sign in` route that preserves the pending invitation only in memory and accepts membership only after the signed-in account matches the invitation email.
+- [x] Correct the mobile acceptance request to the existing singular `/api/auth/invitation/accept` route and adapt the client to the server's actual acceptance response; after new account creation, sign in with the supplied credentials before opening the invited organization.
+- [x] Enforce the existing-account sign-in requirement at the server boundary as well as in the UI, without changing the invitation lifecycle, public signup policy, database schema, or generic account-existence protections.
+- [x] Add Flutter and Node authentication regressions proving that a valid invitation creates the intended new user and membership, a matching signed-in existing account may accept, and a mismatched or unauthenticated existing account cannot gain membership.
+- [x] Prove invalid, expired, consumed, and email-mismatched invitations grant no account or membership, and that successful acceptance cannot be replayed.
 
 ### Verification
 
-- [ ] Run `flutter analyze` and `flutter test` from `mobile/`; expect the complete Flutter suite to pass.
-- [ ] Run `npm run test:auth` from the repository root against the isolated loopback PostgreSQL 18 test database; expect all auth and invitation lifecycle tests to pass.
-- [ ] Verify the mobile preview and acceptance requests against the real local auth routes using synthetic invitations, including the exact singular route paths and returned response shapes.
-- [ ] Confirm no live email is sent and no test invitation or account reaches a non-disposable database.
-- [ ] Record commands, invitation fixtures, account and membership outcomes, and limits in `docs/evidence/FEAT-001-auth-entry-verification.md`.
+- [x] Run `flutter analyze` and `flutter test` from `mobile/`; expect the complete Flutter suite to pass.
+- [x] Run `npm run test:auth` from the repository root against the isolated loopback PostgreSQL 18 test database; expect all auth and invitation lifecycle tests to pass.
+- [x] Verify the mobile preview and acceptance requests against the real local auth routes using synthetic invitations, including the exact singular route paths and returned response shapes.
+- [x] Confirm no live email is sent and no test invitation or account reaches a non-disposable database.
+- [x] Record commands, invitation fixtures, account and membership outcomes, and limits in `docs/evidence/FEAT-001-auth-entry-verification.md`.
 
 ### Review and checkpoint
 
-- [ ] Review server-side account binding, invitation-token handling, generic errors, transaction boundaries, rate limits, UX recovery, correctness, scope, dependencies, and unrelated changes.
-- [ ] Update this plan, the evidence record, and the current handoff with actual results.
-- [ ] Stage only reviewed Phase 2 paths and inspect the staged diff.
-- [ ] Commit the reviewed phase as `feat(auth): add invitation account setup flow` and verify Git reports success.
+- [x] Review server-side account binding, invitation-token handling, generic errors, transaction boundaries, rate limits, UX recovery, correctness, scope, dependencies, and unrelated changes.
+- [x] Update this plan, the evidence record, and the current handoff with actual results.
+- [x] Stage only reviewed Phase 2 paths and inspect the staged diff.
+- [x] Commit the reviewed phase as `feat(auth): add invitation account setup flow` and verify Git reports success.
 
 Phase completion requires all listed gates and a successful local commit.
 

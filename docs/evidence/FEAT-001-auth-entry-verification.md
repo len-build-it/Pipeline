@@ -38,3 +38,25 @@ The old sign-in and invitation dialogs and their development-prefilled credentia
 Live account controls omit demo persona, simulation, and reset controls.
 Explicit demo and invitation entry actions are connected in the following approved phases.
 Phase 1 checkpoint message: feat(mobile): add dedicated sign-in and session restore.
+
+## Phase 2
+
+Recorded: 2026-10-05T08:47:58+08:00
+Flutter analysis passed with no issues and the full Flutter suite passed 71 tests with the Finance and auth live opt-in tests skipped in the default run.
+The dedicated npm run test:auth suite passed 28 tests, including rejected anonymous acceptance, rejected wrong-account acceptance, untrusted body identity rejection, matching authenticated acceptance, invalid tokens, expired invitations, email mismatch, single-use replay rejection, and concurrent acceptance.
+The AUTH_LIVE_API=http://127.0.0.1:3100/api flutter test test/auth_live_test.dart --reporter expanded scenario passed against a server built with the existing test helper and disposable loopback database.
+The real Flutter client created a synthetic invitation through the Owner API, previewed its organization/recipient/role, accepted it using the singular route and actual success response, signed in the new account, restored its session, and rejected replay.
+A second synthetic invitation rejected anonymous and Sam-account acceptance before accepting Jordan's authenticated account and granting the intended membership.
+The local server used nodeEnv test with captured email and no live recipient or delivery.
+
+Widget coverage exercises raw codes and pasted URL fragments, malformed links, new-account recipient validation, account creation before sign-in, existing-account sign-in before explicit acceptance, bearer headers without password on existing-account acceptance, network retry, expired status, and consumed status.
+The initial invitation test fixture incorrectly contained 66 hexadecimal characters instead of the server's 64; one fixture correction/check resolved all four invitation failures.
+Initial analyzer block-style and unused-import findings were corrected and final analysis passed.
+No unresolved Phase 2 failure remains.
+
+Review confirmed that invitation state stays in screen memory and no token is written to secure context or error text.
+Server request-log serialization redacts preview tokens from URLs; existing password/token redactions and rate limits remain.
+Existing-account identity comes only from verified authentication, not the request body, and is checked inside the existing acceptance transaction before membership mutation.
+The web acceptance caller now supplies its existing in-memory bearer token when authenticated.
+Phase 1 checkpoint is a3d9e9648abadede8b11dacaede1d9e14ffab325.
+Phase 2 checkpoint message: feat(auth): add invitation account setup flow.

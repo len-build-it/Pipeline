@@ -3,6 +3,7 @@ import 'data/app_repository.dart';
 import 'data/synthetic_data.dart';
 import 'screens/home_shell.dart';
 import 'screens/sign_in_screen.dart';
+import 'screens/invitation_screen.dart';
 import 'theme.dart';
 
 void main() => runApp(const TeamManagerApp());
@@ -58,7 +59,21 @@ class _TeamManagerAppState extends State<TeamManagerApp> {
     super.dispose();
   }
 
-  Widget _entryPage() => switch (_entry) {
+  Future<void> _openInvitation(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => InvitationScreen(
+          repository: _account,
+          onJoined: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+    if (mounted && _account.hasSession) {
+      setState(() => _entry = _Entry.authenticated);
+    }
+  }
+
+  Widget _entryPage(BuildContext context) => switch (_entry) {
     _Entry.restoring => Scaffold(
       body: Center(
         child: Semantics(
@@ -72,9 +87,13 @@ class _TeamManagerAppState extends State<TeamManagerApp> {
       repository: _account,
       notice: _account.errorMessage,
       onRestore: _restore,
+      onCreateAccount: () => _openInvitation(context),
       onAuthenticated: () => setState(() => _entry = _Entry.authenticated),
     ),
-    _Entry.authenticated => HomeShell(repo: _account),
+    _Entry.authenticated => HomeShell(
+      repo: _account,
+      onInvitation: () => _openInvitation(context),
+    ),
     _Entry.demo => HomeShell(repo: _demo!),
   };
 
@@ -87,7 +106,7 @@ class _TeamManagerAppState extends State<TeamManagerApp> {
     home: Navigator(
       key: ValueKey(_entry),
       onGenerateRoute: (_) =>
-          MaterialPageRoute<void>(builder: (_) => _entryPage()),
+          MaterialPageRoute<void>(builder: (context) => _entryPage(context)),
     ),
   );
 }

@@ -246,7 +246,7 @@ export function renderInviteAccept(container, state, actions) {
     try {
       const res = await fetch('/api/auth/invitation/accept', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}) },
         body: JSON.stringify({ token, email, password, displayName: name }),
       });
 
