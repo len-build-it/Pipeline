@@ -35,22 +35,24 @@ class ConflictException extends ApiException {
 }
 
 class ApiClient {
-  static const String defaultAndroidEmulatorBaseUrl = 'http://10.0.2.2:3000/api';
+  static const String defaultAndroidEmulatorBaseUrl =
+      'http://10.0.2.2:3000/api';
   static const String defaultLocalhostBaseUrl = 'http://127.0.0.1:3000/api';
 
   final String baseUrl;
   final http.Client httpClient;
   final SecureStorageAdapter storage;
 
-  Completer<String?>? _refreshCompleter;
+  String? _accessToken;
+  Future<String?>? _refreshFuture;
 
   ApiClient({
     String? baseUrl,
     http.Client? httpClient,
     SecureStorageAdapter? storageAdapter,
-  })  : baseUrl = baseUrl ?? _resolveDefaultBaseUrl(),
-        httpClient = httpClient ?? http.Client(),
-        storage = storageAdapter ?? FlutterSecureStorageAdapter();
+  }) : baseUrl = baseUrl ?? _resolveDefaultBaseUrl(),
+       httpClient = httpClient ?? http.Client(),
+       storage = storageAdapter ?? FlutterSecureStorageAdapter();
 
   static String _resolveDefaultBaseUrl() {
     try {
@@ -62,25 +64,37 @@ class ApiClient {
   }
 
   // Token storage
-  Future<String?> getAccessToken() => storage.read(key: 'auth_access_token');
+  Future<String?> getAccessToken() async => _accessToken;
   Future<String?> getRefreshToken() => storage.read(key: 'auth_refresh_token');
+  Future<String?> getSessionId() => storage.read(key: 'auth_session_id');
 
   Future<void> saveTokens({
     required String accessToken,
     required String refreshToken,
     DateTime? sessionExpiry,
+    String? sessionId,
   }) async {
-    await storage.write(key: 'auth_access_token', value: accessToken);
+    _accessToken = accessToken;
+    await storage.delete(key: 'auth_access_token');
     await storage.write(key: 'auth_refresh_token', value: refreshToken);
+    if (sessionId != null) {
+      await storage.write(key: 'auth_session_id', value: sessionId);
+    }
     if (sessionExpiry != null) {
-      await storage.write(key: 'auth_session_expiry', value: sessionExpiry.toIso8601String());
+      await storage.write(
+        key: 'auth_session_expiry',
+        value: sessionExpiry.toIso8601String(),
+      );
     }
   }
 
   Future<void> clearTokens() async {
+    _accessToken = null;
     await storage.delete(key: 'auth_access_token');
     await storage.delete(key: 'auth_refresh_token');
     await storage.delete(key: 'auth_session_expiry');
+    await storage.delete(key: 'auth_session_id');
+    await storage.delete(key: 'auth_account_context');
   }
 
   Future<DateTime?> getSessionExpiry() async {
@@ -93,62 +107,60 @@ class ApiClient {
     }
   }
 
-  // Serialized token refresh
-  Future<String?> _refreshAccessTokenSerialized() async {
-    if (_refreshCompleter != null) {
-      return _refreshCompleter!.future;
+  Future<String?> _refreshAccessTokenSerialized() {
+    return _refreshFuture ??= _refreshAccessToken().whenComplete(() {
+      _refreshFuture = null;
+    });
+  }
+
+  Future<String?> _refreshAccessToken() async {
+    final refreshToken = await getRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) {
+      await clearTokens();
+      return null;
     }
-
-    _refreshCompleter = Completer<String?>();
-
     try {
-      final currentRefreshToken = await getRefreshToken();
-      if (currentRefreshToken == null || currentRefreshToken.isEmpty) {
-        await clearTokens();
-        _refreshCompleter!.complete(null);
-        return null;
-      }
-
-      final uri = Uri.parse('$baseUrl/auth/refresh');
-      final response = await httpClient.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({'refreshToken': currentRefreshToken}),
-      ).timeout(const Duration(seconds: 10));
-
+      final response = await _sendWithTimeout(
+        'POST',
+        Uri.parse('$baseUrl/auth/refresh'),
+        {'Content-Type': 'application/json', 'Accept': 'application/json'},
+        {'refreshToken': refreshToken, 'sessionId': await getSessionId()},
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final newAccessToken = data['accessToken'] as String?;
-        final newRefreshToken = data['refreshToken'] as String?;
-
-        if (newAccessToken != null && newRefreshToken != null) {
+        final access = data['accessToken'] as String?;
+        final refresh = data['refreshToken'] as String?;
+        if (access != null && refresh != null) {
           await saveTokens(
-            accessToken: newAccessToken,
-            refreshToken: newRefreshToken,
+            accessToken: access,
+            refreshToken: refresh,
+            sessionId: data['sessionId'] as String?,
+            sessionExpiry: DateTime.tryParse(
+              data['expiresAt']?.toString() ?? '',
+            ),
           );
-          _refreshCompleter!.complete(newAccessToken);
-          return newAccessToken;
+          return access;
         }
       }
-
-      // Refresh failed or returned 401/403
-      await clearTokens();
-      _refreshCompleter!.complete(null);
-      return null;
-    } catch (e) {
-      // If network error during refresh, do NOT clear tokens immediately (might be temporary offline)
-      if (e is SocketException || e is http.ClientException || e is TimeoutException) {
-        _refreshCompleter!.completeError(NetworkException('Unable to reach server to refresh session: $e'));
-      } else {
-        await clearTokens();
-        _refreshCompleter!.complete(null);
+      if (response.statusCode >= 500 || response.statusCode == 429) {
+        throw NetworkException(
+          'The server is temporarily unavailable. Try again.',
+        );
       }
+      await clearTokens();
       return null;
-    } finally {
-      _refreshCompleter = null;
+    } on NetworkException {
+      rethrow;
+    } on SocketException {
+      throw NetworkException(
+        'Unable to reconnect. Check your connection and try again.',
+      );
+    } on http.ClientException {
+      throw NetworkException(
+        'Unable to reconnect. Check your connection and try again.',
+      );
+    } on TimeoutException {
+      throw NetworkException('The connection timed out. Try again.');
     }
   }
 
@@ -164,9 +176,7 @@ class ApiClient {
       uri = uri.replace(queryParameters: queryParams);
     }
 
-    final headers = <String, String>{
-      'Accept': 'application/json',
-    };
+    final headers = <String, String>{'Accept': 'application/json'};
 
     if (body != null) {
       headers['Content-Type'] = 'application/json';
@@ -184,8 +194,12 @@ class ApiClient {
     try {
       response = await _sendWithTimeout(method, uri, headers, body);
     } catch (e) {
-      if (e is SocketException || e is http.ClientException || e is TimeoutException) {
-        throw NetworkException('Network error connecting to $uri: $e');
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is TimeoutException) {
+        throw NetworkException(
+          'Unable to connect. Check your connection and try again.',
+        );
       }
       rethrow;
     }
@@ -198,13 +212,20 @@ class ApiClient {
         try {
           response = await _sendWithTimeout(method, uri, headers, body);
         } catch (e) {
-          if (e is SocketException || e is http.ClientException || e is TimeoutException) {
-            throw NetworkException('Network error connecting to $uri: $e');
+          if (e is SocketException ||
+              e is http.ClientException ||
+              e is TimeoutException) {
+            throw NetworkException(
+              'Unable to connect. Check your connection and try again.',
+            );
           }
           rethrow;
         }
       } else {
-        throw AuthenticationException('Authentication session expired or revoked (401).', 401);
+        throw AuthenticationException(
+          'Authentication session expired or revoked (401).',
+          401,
+        );
       }
     }
 
@@ -220,13 +241,21 @@ class ApiClient {
     final payload = body != null ? jsonEncode(body) : null;
     switch (method.toUpperCase()) {
       case 'GET':
-        return httpClient.get(uri, headers: headers).timeout(const Duration(seconds: 15));
+        return httpClient
+            .get(uri, headers: headers)
+            .timeout(const Duration(seconds: 15));
       case 'POST':
-        return httpClient.post(uri, headers: headers, body: payload).timeout(const Duration(seconds: 15));
+        return httpClient
+            .post(uri, headers: headers, body: payload)
+            .timeout(const Duration(seconds: 15));
       case 'PATCH':
-        return httpClient.patch(uri, headers: headers, body: payload).timeout(const Duration(seconds: 15));
+        return httpClient
+            .patch(uri, headers: headers, body: payload)
+            .timeout(const Duration(seconds: 15));
       case 'DELETE':
-        return httpClient.delete(uri, headers: headers, body: payload).timeout(const Duration(seconds: 15));
+        return httpClient
+            .delete(uri, headers: headers, body: payload)
+            .timeout(const Duration(seconds: 15));
       default:
         throw ArgumentError('Unsupported HTTP method: $method');
     }
@@ -281,7 +310,10 @@ class ApiClient {
       await saveTokens(
         accessToken: accessToken,
         refreshToken: refreshToken,
-        sessionExpiry: DateTime.now().add(const Duration(days: 30)),
+        sessionId: data['sessionId'] as String?,
+        sessionExpiry:
+            DateTime.tryParse(data['expiresAt']?.toString() ?? '') ??
+            DateTime.now().add(const Duration(days: 7)),
       );
     }
     return data;
@@ -294,11 +326,12 @@ class ApiClient {
 
   Future<void> logout() async {
     try {
-      final rt = await getRefreshToken();
+      final sessionId = await getSessionId();
       await request(
         method: 'POST',
         path: '/auth/logout',
-        body: {'refreshToken': rt},
+        body: {'sessionId': sessionId},
+        requiresAuth: false,
       );
     } catch (_) {
       // Best effort remote logout
@@ -347,10 +380,7 @@ class ApiClient {
     String? role,
     String? status,
   }) async {
-    final params = {
-      'page': page.toString(),
-      'limit': limit.toString(),
-    };
+    final params = {'page': page.toString(), 'limit': limit.toString()};
     if (search != null && search.isNotEmpty) params['search'] = search;
     if (role != null && role.isNotEmpty) params['role'] = role;
     if (status != null && status.isNotEmpty) params['status'] = status;
@@ -371,16 +401,15 @@ class ApiClient {
     final res = await request(
       method: 'POST',
       path: '/members/invitations',
-      body: {
-        'organizationId': organizationId,
-        'email': email,
-        'role': role,
-      },
+      body: {'organizationId': organizationId, 'email': email, 'role': role},
     );
     return res as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> updateMemberNotes(String memberId, String notes) async {
+  Future<Map<String, dynamic>> updateMemberNotes(
+    String memberId,
+    String notes,
+  ) async {
     final res = await request(
       method: 'PATCH',
       path: '/members/$memberId/notes',
@@ -389,7 +418,10 @@ class ApiClient {
     return res as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> updateMemberStatus(String memberId, String status) async {
+  Future<Map<String, dynamic>> updateMemberStatus(
+    String memberId,
+    String status,
+  ) async {
     final res = await request(
       method: 'PATCH',
       path: '/members/$memberId/status',
@@ -398,7 +430,10 @@ class ApiClient {
     return res as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> updateMemberRole(String memberId, String role) async {
+  Future<Map<String, dynamic>> updateMemberRole(
+    String memberId,
+    String role,
+  ) async {
     final res = await request(
       method: 'PATCH',
       path: '/members/$memberId/role',
@@ -421,13 +456,12 @@ class ApiClient {
     bool? overdue,
     bool? archived,
   }) async {
-    final params = {
-      'page': page.toString(),
-      'limit': limit.toString(),
-    };
+    final params = {'page': page.toString(), 'limit': limit.toString()};
     if (status != null && status.isNotEmpty) params['status'] = status;
     if (priority != null && priority.isNotEmpty) params['priority'] = priority;
-    if (assigneeId != null && assigneeId.isNotEmpty) params['assigneeId'] = assigneeId;
+    if (assigneeId != null && assigneeId.isNotEmpty) {
+      params['assigneeId'] = assigneeId;
+    }
     if (label != null && label.isNotEmpty) params['label'] = label;
     if (search != null && search.isNotEmpty) params['search'] = search;
     if (overdue != null) params['overdue'] = overdue.toString();
@@ -462,7 +496,9 @@ class ApiClient {
       'priority': priority,
       'labels': labels,
     };
-    if (assigneeId != null && assigneeId.isNotEmpty) body['assigneeId'] = assigneeId;
+    if (assigneeId != null && assigneeId.isNotEmpty) {
+      body['assigneeId'] = assigneeId;
+    }
     if (dueDate != null && dueDate.isNotEmpty) body['dueDate'] = dueDate;
 
     final res = await request(method: 'POST', path: '/tasks', body: body);
@@ -489,11 +525,19 @@ class ApiClient {
     if (dueDate != null) body['dueDate'] = dueDate;
     if (labels != null) body['labels'] = labels;
 
-    final res = await request(method: 'PATCH', path: '/tasks/$taskId', body: body);
+    final res = await request(
+      method: 'PATCH',
+      path: '/tasks/$taskId',
+      body: body,
+    );
     return res as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> updateTaskStatus(String taskId, String status, int version) async {
+  Future<Map<String, dynamic>> updateTaskStatus(
+    String taskId,
+    String status,
+    int version,
+  ) async {
     final res = await request(
       method: 'PATCH',
       path: '/tasks/$taskId/status',
@@ -507,7 +551,10 @@ class ApiClient {
     return res as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> addTaskComment(String taskId, String body) async {
+  Future<Map<String, dynamic>> addTaskComment(
+    String taskId,
+    String body,
+  ) async {
     final res = await request(
       method: 'POST',
       path: '/tasks/$taskId/comments',
@@ -547,7 +594,10 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> getAnnouncement(String announcementId) async {
-    final res = await request(method: 'GET', path: '/announcements/$announcementId');
+    final res = await request(
+      method: 'GET',
+      path: '/announcements/$announcementId',
+    );
     return res as Map<String, dynamic>;
   }
 
@@ -570,7 +620,9 @@ class ApiClient {
     return res as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> publishAnnouncement(String announcementId) async {
+  Future<Map<String, dynamic>> publishAnnouncement(
+    String announcementId,
+  ) async {
     final res = await request(
       method: 'POST',
       path: '/announcements/$announcementId/publish',
@@ -578,7 +630,9 @@ class ApiClient {
     return res as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> archiveAnnouncement(String announcementId) async {
+  Future<Map<String, dynamic>> archiveAnnouncement(
+    String announcementId,
+  ) async {
     final res = await request(
       method: 'POST',
       path: '/announcements/$announcementId/archive',

@@ -159,6 +159,7 @@ export async function rotateRefreshToken(sessionId, presentedToken, customPool =
     user: sanitizeUser(userResult.rows[0]),
     sessionId,
     newRefreshToken,
+    expiresAt: session.expires_at,
   };
 }
 

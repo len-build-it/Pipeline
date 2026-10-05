@@ -78,6 +78,7 @@ export async function authRoutes(fastify, options) {
       sessionId,
       csrfToken,
       organizations,
+      expiresAt,
     };
   });
 
@@ -114,7 +115,7 @@ export async function authRoutes(fastify, options) {
       }
     }
 
-    const { user, sessionId, newRefreshToken } = await rotateRefreshToken(sessionToUse, tokenToUse, pool);
+    const { user, sessionId, newRefreshToken, expiresAt } = await rotateRefreshToken(sessionToUse, tokenToUse, pool);
 
     const newAccessToken = fastify.jwt.sign({
       sub: user.id,
@@ -124,7 +125,6 @@ export async function authRoutes(fastify, options) {
     });
 
     const newCsrfToken = generateRandomToken(16);
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     reply.setCookie('refreshToken', newRefreshToken, {
       path: '/api/auth',
@@ -148,6 +148,7 @@ export async function authRoutes(fastify, options) {
       refreshToken: newRefreshToken,
       sessionId,
       csrfToken: newCsrfToken,
+      expiresAt,
     };
   });
 

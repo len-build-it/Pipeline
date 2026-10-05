@@ -1,10 +1,10 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-05T01:11:28+08:00
-State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases are committed and locally verified; FEAT-007 revision 1 and PLAN-004 revision 1 are approved, and all five PLAN-004 phases are committed and locally verified.
-Feature: FEAT-007 security hardening from audit candidate leads; approved by Len in chat on 2026-10-04T23:19:00+08:00; all five approved phases are complete and committed locally.
-Intended executor: Codex, proceeding continuously under PLAN-004.
+Updated: 2026-10-05T08:23:40+08:00
+State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases and all five approved PLAN-004 phases are committed and locally verified; FEAT-001 revision 4 and PLAN-005 revision 1 are now approved for execution, and Phase 1 is in progress.
+Feature: FEAT-001 Android sign-in, invitation-based account setup, safe session restoration, and isolated demo access; revision 4 and PLAN-005 revision 1 are approved; Phase 1 is in progress.
+Intended executor: Codex, executing the approved PLAN-005 phases continuously.
 
 ## Read first
 
@@ -15,6 +15,7 @@ Intended executor: Codex, proceeding continuously under PLAN-004.
 - [The completed MVP implementation checklist](docs/plans/FEAT-001-implementation.md) and [verification ledger](docs/evidence/MVP-verification.md).
 - [Finance feature](docs/features/FEAT-006-configurable-finance.md) and [its implementation plan](docs/plans/FEAT-006-implementation.md).
 - [Security hardening feature](docs/features/FEAT-007-security-hardening.md) and [its implementation plan](docs/plans/FEAT-007-implementation.md), approved by Len on 2026-10-04T23:19:00+08:00.
+- [FEAT-001 account access revision 4](docs/features/FEAT-001-access-dashboard.md) and [PLAN-005 Android access implementation](docs/plans/FEAT-001-auth-entry-implementation.md), both approved for execution.
 - [UI/UX design handoff brief](docs/product/UI_UX_HANDOFF_BRIEF.md), an informational summary for design work that does not replace or revise the approved specifications.
 - [Lagoon UI redesign implementation handoff](docs/product/UI_REDESIGN_LAGOON_HANDOFF.md), a supporting design reference for the approved PROD-005 revision 4 and PLAN-003 revision 1 implementation.
 
@@ -35,6 +36,7 @@ Execution of PLAN-001 P1 through P8 proceeded continuously without routine phase
 | PROD-005 UI and UX | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | PROD-005 UI and UX | 4 | Approved by Len in chat on 2026-10-04T16:19:21+08:00. |
 | FEAT-001 Access and dashboard | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
+| FEAT-001 Access and dashboard | 4 | Approved by Len in chat: "Execute the implementation plan $clean-code"; recorded 2026-10-05T08:34:42+08:00. |
 | FEAT-002 Members | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
 | FEAT-003 Tasks | 2 | Approved by Len in chat on 2026-09-16T21:57:07+08:00. |
 | FEAT-004 Announcements | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
@@ -45,8 +47,9 @@ Execution of PLAN-001 P1 through P8 proceeded continuously without routine phase
 | PLAN-002 Configurable finance implementation | 3 | Approved by Len in chat on 2026-10-03T22:31:00+08:00. |
 | PLAN-003 Lagoon UI redesign implementation | 1 | Approved by Len in chat on 2026-10-04T16:19:21+08:00. |
 | PLAN-004 Security hardening implementation | 1 | Approved by Len in chat on 2026-10-04T23:19:00+08:00: "Approve FEAT-007 revision 1 and PLAN-004 revision 1". |
+| PLAN-005 Android sign-in and account setup | 1 | Approved with FEAT-001 revision 4 by Len in chat: "Execute the implementation plan $clean-code"; recorded 2026-10-05T08:34:42+08:00. |
 
-Allowed execution phases: PLAN-001 P1 through P8, PLAN-002 Phase 1 through Phase 6, PLAN-003 Phase 1 through Phase 6, and PLAN-004 Phase 1 through Phase 5 are complete and committed locally.
+Allowed execution phases: PLAN-001 P1 through P8, PLAN-002 Phase 1 through Phase 6, PLAN-003 Phase 1 through Phase 6, and PLAN-004 Phase 1 through Phase 5 are complete and committed locally; PLAN-005 is approved for continuous execution of its three phases.
 
 PLAN-002 is a separate scope with its own approval: on 2026-10-03T22:31:00+08:00 Len wrote "Yes I approve of the revisions" in reply to a request naming FEAT-006 revision 2, PLAN-002 revision 3, the other draft revisions in this table, and `exceljs@4.4.0`.
 
@@ -108,6 +111,7 @@ Local PostgreSQL on port 5433, the API 37 Android emulator, and Microsoft Edge w
 | Plan and revised specification package await approval | 0, resolved | Approved by Len on 2026-09-16T21:57:07+08:00. | PLAN-001 execution complete through P8. |
 | PLAN-002 specification and execution approval | 0, resolved | Approved by Len on 2026-10-03T22:31:00+08:00; no implementation has started. | Execution started by Claude Code. |
 | Initial toolkit startup EACCES | 0, resolved | Required elevated retry succeeded. | No further action in this session. |
+| PLAN-005 package approval | 0, pending | FEAT-001 revision 4 and PLAN-005 revision 1 are drafts; no application code or checks have been run. | Len reviews and explicitly approves both exact revisions before execution. |
 | Flutter version check stalled in sandbox | 0, resolved | Elevated check returned installed versions; stalled probe interrupted. | No further action in this session. |
 | Docker engine unavailable | 0, resolved | Local PostgreSQL cluster independently initialized on port 5433 (.db/data). | Running locally for dev and test databases. |
 | P3 test login rate limit | 0, resolved | IP rate limit triggered 429 during sequential test runs; relaxed rate limit when nodeEnv === 'test'. | All 22 auth tests passing. |
@@ -141,15 +145,9 @@ PLAN-002, since revision 2, replaces this three-attempt stop at Len's direction 
 
 ## Next action
 
-PLAN-002 is complete. PLAN-003 revision 1 remains the approved plan for the Lagoon redesign.
+Execute PLAN-005 Phase 1, verify its required checks, review the scoped diff, record evidence, and commit before advancing to Phase 2.
 
-Phase 5 Android implementation and required checks are complete and committed as `feat(mobile): restyle lagoon android screens` at `75bed89f035e0a13acc9ad9103f3988697fe3ba6`.
-
-Phase 6 web, mobile, responsive, keyboard, contrast, and emulator verification and its evidence are committed as `test(ui): verify lagoon redesign release`.
-
-No approved local implementation phase remains; physical-device, TalkBack, API 24, real Safari, production, and field checks remain pending until actual results are available.
-
-The requested informational UI/UX handoff brief is complete at [docs/product/UI_UX_HANDOFF_BRIEF.md](docs/product/UI_UX_HANDOFF_BRIEF.md). No implementation or product-scope change was authorized by that documentation task.
+Len authorized FEAT-001 revision 4 and PLAN-005 revision 1 in chat with "Execute the implementation plan $clean-code"; approval was recorded at 2026-10-05T08:34:42+08:00.
 
 On 2026-10-04T15:15:24+08:00, at Len's request in chat ("Produce design mockups"), Claude Code published 13 static design mockups from that brief as a private claude.ai design canvas titled "Team Manager design mockups".
 The mockups cover the web shell and five destinations, the owner combined overview, the spreadsheet import preview, phone-width web tasks, and four Android screens.
@@ -337,3 +335,48 @@ Browser suites regenerated tracked screenshots that are preserved and must remai
 EVID-003 remains an incomplete source-first audit with no confirmed vulnerabilities; EVID-004 records the synthetic implementation results and the remaining production, physical-device, and independent-validator limits.
 
 PLAN-004's local final verification and all five phase hashes are recorded in [the approved implementation plan](docs/plans/FEAT-007-implementation.md) and [EVID-004](docs/evidence/FEAT-007-security-hardening-verification.md).
+
+## 2026-10-05 Android account-entry planning handoff
+
+Len asked for an implementation plan for a dedicated sign-in page with demo access and signup, then confirmed that signup means invitation-only account setup.
+
+FEAT-001 revision 4 and PLAN-005 revision 1 are planning drafts prepared on branch `codex/organization-manager-mvp` at baseline commit `1f588dd7d866cb242d1a867dd25513d749c62a46`; no implementation approval is recorded.
+
+The package keeps public registration, password reset, new dependencies, and database migrations out of scope; it preserves the approved Lagoon Android navigation, the four bottom destinations, and FEAT-005's bounded cache policy.
+
+Source review found that startup currently opens synthetic data, authentication forms are dialogs inside the demo account menu, development credentials can be prefilled, mobile invitation acceptance targets a plural route that does not match the server, and the client expects an acceptance response shape the server does not return.
+
+PLAN-005 includes a server-side check that an existing account must authenticate as the invitation's matching email before it receives the invited membership, as already required by DATA_MODEL.md and FEAT-001/REQ-007.
+
+The plan uses the existing invitation preview and acceptance routes, secure storage, Flutter UI, and synthetic repository; it proposes no new dependencies or account schema.
+
+The UI/UX review keeps the approved Lagoon style and adds familiar labeled Flutter forms, autofill and password paste, password visibility, announced validation and errors, loading feedback, and retry paths.
+
+Verified Android App Links remain a later decision because invitation URLs currently use a local development host and production hosting has no approved domain; the draft accepts a pasted invitation code or URL.
+
+`npx len-toolkit start` was run for this session, installed zero files, and reported an existing `.gitignore` difference that was preserved; its setup output is not implementation approval.
+
+No tests, builds, database commands, browsers, or emulators were run for this planning package; only Markdown document diffs and whitespace consistency remain to be reviewed before presenting the approval package.
+
+## PLAN-005 execution
+
+Approval of FEAT-001 revision 4 and PLAN-005 revision 1 was recorded at 2026-10-05T08:34:42+08:00 from Len's exact message: "Execute the implementation plan $clean-code".
+
+Phase 1 is in progress; existing planning-document changes are part of the approved package and no unrelated source changes were present.
+
+### PLAN-005 Phase 1 initial verification
+
+During the initial Phase 1 checks, the first Flutter analyzer and suite found a non-const Semantics compilation error, an invalid test focus getter, and a changed organization-denial behavior.
+No phase checkpoint was made.
+Two correction/check rounds resolved the initial failures and remaining lint findings.
+No unresolved Phase 1 failure remains.
+The isolated PostgreSQL pipeline_test authentication suite passed 27 tests.
+
+### PLAN-005 Phase 1 checkpoint
+
+Recorded: 2026-10-05T08:41:51+08:00
+Phase 1 implementation and verification are complete pending its local checkpoint commit.
+Flutter analysis passed and the complete Flutter suite passed 67 tests with one existing opt-in live test skipped.
+The server auth suite passed 27 tests on the validated disposable loopback database.
+See [account entry evidence](docs/evidence/FEAT-001-auth-entry-verification.md) for the scenarios and limits.
+Next action: make the reviewed Phase 1 checkpoint and execute Phase 2 invitation setup continuously.
