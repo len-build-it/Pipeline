@@ -175,7 +175,11 @@ class _TeamManagerAppState extends State<TeamManagerApp> {
                         ),
                       ),
                     ),
-                    Expanded(child: _navigation()),
+                    // Own container, or the route barrier hides the banner
+                    // above from screen readers.
+                    Expanded(
+                      child: Semantics(container: true, child: _navigation()),
+                    ),
                   ],
                 ),
               ),

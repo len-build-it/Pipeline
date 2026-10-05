@@ -82,6 +82,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('sign-in-email')), findsOneWidget);
   });
+
+  testWidgets('demo banner is announced to screen readers', (tester) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      TeamManagerApp(
+        initialRepo: fixtures.repository(
+          InMemoryStorageAdapter(),
+          fixtures.live,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Try demo'));
+    await tester.tap(find.text('Try demo'));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Demo - sample data'), findsOneWidget);
+    handle.dispose();
+  });
+
   testWidgets(
     'demo navigation remains readable at 200 percent text on a phone',
     (tester) async {

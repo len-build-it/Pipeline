@@ -1,9 +1,9 @@
 # Current handoff
 
 Created: 2026-09-16T21:15:03+08:00
-Updated: 2026-10-05T09:56:00+08:00
+Updated: 2026-10-05T11:11:36+08:00
 State: FEAT-001 through FEAT-006 implementation and local software MVP remain complete; all six approved Lagoon redesign phases and all five approved PLAN-004 phases are committed and locally verified; PLAN-005 Phases 1 and 2 are committed; Phase 3 passed its software checks and its API 24 and API 36 emulator gates were dropped by Len in PLAN-005 revision 2.
-Feature: FEAT-001 Android sign-in, invitation-based account setup, safe session restoration, and isolated demo access; revision 4 and PLAN-005 revision 2 are approved; all three phases are implemented; emulator and physical-device behavior for this feature is unverified.
+Feature: FEAT-001 Android sign-in, invitation-based account setup, safe session restoration, and isolated demo access; revision 4 and PLAN-005 revision 2 are approved; all three phases are implemented and committed; the first-run journey passed on the API 37 emulator at 100 and 200 percent text; API 24, API 36, and physical-device behavior for this feature is unverified.
 Intended executor: Codex executed Phases 1 through 3; Claude Code finished the Phase 3 checks and checkpoint on 2026-10-05.
 
 ## Read first
@@ -137,6 +137,7 @@ Local PostgreSQL on port 5433, the API 37 Android emulator, and Microsoft Edge w
 | ISS-014 PLAN-003 Phase 2 Finance refresh race | 3 failed full-suite runs before expanded authorization; resolved on the first authorized fix-and-check | Finance requests used live filter state and had no latest-request guard, so overlapping responses could replace newer results; a scope refresh could rerender Finance after navigation and restore default dates; the tests proceeded before the filter refresh completed. Len expanded authorization on 2026-10-04 to fix these failures. `web/js/app.js` now ignores stale scope completions and avoids replacing an active Finance page after navigation; `web/js/views/finance.js` snapshots each request and ignores stale responses and errors while exposing `aria-busy`; the existing E2E flow now waits for the refresh to finish without weakening assertions. The targeted Finance journeys passed 3/3 after the fix, two full `npm run test:e2e` runs passed 13/13 each, and two `npm run test:ui` runs passed 13/13 each. | Resolved. Phase 2 is committed as `8caa32e`; continue with approved Phase 3. |
 | ISS-015 PLAN-003 Phase 3 over-budget E2E fixture | 1 failed focused run; resolved on the second focused run | The new over-budget hero scenario lowered Travel’s budget, which changed the existing later assertion from PHP 633.33 to PHP 233.33. The test now restores Travel to PHP 500.00 with the latest version before continuing; no existing expectation was changed. The next focused run passed the report, import, and responsive journeys 3/3. Full `npm test` passed 122/122, `npm run test:ui` passed 13/13, and `npm run test:e2e` passed 13/13 on 2026-10-04. | Resolved. Phase 3 is committed as `58a8d71`; continue with approved Phase 4. |
 | ISS-016 Tasks filter bar overflow at 200 percent text in demo (PLAN-005 Phase 3) | Earlier session count not recorded; resolved on the first attempt of the 2026-10-05 Claude Code session | `flutter test` failed the demo navigation test with a 28-pixel bottom overflow in `tasks_screen.dart`; the filter bar is now capped at 30 percent of screen height and scrolls. | `flutter test` passing 77 tests with two opt-in live tests skipped. |
+| ISS-017 Demo banner missing from the native accessibility tree (PLAN-005 Phase 3) | Earlier session count not recorded; resolved on the first attempt of the 2026-10-05 Claude Code session | The emulator scenario stopped waiting for `Demo - sample data` on API 24, API 36, and then API 37; the nested entry navigator's route barrier blocked the banner's semantics. `mobile/lib/main.dart` now gives the navigator its own semantics container. | New widget test passing; API 37 scenario passing at 100 and 200 percent text. |
 
 For implementation failures, add a stable issue ID, initial failing command, attempted fixes, outcomes, affected phases, and counts here.
 
@@ -146,7 +147,9 @@ PLAN-002, since revision 2, replaces this three-attempt stop at Len's direction 
 
 ## Next action
 
-No approved PLAN-005 implementation work remains after the Phase 3 checkpoint `feat(mobile): isolate demo access from live accounts`; verify its hash and the push from Git.
+No approved PLAN-005 implementation work remains; Phase 3 is commit `895c9400dd5f320b7cd5de107bb14e0d32ba8a7a`, pushed to `origin/codex/organization-manager-mvp`.
+The follow-up `fix(mobile): announce demo banner to screen readers` is a local commit; pushing it needs Len's authorization.
+Open decisions for Len: whether to keep or remove the doubled field labels seen on API 37, and whether to shorten the Announcements bottom-bar label that wraps at 200 percent text.
 Len handles physical-device validation of sign-in, invitation setup, demo, and 200 percent text.
 If API 24 or API 36 emulator evidence is wanted later, install those system images through Android Studio's SDK Manager into the shared SDK, not into this workspace.
 
@@ -434,3 +437,16 @@ The emulator journey was not completed on API 24 or API 36 before deletion, and 
 The Codex session that started Phase 3 may still be open and should re-read this handoff before doing anything further.
 Phase 3 checkpoint message: feat(mobile): isolate demo access from live accounts.
 The same message from Len authorized pushing `codex/organization-manager-mvp` to GitHub.
+
+### PLAN-005 Phase 3 follow-up on API 37
+
+Recorded: 2026-10-05T11:11:36+08:00
+Len asked Claude Code to pick up where Codex left off; Codex had stopped with the emulator scenario failing at the Demo banner.
+The scenario was rerun on the remaining Android Studio `Medium_Phone` API 37 emulator against the disposable test API on loopback port 3000.
+It reproduced the failure, recorded as ISS-017; one correction in `mobile/lib/main.dart` and one new widget test resolved it.
+A second stop was a script scroll limitation with the taller keyboard, corrected in the ignored `.db/android-auth-scenario.py`, not in the app.
+The full scenario then passed at 100 and 200 percent text; `flutter analyze` passed and `flutter test` passed 78 tests with two opt-in live tests skipped.
+Twelve API 37 screenshots were added; see [account entry evidence](docs/evidence/FEAT-001-auth-entry-verification.md) for conditions and limits.
+Not covered: API 24, API 36, physical devices, TalkBack itself, the offline-cache journey on an emulator, and error or stale-cache messages at 200 percent.
+The emulator font scale was restored to 1.0, the emulator and test API were stopped, and `mobile/build` was removed again.
+Follow-up checkpoint message: fix(mobile): announce demo banner to screen readers.

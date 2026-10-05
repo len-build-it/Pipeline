@@ -1,7 +1,7 @@
 # FEAT-001 Android account entry verification
 
 Created: 2026-10-05T08:41:51+08:00
-Updated: 2026-10-05T09:56:00+08:00
+Updated: 2026-10-05T11:11:36+08:00
 Feature: FEAT-001 revision 4
 Plan: PLAN-005 revision 2
 
@@ -107,3 +107,55 @@ The screenshots predate the final semantics and Tasks filter corrections, so the
 
 Review confirmed that demo runs on a fresh in-memory repository outside the authenticated repository, that demo-only controls stay in the demo account menu, and that no dependency was added.
 Phase 3 checkpoint message: feat(mobile): isolate demo access from live accounts.
+
+## Phase 3 follow-up on the API 37 emulator
+
+Recorded: 2026-10-05T11:11:36+08:00
+Phase 3 checkpoint is 895c9400dd5f320b7cd5de107bb14e0d32ba8a7a.
+This section is API 37 emulator evidence only; it is not API 24, API 36, or physical-device evidence, and those remain unverified.
+
+### Conditions
+
+The target was the Android Studio `Medium_Phone` AVD, model sdk_gphone16k_x86_64, Android 17, API 37, 1080 by 2400 pixels at 420 dpi, run headless.
+The app was the debug APK built from this working tree and installed with adb.
+The API was the test server from the ignored `.db/auth-verification-server.mjs` on loopback port 3000, using the reseeded disposable pipeline_test database, captured email, and synthetic example.com accounts.
+The journey was driven by the ignored `.db/android-auth-scenario.py` script, which reads the native accessibility tree with uiautomator and taps by label.
+
+### Finding and correction
+
+The first run reproduced the failure the earlier session hit on API 24 and API 36: demo opened, but the script never found the Demo banner.
+The banner was visible on screen but absent from the native accessibility tree, so a screen reader would not announce it.
+The cause was the nested entry navigator added for Android back handling: its route barrier blocked the semantics of the banner painted above it.
+A new widget test, `demo banner is announced to screen readers`, failed before the correction and passes after it.
+One correction in `mobile/lib/main.dart` gave the navigator its own semantics container; the banner then appeared in the native tree.
+
+A second stop, at `Create account and join`, was a script limitation and not an app defect: its scroll swipe started inside the taller API 37 keyboard area.
+A manual swipe inside the app area reached the button, and the ignored script now swipes from there.
+
+### Results
+
+At 100 percent and at 200 percent text scale the script completed the whole sequence with exit code 0.
+The sequence was: signed-out sign-in page, Try demo, the Demo banner, Members, Tasks, and Announcements in demo, Leave demo, demo re-entry, Android back to sign-in, real invitation preview, account creation and invited landing, sign-out, sign-in as a different existing account, force-stop, and cold session restore.
+The offline-cache part of the planned journey was not exercised on the emulator; it is covered only by the Phase 1 repository tests.
+Afterwards flutter analyze passed with no issues and the full flutter test suite passed 78 tests with the two opt-in live tests skipped.
+No server code changed, so the Node suites were not rerun after the 251-test pass recorded above.
+The emulator font scale was restored to 1.0 and the emulator and test server were stopped.
+
+### Screenshots
+
+Each image below was captured by the script on the API 37 emulator; the four 200 percent images marked inspected were viewed in this session.
+
+| Scenario | 100 percent | 200 percent |
+| --- | --- | --- |
+| Sign-in page | [api37-sign-in-100.png](screenshots/FEAT-001-auth-entry/api37-sign-in-100.png) | [api37-sign-in-200.png](screenshots/FEAT-001-auth-entry/api37-sign-in-200.png), inspected |
+| Demo with banner | [api37-demo-100.png](screenshots/FEAT-001-auth-entry/api37-demo-100.png) | [api37-demo-200.png](screenshots/FEAT-001-auth-entry/api37-demo-200.png), inspected |
+| Invitation preview | [api37-invitation-100.png](screenshots/FEAT-001-auth-entry/api37-invitation-100.png) | [api37-invitation-200.png](screenshots/FEAT-001-auth-entry/api37-invitation-200.png) |
+| Invitation form with keyboard open | [api37-invitation-keyboard-100.png](screenshots/FEAT-001-auth-entry/api37-invitation-keyboard-100.png) | [api37-invitation-keyboard-200.png](screenshots/FEAT-001-auth-entry/api37-invitation-keyboard-200.png), inspected |
+| Invited landing | [api37-invited-landing-100.png](screenshots/FEAT-001-auth-entry/api37-invited-landing-100.png) | [api37-invited-landing-200.png](screenshots/FEAT-001-auth-entry/api37-invited-landing-200.png) |
+| Authenticated landing | [api37-authenticated-100.png](screenshots/FEAT-001-auth-entry/api37-authenticated-100.png) | [api37-authenticated-200.png](screenshots/FEAT-001-auth-entry/api37-authenticated-200.png), inspected |
+
+In the inspected 200 percent images the sign-in, Try demo, and Create account and join actions are fully visible, the last one above the open keyboard, and the Demo banner is readable.
+One cosmetic observation at 200 percent: the bottom-bar label Announcements wraps mid-word; it stays readable and was not changed.
+Error, loading, and stale-cache messages were not triggered on the emulator at 200 percent.
+On API 37 each text field reports its label twice in the native hint, a side effect of the explicit labels added for API 24; it was left unchanged because API 24 can no longer be checked here.
+Follow-up checkpoint message: fix(mobile): announce demo banner to screen readers.
